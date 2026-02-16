@@ -157,17 +157,15 @@ export function DataProvider({ children }) {
   // Sales operations
   // Sales operations
   const addSale = async (sale) => {
-    // Map camelCase to snake_case for DB
     const newSale = { 
       ...sale, 
       id: Date.now(), 
       handed_over: sale.handedOver || false, 
       handed_over_date: sale.handedOverDate || null,
-      // Ensure source is set
       source: sale.source || 'Direct Sale'
     }
     
-    // Remove camelCase keys to avoid confusion (Supabase might ignore them, but better safe)
+    // Cleanup camelCase fields that we manually map or don't need
     delete newSale.handedOver
     delete newSale.handedOverDate
 
@@ -240,17 +238,13 @@ export function DataProvider({ children }) {
   // Design Projects operations
   // Design Projects operations
   const addDesign = async (design) => {
-    // Map frontend fields (type, completion, handedOver) to DB columns
     const newDesign = { 
       ...design, 
       id: Date.now(),
-      type: design.type, // Explicitly map type
-      completion: design.completion, // Explicitly map completion
       handed_over: design.handedOver || false, 
       handed_over_date: design.handedOverDate || null 
     }
 
-    // Clean up if needed, though extra keys usually okay if they don't match columns
     delete newDesign.handedOver
     delete newDesign.handedOverDate
 
@@ -410,13 +404,7 @@ export function DataProvider({ children }) {
   // Inventory operations
   // Inventory operations
   const addInventoryItem = async (item) => {
-    const newItem = { 
-      ...item, 
-      id: Date.now(),
-      // Ensure numeric mapping if needed, though strict mapping handles reorderLevel -> reorderlevel
-      reorderlevel: item.reorderLevel, 
-      unitprice: item.unitPrice
-    }
+    const newItem = { ...item, id: Date.now() }
     updateLocalState('inventory', 'CREATE', newItem)
     try {
       await performAction('inventory', 'CREATE', newItem)
