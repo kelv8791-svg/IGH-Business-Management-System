@@ -30,6 +30,58 @@ This will install all required packages:
 npm run dev
 ```
 
+### Deploy to Vercel and replace existing project
+
+1. Create a GitHub repository and push this project (example commands):
+
+```bash
+git remote add origin git@github.com:yourusername/igh-bms.git
+git branch -M main
+git push -u origin main
+```
+
+2. In Vercel:
+- Go to your dashboard and remove the existing project `igh-system` (this will delete the currently deployed site).
+- Choose "Import Project" → connect your GitHub and import the newly pushed repository.
+
+3. In the Vercel project settings → Environment Variables, add:
+
+- `VITE_SUPABASE_URL` = your Supabase URL (e.g., https://ykfhjyzmrwphbxkauqlt.supabase.co)
+- `VITE_SUPABASE_ANON_KEY` = your Supabase publishable API key (the anon key)
+
+4. Deploy. Vercel will build with `npm install` and `npm run build`.
+
+### Link Supabase and migrate data
+
+1. In Supabase dashboard, open the SQL Editor and run the SQL in `supabase/schema.sql` to create the initial tables.
+
+2. For migration, export your browser `localStorage` `ighData` object to a JSON file (example in browser console):
+
+```js
+copy(JSON.stringify(localStorage.getItem('ighData') ? JSON.parse(localStorage.getItem('ighData')) : {}))
+```
+
+Paste into a file `data-export.json` on your machine.
+
+3. Set environment variables locally for migration (you need the Supabase service role key from Project Settings → API):
+
+```bash
+export SUPABASE_URL="https://ykfhjyzmrwphbxkauqlt.supabase.co"
+export SUPABASE_SERVICE_ROLE_KEY="<your-service-role-key>"
+node scripts/migrate-to-supabase.js data-export.json
+```
+
+Note: use Windows PowerShell equivalents for `export` (e.g., `setx` or `$env:SUPABASE_URL = '...'`).
+
+4. After migration, set the same `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` on Vercel and redeploy.
+
+### Next steps (recommended)
+
+- Update `src/context/DataContext.jsx` to use the Supabase client (`src/lib/supabaseClient.js`) for CRUD instead of localStorage.
+- Rotate service role keys and keep them secret (never commit to repo).
+- If you want, I can scaffold the DataContext migration and convert a single collection to Supabase-backed as a follow-up.
+
+
 The development server will start and open in your browser at:
 ```
 http://localhost:5173/
