@@ -158,9 +158,15 @@ export function DataProvider({ children }) {
   const addSale = async (sale) => {
     const newSale = { ...sale, id: Date.now(), handed_over: sale.handed_over || false, handed_over_date: sale.handed_over_date || null }
     updateLocalState('sales', 'CREATE', newSale)
-    await performAction('sales', 'CREATE', newSale)
-    logAudit('CREATE', 'Sales', `Added sale of KSh ${sale.amount} from ${sale.client}`)
-    return newSale
+    try {
+      await performAction('sales', 'CREATE', newSale)
+      logAudit('CREATE', 'Sales', `Added sale of KSh ${sale.amount} from ${sale.client}`)
+      return newSale
+    } catch (err) {
+      alert('Failed to save sale to cloud! Please check your internet connection or try again.')
+      window.location.reload() // Revert optimistic update
+      throw err
+    }
   }
 
   const updateSale = async (id, updates) => {
@@ -192,9 +198,15 @@ export function DataProvider({ children }) {
   const addClient = async (client) => {
     const newClient = { ...client, id: Date.now() }
     updateLocalState('clients', 'CREATE', newClient)
-    await performAction('clients', 'CREATE', newClient)
-    logAudit('CREATE', 'Clients', `Added client: ${client.name}`)
-    return newClient
+    try {
+      await performAction('clients', 'CREATE', newClient)
+      logAudit('CREATE', 'Clients', `Added client: ${client.name}`)
+      return newClient
+    } catch (err) {
+      alert('Failed to save client! ' + err.message)
+      window.location.reload()
+      throw err
+    }
   }
 
   const updateClient = async (id, updates) => {
