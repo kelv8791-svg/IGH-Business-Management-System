@@ -1,5 +1,5 @@
--- Supabase / Postgres schema for IGH BMS (initial)
--- Run in Supabase SQL Editor to create tables before migration
+-- Supabase / Postgres schema for IGH BMS (Finalized)
+-- Run in Supabase SQL Editor to create tables
 
 -- Users: username is primary key
 CREATE TABLE IF NOT EXISTS users (
@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS clients (
   phone TEXT,
   email TEXT,
   address TEXT,
-  notes TEXT
+  notes TEXT,
+  location TEXT
 );
 
 CREATE TABLE IF NOT EXISTS suppliers (
@@ -53,23 +54,27 @@ CREATE TABLE IF NOT EXISTS inventory (
   sku TEXT,
   category TEXT,
   quantity INT,
-  reorderLevel INT,
-  unitPrice NUMERIC,
+  "reorderLevel" INT,
+  "unitPrice" NUMERIC,
   supplier BIGINT REFERENCES suppliers(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS designs (
   id BIGINT PRIMARY KEY,
-  title TEXT,
+  type TEXT,
   client TEXT,
-  assignedTo TEXT REFERENCES users(username) ON DELETE SET NULL,
+  "assignedTo" TEXT REFERENCES users(username) ON DELETE SET NULL,
   status TEXT,
-  paymentStatus TEXT,
-  paymentAmount NUMERIC,
-  paymentDate DATE,
+  "paymentStatus" TEXT,
+  "paymentAmount" NUMERIC,
+  "paymentDate" DATE,
   notes TEXT,
   handed_over BOOLEAN DEFAULT FALSE,
-  handed_over_date DATE
+  handed_over_date DATE,
+  amount NUMERIC,
+  completion DATE,
+  date DATE,
+  source TEXT
 );
 
 CREATE TABLE IF NOT EXISTS sales (
@@ -79,11 +84,11 @@ CREATE TABLE IF NOT EXISTS sales (
   dept TEXT,
   amount NUMERIC,
   "desc" TEXT,
-  paymentMethod TEXT,
-  paymentRef TEXT,
-  paymentStatus TEXT,
+  "paymentMethod" TEXT,
+  "paymentRef" TEXT,
+  "paymentStatus" TEXT,
   source TEXT,
-  designId BIGINT REFERENCES designs(id) ON DELETE SET NULL,
+  "designId" BIGINT REFERENCES designs(id) ON DELETE SET NULL,
   handed_over BOOLEAN DEFAULT FALSE,
   handed_over_date DATE
 );
@@ -96,3 +101,25 @@ CREATE TABLE IF NOT EXISTS audit (
   module TEXT,
   details TEXT
 );
+
+-- Row Level Security (RLS)
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE supplier_expenses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE inventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE designs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sales ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit ENABLE ROW LEVEL SECURITY;
+
+-- Public Access Policies
+CREATE POLICY "Public Access" ON users FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public Access" ON clients FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public Access" ON suppliers FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public Access" ON supplier_expenses FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public Access" ON expenses FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public Access" ON inventory FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public Access" ON designs FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public Access" ON sales FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public Access" ON audit FOR ALL USING (true) WITH CHECK (true);

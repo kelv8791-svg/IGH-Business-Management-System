@@ -5,7 +5,7 @@ export default function Topbar({ onToggleSidebar }) {
   const { user, logout, darkMode, setDarkMode, compactMode, setCompactMode } = useAuth()
 
   return (
-    <div className={`sticky top-0 z-40 bg-white dark:bg-gray-900 shadow-md h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-gray-700`}>
+    <div className={`sticky top-0 z-40 bg-white dark:bg-gray-900 text-gray-800 dark:text-white shadow-md h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-gray-700`}>
       <div className="flex items-center gap-2">
         <button
           onClick={onToggleSidebar}
