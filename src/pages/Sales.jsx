@@ -22,7 +22,9 @@ export default function Sales() {
     paymentMethod: 'Cash',
     paymentRef: '',
     paymentStatus: 'Pending',
-    source: 'Direct Sale'
+    source: 'Direct Sale',
+    handedOver: false,
+    handedOverDate: ''
   })
 
   const departments = ['Reception', 'Branding', 'Designing', '3D Design & Signage', 'Marketing']
@@ -56,10 +58,19 @@ export default function Sales() {
       alert('Please fill all required fields')
       return
     }
-
+    // Confirmation when marking handed over
     if (editId) {
+      const prev = data.sales.find(s => s.id === editId)
+      if (prev && !prev.handedOver && formData.handedOver) {
+        if (!window.confirm('Marking this sale as handed over will also mark the linked design as handed over. Continue?')) {
+          return
+        }
+      }
       updateSale(editId, formData)
     } else {
+      if (formData.handedOver) {
+        if (!window.confirm('Marking this new sale as handed over will mark the linked design as handed over (if linked). Continue?')) return
+      }
       addSale(formData)
     }
     setIsOpen(false)
@@ -119,6 +130,7 @@ export default function Sales() {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Description</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Amount</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Source</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Handed Over</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Payment Method</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
@@ -140,6 +152,13 @@ export default function Sales() {
                   </span>
                 </td>
                 <td className="px-6 py-3 text-sm">
+                  {sale.handedOver ? (
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">Handed</span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">Not handed</span>
+                  )}
+                </td>
+                <td className="px-6 py-3 text-sm">
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                     sale.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' :
                     sale.paymentStatus === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -148,7 +167,14 @@ export default function Sales() {
                     {sale.paymentStatus}
                   </span>
                 </td>
-                <td className="px-6 py-3 text-sm">{sale.paymentMethod}</td>
+                <td className="px-6 py-3 text-sm" title={sale.paymentRef || ''}>
+                  {sale.paymentMethod}
+                  {sale.paymentRef && (
+                    <span className="ml-2 text-xs text-gray-500" title={`Ref: ${sale.paymentRef}`}>
+                      ⓘ
+                    </span>
+                  )}
+                </td>
                 <td className="px-6 py-3 text-sm flex gap-2">
                   <button onClick={() => handleOpenModal(sale)} className="btn-secondary p-2">
                     <Edit2 size={16} />
@@ -263,6 +289,13 @@ export default function Sales() {
               <option value="Design Project">Design Project</option>
             </select>
           </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Handed Over</label>
+              <div className="flex gap-2 items-center">
+                <input type="checkbox" checked={!!formData.handedOver} onChange={(e) => setFormData({ ...formData, handedOver: e.target.checked })} />
+                <input type="date" value={formData.handedOverDate || ''} onChange={(e) => setFormData({ ...formData, handedOverDate: e.target.value })} className="form-input" />
+              </div>
+            </div>
           <div className="flex gap-3 pt-4">
             <button type="submit" className="btn-success flex-1">Save Sale</button>
             <button type="button" onClick={() => setIsOpen(false)} className="btn-secondary flex-1">Cancel</button>

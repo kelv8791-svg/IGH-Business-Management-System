@@ -23,6 +23,8 @@ export default function DesignProjects() {
     paymentStatus: 'Not Started',
     paymentAmount: '',
     paymentDate: '',
+    handedOver: false,
+    handedOverDate: '',
     source: 'Design Project'
   })
 
@@ -44,6 +46,8 @@ export default function DesignProjects() {
         paymentStatus: 'Not Started',
         paymentAmount: '',
         paymentDate: '',
+        handedOver: false,
+        handedOverDate: '',
         source: 'Design Project'
       })
       setEditId(null)
@@ -57,10 +61,17 @@ export default function DesignProjects() {
       alert('Please fill all required fields')
       return
     }
-
+    // Confirmation when marking handed over
     if (editId) {
+      const prev = data.designs.find(d => d.id === editId)
+      if (prev && !prev.handedOver && formData.handedOver) {
+        if (!window.confirm('Marking this design as handed over will update linked sale(s). Continue?')) return
+      }
       updateDesign(editId, formData)
     } else {
+      if (formData.handedOver) {
+        if (!window.confirm('Marking a new design as handed over will update linked sale(s) when created. Continue?')) return
+      }
       addDesign(formData)
     }
     setIsOpen(false)
@@ -135,6 +146,7 @@ export default function DesignProjects() {
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Payment Status</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Payment Amount</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Handover</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
             </tr>
           </thead>
@@ -167,6 +179,13 @@ export default function DesignProjects() {
                   </span>
                 </td>
                 <td className="px-6 py-3 text-sm font-semibold text-amber-600">KSh {design.paymentAmount?.toLocaleString() || '0'}</td>
+                <td className="px-6 py-3 text-sm">
+                  {design.handedOver ? (
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">Handed</span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">Not handed</span>
+                  )}
+                </td>
                 <td className="px-6 py-3 text-sm flex gap-2">
                   {(user?.role === 'admin' || user?.role === 'designer') && (
                     <button onClick={() => handleOpenModal(design)} className="btn-secondary p-2">
@@ -302,6 +321,13 @@ export default function DesignProjects() {
                   onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
                   className="form-input"
                 />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Handover to Client</label>
+                <div className="flex gap-2 items-center">
+                  <input type="checkbox" checked={!!formData.handedOver} onChange={(e) => setFormData({ ...formData, handedOver: e.target.checked })} />
+                  <input type="date" value={formData.handedOverDate || ''} onChange={(e) => setFormData({ ...formData, handedOverDate: e.target.value })} className="form-input" />
+                </div>
               </div>
             </div>
           </div>

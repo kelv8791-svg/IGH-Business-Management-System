@@ -67,7 +67,9 @@ CREATE TABLE IF NOT EXISTS designs (
   paymentStatus TEXT,
   paymentAmount NUMERIC,
   paymentDate DATE,
-  notes TEXT
+  notes TEXT,
+  handed_over BOOLEAN DEFAULT FALSE,
+  handed_over_date DATE
 );
 
 CREATE TABLE IF NOT EXISTS sales (
@@ -82,6 +84,8 @@ CREATE TABLE IF NOT EXISTS sales (
   paymentStatus TEXT,
   source TEXT,
   designId INT REFERENCES designs(id) ON DELETE SET NULL
+  ,handed_over BOOLEAN DEFAULT FALSE,
+  handed_over_date DATE
 );
 
 CREATE TABLE IF NOT EXISTS audit (

@@ -13,7 +13,7 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js'
-import { TrendingUp, TrendingDown, DollarSign, AlertCircle } from 'lucide-react'
+import { TrendingUp, TrendingDown, DollarSign, AlertCircle, Info } from 'lucide-react'
 
 ChartJS.register(
   CategoryScale,
@@ -31,67 +31,82 @@ export default function Dashboard() {
   const { data } = useData()
   const [period, setPeriod] = useState('monthly')
 
-  const getDateRange = () => {
+  const getDateRange = (p) => {
     const now = new Date()
-    let startDate
-    
-    switch (period) {
+    let startDate = new Date(now)
+
+    switch (p) {
       case 'daily':
-        startDate = new Date(now)
-        startDate.setDate(startDate.getDate() - 1)
+        // last 24 hours
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
         break
       case 'weekly':
-        startDate = new Date(now)
         startDate.setDate(startDate.getDate() - 7)
         break
       case 'monthly':
-        startDate = new Date(now)
         startDate.setMonth(startDate.getMonth() - 1)
         break
       case 'yearly':
-        startDate = new Date(now)
         startDate.setFullYear(startDate.getFullYear() - 1)
         break
       default:
-        startDate = new Date(now)
         startDate.setMonth(startDate.getMonth() - 1)
     }
 
     return {
-      start: startDate.toISOString().split('T')[0],
-      end: now.toISOString().split('T')[0],
+      start: startDate,
+      end: now,
     }
   }
 
-  const dateRange = getDateRange()
+  const dateRange = getDateRange(period)
+
+  const formatDate = (d) => {
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  }
+
+  const filteredSales = useMemo(() => {
+    return data.sales.filter(s => {
+      const sd = new Date(s.date)
+      return sd >= dateRange.start && sd <= dateRange.end
+    })
+  }, [data.sales, dateRange])
+
+  const filteredExpenses = useMemo(() => {
+    return data.expenses.filter(e => {
+      const ed = new Date(e.date)
+      return ed >= dateRange.start && ed <= dateRange.end
+    })
+  }, [data.expenses, dateRange])
 
   const stats = useMemo(() => {
-    const filteredSales = data.sales.filter(s => s.date >= dateRange.start && s.date <= dateRange.end)
-    const filteredExpenses = data.expenses.filter(e => e.date >= dateRange.start && e.date <= dateRange.end)
-
     const totalSales = filteredSales.reduce((sum, s) => sum + (s.amount || 0), 0)
     const totalExpenses = filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0)
     const netBalance = totalSales - totalExpenses
     const profitMargin = totalSales > 0 ? ((netBalance / totalSales) * 100).toFixed(2) : 0
 
     return { totalSales, totalExpenses, netBalance, profitMargin }
-  }, [data, dateRange])
+  }, [filteredSales, filteredExpenses])
 
   // Chart data
   const salesByDate = useMemo(() => {
     const grouped = {}
-    data.sales.forEach(s => {
-      const date = s.date
-      if (!grouped[date]) grouped[date] = 0
-      grouped[date] += s.amount
+    filteredSales.forEach(s => {
+      const d = new Date(s.date)
+      const key = formatDate(d)
+      grouped[key] = (grouped[key] || 0) + (s.amount || 0)
     })
-    
+
+    const labels = Object.keys(grouped).sort()
     return {
-      labels: Object.keys(grouped).sort().slice(-30),
+      labels,
       datasets: [
         {
           label: 'Sales Trend',
-          data: Object.keys(grouped).sort().slice(-30).map(d => grouped[d]),
+          data: labels.map(d => grouped[d]),
           borderColor: '#a855f7',
           backgroundColor: 'rgba(168, 85, 247, 0.1)',
           fill: true,
@@ -104,12 +119,12 @@ export default function Dashboard() {
         }
       ]
     }
-  }, [data])
+  }, [filteredSales])
 
   const departmentSales = useMemo(() => {
     const grouped = {}
-    data.sales.forEach(s => {
-      grouped[s.dept] = (grouped[s.dept] || 0) + s.amount
+    filteredSales.forEach(s => {
+      grouped[s.dept] = (grouped[s.dept] || 0) + (s.amount || 0)
     })
 
     return {
@@ -124,12 +139,12 @@ export default function Dashboard() {
         borderSkipped: false,
       }]
     }
-  }, [data])
+  }, [filteredSales])
 
   const expenseCategories = useMemo(() => {
     const grouped = {}
-    data.expenses.forEach(e => {
-      grouped[e.cat] = (grouped[e.cat] || 0) + e.amount
+    filteredExpenses.forEach(e => {
+      grouped[e.cat] = (grouped[e.cat] || 0) + (e.amount || 0)
     })
 
     return {
@@ -143,14 +158,20 @@ export default function Dashboard() {
         borderRadius: 8,
       }]
     }
-  }, [data])
+  }, [filteredExpenses])
 
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: true,
     animation: {
-      duration: 1000,
+      duration: 600,
       easing: 'easeInOutQuart',
+    },
+    animations: {
+      tension: {
+        duration: 600,
+        easing: 'easeInOutQuart'
+      }
     },
     plugins: {
       legend: {
@@ -203,6 +224,7 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-400">Welcome to IGH Business Management System</p>
         </div>
+        <div className="flex items-start gap-2">
         <select
           value={period}
           onChange={(e) => setPeriod(e.target.value)}
@@ -213,6 +235,11 @@ export default function Dashboard() {
           <option value="monthly">Last Month</option>
           <option value="yearly">Last Year</option>
         </select>
+        <span title={"Periods:\nLast 24 Hours — show entries from the previous 24 hours.\nLast 7 Days — show entries from the previous 7 days.\nLast Month — show entries from the previous month.\nLast Year — show entries from the previous year."} className="mt-1">
+          <Info size={16} className="opacity-60" />
+        </span>
+        </div>
+        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Showing: {formatDate(dateRange.start)} — {formatDate(dateRange.end)}</div>
       </div>
 
       {/* Statistics Cards */}
@@ -272,7 +299,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2 card">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Recent Transactions</h3>
           <div className="space-y-3">
-            {[...data.sales, ...data.expenses]
+            {[...filteredSales, ...filteredExpenses]
               .sort((a, b) => new Date(b.date) - new Date(a.date))
               .slice(0, 5)
               .map(item => (

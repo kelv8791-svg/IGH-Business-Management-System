@@ -1,4 +1,5 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect, useRef } from 'react'
+import supabase, { initSupabase } from '../lib/supabaseClient'
 
 const DataContext = createContext()
 
@@ -54,12 +55,78 @@ export function DataProvider({ children }) {
     localStorage.setItem('ighData', JSON.stringify(merged))
   }
 
+  // Handle remote realtime changes from Supabase and merge into local state
+  const handleRemoteChange = (table, eventType, record) => {
+    const map = {
+      sales: 'sales',
+      designs: 'designs',
+      clients: 'clients',
+      expenses: 'expenses',
+      suppliers: 'suppliers',
+      inventory: 'inventory',
+      supplier_expenses: 'supplierExpenses',
+      users: 'users'
+    }
+    const key = map[table]
+    if (!key) return
+    setData(prev => {
+      const updated = { ...prev }
+      const list = Array.isArray(updated[key]) ? updated[key] : []
+      if (eventType === 'INSERT') {
+        if (!list.some(i => i.id == record.id)) {
+          updated[key] = [record, ...list]
+        }
+      } else if (eventType === 'UPDATE') {
+        updated[key] = list.map(i => (i.id == record.id ? { ...i, ...record } : i))
+      } else if (eventType === 'DELETE') {
+        updated[key] = list.filter(i => i.id != record.id)
+      }
+      try { localStorage.setItem('ighData', JSON.stringify(updated)) } catch (e) {}
+      return updated
+    })
+  }
+
+  // Setup Supabase realtime subscriptions (optional - requires VITE_SUPABASE_URL & key)
+  useEffect(() => {
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+    if (!SUPABASE_URL) return
+    const unsubscribers = []
+    ;(async () => {
+      const client = await initSupabase()
+      if (!client) return
+      const tables = ['sales','designs','clients','expenses','suppliers','inventory','supplier_expenses','users']
+      for (const table of tables) {
+        try {
+          const ins = client.from(table).on('INSERT', payload => handleRemoteChange(table, 'INSERT', payload.new)).subscribe()
+          const upd = client.from(table).on('UPDATE', payload => handleRemoteChange(table, 'UPDATE', payload.new)).subscribe()
+          const del = client.from(table).on('DELETE', payload => handleRemoteChange(table, 'DELETE', payload.old || payload)).subscribe()
+          unsubscribers.push(() => { try { ins.unsubscribe() } catch (e) {} ; try { upd.unsubscribe() } catch (e) {} ; try { del.unsubscribe() } catch (e) {} })
+        } catch (e) {
+          console.warn('Supabase realtime subscribe error for', table, e)
+        }
+      }
+    })()
+    return () => { unsubscribers.forEach(u => u()) }
+  }, [])
+
   // Sales operations
   const addSale = (sale) => {
-    const newSale = { ...sale, id: Date.now() }
+    const newSale = { ...sale, id: Date.now(), handedOver: sale.handedOver || false, handedOverDate: sale.handedOverDate || null }
     const newData = { ...data, sales: [...data.sales, newSale] }
     saveData(newData)
     logAudit('CREATE', 'Sales', `Added sale of KSh ${sale.amount} from ${sale.client}`)
+
+    // background sync to Supabase if configured
+    try {
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+      if (SUPABASE_URL) {
+        ;(async () => {
+          const { error } = await supabase.from('sales').upsert([newSale])
+          if (error) console.warn('Supabase upsert sale error:', error)
+        })()
+      }
+    } catch (e) {}
+
     return newSale
   }
 
@@ -68,6 +135,24 @@ export function DataProvider({ children }) {
       ...data,
       sales: data.sales.map(s => s.id === id ? { ...s, ...updates } : s)
     }
+    // If sale is marked handedOver and it's linked to a design, propagate to design
+    const updatedSale = newData.sales.find(s => s.id === id)
+    if (updatedSale && updatedSale.handedOver && updatedSale.designId) {
+      newData.designs = newData.designs.map(d => d.id === updatedSale.designId ? { ...d, handedOver: true, handedOverDate: updatedSale.handedOverDate || new Date().toISOString().split('T')[0] } : d)
+      logAudit('UPDATE', 'Design Projects', `Marked design ID ${updatedSale.designId} as handed over via sale ID ${id}`)
+    }
+    // background sync update to Supabase
+    try {
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+      if (SUPABASE_URL) {
+        const updated = newData.sales.find(s => s.id === id)
+        ;(async () => {
+          const { error } = await supabase.from('sales').upsert([updated])
+          if (error) console.warn('Supabase upsert sale error:', error)
+        })()
+      }
+    } catch (e) {}
+
     saveData(newData)
     logAudit('UPDATE', 'Sales', `Updated sale ID ${id}`)
   }
@@ -77,6 +162,17 @@ export function DataProvider({ children }) {
       ...data,
       sales: data.sales.filter(s => s.id !== id)
     }
+    // background delete in Supabase
+    try {
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+      if (SUPABASE_URL) {
+        ;(async () => {
+          const { error } = await supabase.from('sales').delete().eq('id', id)
+          if (error) console.warn('Supabase delete sale error:', error)
+        })()
+      }
+    } catch (e) {}
+
     saveData(newData)
     logAudit('DELETE', 'Sales', `Deleted sale ID ${id}`)
   }
@@ -110,10 +206,22 @@ export function DataProvider({ children }) {
 
   // Design Projects operations
   const addDesign = (design) => {
-    const newDesign = { ...design, id: Date.now() }
+    const newDesign = { ...design, id: Date.now(), handedOver: design.handedOver || false, handedOverDate: design.handedOverDate || null }
     const newData = { ...data, designs: [...data.designs, newDesign] }
     saveData(newData)
     logAudit('CREATE', 'Design Projects', `Added design project for client ${design.client}`)
+
+    // background sync to Supabase if configured
+    try {
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+      if (SUPABASE_URL) {
+        ;(async () => {
+          const { error } = await supabase.from('designs').upsert([newDesign])
+          if (error) console.warn('Supabase upsert design error:', error)
+        })()
+      }
+    } catch (e) {}
+
     return newDesign
   }
 
@@ -140,12 +248,35 @@ export function DataProvider({ children }) {
           amount: updates.paymentAmount,
           desc: `${designBeforeUpdate.type} - ${designBeforeUpdate.client}`,
           source: 'Design Project',
-          designId: id
+          designId: id,
+          paymentStatus: updates.paymentStatus || 'Paid',
+          paymentMethod: updates.paymentMethod || updates.paymentMethod || 'Cash',
+          paymentRef: updates.paymentRef || null,
+          handedOver: updates.handedOver || false,
+          handedOverDate: updates.handedOverDate || null
         }
         newData.sales = [...newData.sales, newSale]
         logAudit('CREATE', 'Sales', `Auto-created sale from Design Project: ${designBeforeUpdate.type} - KSh ${updates.paymentAmount}`)
       }
     }
+
+    // If design was marked handed over, propagate to linked sale(s)
+    if (updates.handedOver) {
+      newData.sales = newData.sales.map(s => s.designId === id ? { ...s, handedOver: true, handedOverDate: updates.handedOverDate || new Date().toISOString().split('T')[0] } : s)
+      logAudit('UPDATE', 'Sales', `Marked sale(s) from design ID ${id} as handed over`)
+    }
+
+    // background sync to Supabase for designs
+    try {
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+      if (SUPABASE_URL) {
+        const updated = newData.designs.find(d => d.id === id)
+        ;(async () => {
+          const { error } = await supabase.from('designs').upsert([updated])
+          if (error) console.warn('Supabase upsert design error:', error)
+        })()
+      }
+    } catch (e) {}
 
     saveData(newData)
     logAudit('UPDATE', 'Design Projects', `Updated design ID ${id}`)
@@ -156,6 +287,17 @@ export function DataProvider({ children }) {
       ...data,
       designs: data.designs.filter(d => d.id !== id)
     }
+    // background delete in Supabase
+    try {
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+      if (SUPABASE_URL) {
+        ;(async () => {
+          const { error } = await supabase.from('designs').delete().eq('id', id)
+          if (error) console.warn('Supabase delete design error:', error)
+        })()
+      }
+    } catch (e) {}
+
     saveData(newData)
     logAudit('DELETE', 'Design Projects', `Deleted design ID ${id}`)
   }
