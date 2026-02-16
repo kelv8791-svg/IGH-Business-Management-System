@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../App'
 import Modal from '../components/Modal'
-import { Plus, Edit2, Trash2, Trash } from 'lucide-react'
+import { Plus, Edit2, Trash2, Trash, CloudCog } from 'lucide-react'
+import { migrateLocalStorageToSupabase } from '../utils/migrateData'
 
 export default function Settings() {
   const { data, addUser, updateUser, deleteUser, clearAllData, logAudit } = useData()
@@ -80,6 +81,27 @@ export default function Settings() {
         clearAllData()
         logAudit('CRITICAL', 'System', 'All data cleared')
         alert('All data has been cleared')
+      }
+    }
+  }
+
+  const handleMigrate = async () => {
+    if (window.confirm('This will push all your current localStorage data to Supabase. Existing records with same IDs will be overwritten. Proceed?')) {
+      const btn = document.getElementById('migrate-btn')
+      if (btn) btn.disabled = true
+      try {
+        const result = await migrateLocalStorageToSupabase()
+        if (result.success) {
+          alert('Migration completed successfully!')
+          logAudit('SYSTEM', 'Migration', 'Local data migrated to Supabase')
+          window.location.reload() // Reload to fetch fresh data from Supabase
+        } else {
+          alert('Migration failed: ' + (result.message || 'Unknown error'))
+        }
+      } catch (err) {
+        alert('Migration error: ' + err.message)
+      } finally {
+        if (btn) btn.disabled = false
       }
     }
   }
@@ -265,6 +287,24 @@ export default function Settings() {
                 <p className="text-2xl font-bold text-indigo-600">{data.audit.length}</p>
               </div>
             </div>
+          </div>
+
+          <div className="card border-2 border-primary-gold/30 dark:border-primary-gold/20">
+            <h3 className="text-lg font-semibold text-primary-gold mb-4 flex items-center gap-2">
+              <CloudCog size={20} />
+              Cloud Migration
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Push your existing local browser data to the Supabase cloud database. 
+              This will sync all your current sales, clients, and inventory data.
+            </p>
+            <button
+              id="migrate-btn"
+              onClick={handleMigrate}
+              className="btn-primary"
+            >
+              Migrate Local Data to Cloud
+            </button>
           </div>
 
           <div className="card border-2 border-red-200 dark:border-red-800">

@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS clients (
-  id INT PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   name TEXT,
   contact TEXT,
   phone TEXT,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS clients (
 );
 
 CREATE TABLE IF NOT EXISTS suppliers (
-  id INT PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   name TEXT,
   contact TEXT,
   phone TEXT,
@@ -31,35 +31,35 @@ CREATE TABLE IF NOT EXISTS suppliers (
 );
 
 CREATE TABLE IF NOT EXISTS supplier_expenses (
-  id INT PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   date DATE,
-  supplier INT REFERENCES suppliers(id) ON DELETE SET NULL,
+  supplier BIGINT REFERENCES suppliers(id) ON DELETE SET NULL,
   type TEXT,
   amount NUMERIC,
   remarks TEXT
 );
 
 CREATE TABLE IF NOT EXISTS expenses (
-  id INT PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   date DATE,
   cat TEXT,
   amount NUMERIC,
-  desc TEXT
+  "desc" TEXT
 );
 
 CREATE TABLE IF NOT EXISTS inventory (
-  id INT PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   name TEXT,
   sku TEXT,
   category TEXT,
   quantity INT,
   reorderLevel INT,
   unitPrice NUMERIC,
-  supplier INT REFERENCES suppliers(id) ON DELETE SET NULL
+  supplier BIGINT REFERENCES suppliers(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS designs (
-  id INT PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   title TEXT,
   client TEXT,
   assignedTo TEXT REFERENCES users(username) ON DELETE SET NULL,
@@ -73,18 +73,18 @@ CREATE TABLE IF NOT EXISTS designs (
 );
 
 CREATE TABLE IF NOT EXISTS sales (
-  id INT PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   date DATE,
   client TEXT,
   dept TEXT,
   amount NUMERIC,
-  desc TEXT,
+  "desc" TEXT,
   paymentMethod TEXT,
   paymentRef TEXT,
   paymentStatus TEXT,
   source TEXT,
-  designId INT REFERENCES designs(id) ON DELETE SET NULL
-  ,handed_over BOOLEAN DEFAULT FALSE,
+  designId BIGINT REFERENCES designs(id) ON DELETE SET NULL,
+  handed_over BOOLEAN DEFAULT FALSE,
   handed_over_date DATE
 );
 

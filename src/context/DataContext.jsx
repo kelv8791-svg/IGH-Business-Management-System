@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react'
-import supabase, { initSupabase } from '../lib/supabaseClient'
+import { createContext, useContext, useState, useEffect } from 'react'
+import supabase from '../lib/supabaseClient'
 
 const DataContext = createContext()
 
@@ -11,468 +11,370 @@ export function useData() {
   return context
 }
 
-const initializeData = () => {
-  const stored = localStorage.getItem('ighData')
-  if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        if (parsed && Array.isArray(parsed.users)) {
-          parsed.users = parsed.users.map(u => ({
-            username: u.username ? u.username : (u.email ? u.email.split('@')[0].toLowerCase() : ''),
-            ...u
-          }))
-        }
-        return parsed
-      } catch (e) {
-        return JSON.parse(stored)
-      }
-  }
-  return {
-    sales: [],
-    clients: [],
-    designs: [],
-    expenses: [],
-    suppliers: [],
-    supplierExpenses: [],
-    inventory: [],
-    audit: [],
-    users: [
-      { username: 'admin', email: 'admin@igh.com', password: 'admin123', role: 'admin', pref_compact: false },
-      { username: 'user', email: 'user@igh.com', password: 'user123', role: 'user', pref_compact: false },
-    ]
-  }
+const initialData = {
+  sales: [],
+  clients: [],
+  designs: [],
+  expenses: [],
+  suppliers: [],
+  supplierExpenses: [],
+  inventory: [],
+  audit: [],
+  users: []
 }
 
 export function DataProvider({ children }) {
-  const [data, setData] = useState(initializeData())
+  const [data, setData] = useState(initialData)
+  const [loading, setLoading] = useState(true)
 
-  // Save to localStorage whenever data changes
-  const saveData = (newData) => {
-    // Merge audit entries to avoid losing entries added via logAudit()
-    const mergedAudit = [...(newData.audit || []), ...(data.audit || [])]
-    const merged = { ...newData, audit: mergedAudit }
-    setData(merged)
-    localStorage.setItem('ighData', JSON.stringify(merged))
-  }
-
-  // Handle remote realtime changes from Supabase and merge into local state
-  const handleRemoteChange = (table, eventType, record) => {
-    const map = {
-      sales: 'sales',
-      designs: 'designs',
-      clients: 'clients',
-      expenses: 'expenses',
-      suppliers: 'suppliers',
-      inventory: 'inventory',
-      supplier_expenses: 'supplierExpenses',
-      users: 'users'
-    }
-    const key = map[table]
-    if (!key) return
-    setData(prev => {
-      const updated = { ...prev }
-      const list = Array.isArray(updated[key]) ? updated[key] : []
-      if (eventType === 'INSERT') {
-        if (!list.some(i => i.id == record.id)) {
-          updated[key] = [record, ...list]
-        }
-      } else if (eventType === 'UPDATE') {
-        updated[key] = list.map(i => (i.id == record.id ? { ...i, ...record } : i))
-      } else if (eventType === 'DELETE') {
-        updated[key] = list.filter(i => i.id != record.id)
-      }
-      try { localStorage.setItem('ighData', JSON.stringify(updated)) } catch (e) {}
-      return updated
-    })
-  }
-
-  // Setup Supabase realtime subscriptions (optional - requires VITE_SUPABASE_URL & key)
+  // Fetch all data from Supabase on mount
   useEffect(() => {
-    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-    if (!SUPABASE_URL) return
-    const unsubscribers = []
-    ;(async () => {
-      const client = await initSupabase()
-      if (!client) return
-      const tables = ['sales','designs','clients','expenses','suppliers','inventory','supplier_expenses','users']
-      for (const table of tables) {
-        try {
-          const ins = client.from(table).on('INSERT', payload => handleRemoteChange(table, 'INSERT', payload.new)).subscribe()
-          const upd = client.from(table).on('UPDATE', payload => handleRemoteChange(table, 'UPDATE', payload.new)).subscribe()
-          const del = client.from(table).on('DELETE', payload => handleRemoteChange(table, 'DELETE', payload.old || payload)).subscribe()
-          unsubscribers.push(() => { try { ins.unsubscribe() } catch (e) {} ; try { upd.unsubscribe() } catch (e) {} ; try { del.unsubscribe() } catch (e) {} })
-        } catch (e) {
-          console.warn('Supabase realtime subscribe error for', table, e)
+    async function fetchAllData() {
+      setLoading(true)
+      try {
+        const [
+          { data: sales, error: salesErr },
+          { data: clients, error: clientsErr },
+          { data: designs, error: designsErr },
+          { data: expenses, error: expensesErr },
+          { data: suppliers, error: suppliersErr },
+          { data: supplierExpenses, error: supplierExpensesErr },
+          { data: inventory, error: inventoryErr },
+          { data: audit, error: auditErr },
+          { data: users, error: usersErr }
+        ] = await Promise.all([
+          supabase.from('sales').select('*').order('id', { ascending: false }),
+          supabase.from('clients').select('*').order('name'),
+          supabase.from('designs').select('*').order('id', { ascending: false }),
+          supabase.from('expenses').select('*').order('date', { ascending: false }),
+          supabase.from('suppliers').select('*').order('name'),
+          supabase.from('supplier_expenses').select('*').order('date', { ascending: false }),
+          supabase.from('inventory').select('*').order('name'),
+          supabase.from('audit').select('*').order('timestamp', { ascending: false }).limit(200),
+          supabase.from('users').select('*')
+        ])
+
+        if (salesErr || clientsErr || designsErr || expensesErr || suppliersErr || supplierExpensesErr || inventoryErr || auditErr || usersErr) {
+           console.warn('One or more fetches failed. This is expected if tables are not yet created.')
         }
+
+        setData({
+          sales: sales || [],
+          clients: clients || [],
+          designs: designs || [],
+          expenses: expenses || [],
+          suppliers: suppliers || [],
+          supplierExpenses: supplierExpenses || [],
+          inventory: inventory || [],
+          audit: audit || [],
+          users: users || []
+        })
+      } catch (error) {
+        console.error('Error fetching data from Supabase:', error)
+      } finally {
+        setLoading(false)
       }
-    })()
-    return () => { unsubscribers.forEach(u => u()) }
+    }
+
+    fetchAllData()
   }, [])
 
+  // Real-time subscriptions
+  useEffect(() => {
+    const tables = ['sales', 'clients', 'designs', 'expenses', 'suppliers', 'supplier_expenses', 'inventory', 'audit', 'users']
+    
+    const channels = tables.map(table => {
+      const keyMap = { supplier_expenses: 'supplierExpenses' }
+      const dataKey = keyMap[table] || table
+
+      return supabase.channel(`public:${table}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table }, (payload) => {
+          setData(prev => {
+            const list = prev[dataKey] || []
+            if (payload.eventType === 'INSERT') {
+              // Avoid duplicates
+              const idField = table === 'users' ? 'username' : 'id'
+              if (list.some(item => item[idField] === payload.new[idField])) return prev;
+              return { ...prev, [dataKey]: [payload.new, ...list] }
+            } else if (payload.eventType === 'UPDATE') {
+              const idField = table === 'users' ? 'username' : 'id'
+              return { ...prev, [dataKey]: list.map(item => item[idField] === payload.new[idField] ? payload.new : item) }
+            } else if (payload.eventType === 'DELETE') {
+              const idField = table === 'users' ? 'username' : 'id'
+              const deletedId = payload.old[idField] || (payload.new ? payload.new[idField] : null)
+              if (!deletedId) return prev;
+              return { ...prev, [dataKey]: list.filter(item => item[idField] !== deletedId) }
+            }
+            return prev
+          })
+        })
+        .subscribe()
+    })
+
+    return () => {
+      channels.forEach(channel => supabase.removeChannel(channel))
+    }
+  }, [])
+
+  // Combined function to update state and Supabase
+  async function performAction(table, action, record, idField = 'id') {
+    let result;
+    if (action === 'CREATE') {
+      result = await supabase.from(table).insert(record).select()
+    } else if (action === 'UPDATE') {
+      result = await supabase.from(table).update(record).eq(idField, record[idField]).select()
+    } else if (action === 'DELETE') {
+      result = await supabase.from(table).delete().eq(idField, record[idField])
+    }
+
+    if (result.error) {
+      console.error(`Supabase ${action} error on ${table}:`, result.error)
+      throw result.error
+    }
+    return result.data?.[0] || record
+  }
+
   // Sales operations
-  const addSale = (sale) => {
-    const newSale = { ...sale, id: Date.now(), handedOver: sale.handedOver || false, handedOverDate: sale.handedOverDate || null }
-    const newData = { ...data, sales: [...data.sales, newSale] }
-    saveData(newData)
+  const addSale = async (sale) => {
+    const newSale = { ...sale, id: Date.now(), handed_over: sale.handed_over || false, handed_over_date: sale.handed_over_date || null }
+    await performAction('sales', 'CREATE', newSale)
     logAudit('CREATE', 'Sales', `Added sale of KSh ${sale.amount} from ${sale.client}`)
-
-    // background sync to Supabase if configured
-    try {
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-      if (SUPABASE_URL) {
-        ;(async () => {
-          const { error } = await supabase.from('sales').upsert([newSale])
-          if (error) console.warn('Supabase upsert sale error:', error)
-        })()
-      }
-    } catch (e) {}
-
     return newSale
   }
 
-  const updateSale = (id, updates) => {
-    const newData = {
-      ...data,
-      sales: data.sales.map(s => s.id === id ? { ...s, ...updates } : s)
-    }
-    // If sale is marked handedOver and it's linked to a design, propagate to design
-    const updatedSale = newData.sales.find(s => s.id === id)
-    if (updatedSale && updatedSale.handedOver && updatedSale.designId) {
-      newData.designs = newData.designs.map(d => d.id === updatedSale.designId ? { ...d, handedOver: true, handedOverDate: updatedSale.handedOverDate || new Date().toISOString().split('T')[0] } : d)
-      logAudit('UPDATE', 'Design Projects', `Marked design ID ${updatedSale.designId} as handed over via sale ID ${id}`)
-    }
-    // background sync update to Supabase
-    try {
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-      if (SUPABASE_URL) {
-        const updated = newData.sales.find(s => s.id === id)
-        ;(async () => {
-          const { error } = await supabase.from('sales').upsert([updated])
-          if (error) console.warn('Supabase upsert sale error:', error)
-        })()
+  const updateSale = async (id, updates) => {
+    const sale = data.sales.find(s => s.id === id)
+    if (!sale) return;
+    const updatedSale = { ...sale, ...updates }
+    
+    // If sale is marked handed_over and it's linked to a design, propagate to design
+    if (updatedSale.handed_over && updatedSale.designId) {
+      const design = data.designs.find(d => d.id === updatedSale.designId)
+      if (design && !design.handed_over) {
+        await updateDesign(design.id, { handed_over: true, handed_over_date: updatedSale.handed_over_date || new Date().toISOString().split('T')[0] })
+        logAudit('UPDATE', 'Design Projects', `Marked design ID ${design.id} as handed over via sale ID ${id}`)
       }
-    } catch (e) {}
+    }
 
-    saveData(newData)
+    await performAction('sales', 'UPDATE', updatedSale)
     logAudit('UPDATE', 'Sales', `Updated sale ID ${id}`)
   }
 
-  const deleteSale = (id) => {
-    const newData = {
-      ...data,
-      sales: data.sales.filter(s => s.id !== id)
-    }
-    // background delete in Supabase
-    try {
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-      if (SUPABASE_URL) {
-        ;(async () => {
-          const { error } = await supabase.from('sales').delete().eq('id', id)
-          if (error) console.warn('Supabase delete sale error:', error)
-        })()
-      }
-    } catch (e) {}
-
-    saveData(newData)
+  const deleteSale = async (id) => {
+    await performAction('sales', 'DELETE', { id })
     logAudit('DELETE', 'Sales', `Deleted sale ID ${id}`)
   }
 
   // Clients operations
-  const addClient = (client) => {
+  const addClient = async (client) => {
     const newClient = { ...client, id: Date.now() }
-    const newData = { ...data, clients: [...data.clients, newClient] }
-    saveData(newData)
+    await performAction('clients', 'CREATE', newClient)
     logAudit('CREATE', 'Clients', `Added client: ${client.name}`)
     return newClient
   }
 
-  const updateClient = (id, updates) => {
-    const newData = {
-      ...data,
-      clients: data.clients.map(c => c.id === id ? { ...c, ...updates } : c)
-    }
-    saveData(newData)
+  const updateClient = async (id, updates) => {
+    const client = data.clients.find(c => c.id === id)
+    if (!client) return;
+    await performAction('clients', 'UPDATE', { ...client, ...updates })
     logAudit('UPDATE', 'Clients', `Updated client ID ${id}`)
   }
 
-  const deleteClient = (id) => {
-    const newData = {
-      ...data,
-      clients: data.clients.filter(c => c.id !== id)
-    }
-    saveData(newData)
+  const deleteClient = async (id) => {
+    await performAction('clients', 'DELETE', { id })
     logAudit('DELETE', 'Clients', `Deleted client ID ${id}`)
   }
 
   // Design Projects operations
-  const addDesign = (design) => {
-    const newDesign = { ...design, id: Date.now(), handedOver: design.handedOver || false, handedOverDate: design.handedOverDate || null }
-    const newData = { ...data, designs: [...data.designs, newDesign] }
-    saveData(newData)
+  const addDesign = async (design) => {
+    const newDesign = { ...design, id: Date.now(), handed_over: design.handed_over || false, handed_over_date: design.handed_over_date || null }
+    await performAction('designs', 'CREATE', newDesign)
     logAudit('CREATE', 'Design Projects', `Added design project for client ${design.client}`)
-
-    // background sync to Supabase if configured
-    try {
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-      if (SUPABASE_URL) {
-        ;(async () => {
-          const { error } = await supabase.from('designs').upsert([newDesign])
-          if (error) console.warn('Supabase upsert design error:', error)
-        })()
-      }
-    } catch (e) {}
-
     return newDesign
   }
 
-  const updateDesign = (id, updates) => {
+  const updateDesign = async (id, updates) => {
     const designBeforeUpdate = data.designs.find(d => d.id === id)
-    const wantCompletedWithFullPayment = updates.status === 'Completed' && updates.paymentStatus === 'Full'
-    const wasNotCompletedWithFullPayment = !designBeforeUpdate || designBeforeUpdate.status !== 'Completed' || designBeforeUpdate.paymentStatus !== 'Full'
+    if (!designBeforeUpdate) return;
+    const updatedDesign = { ...designBeforeUpdate, ...updates }
     
-    const newData = {
-      ...data,
-      designs: data.designs.map(d => d.id === id ? { ...d, ...updates } : d)
-    }
-
+    const wantCompletedWithFullPayment = updates.status === 'Completed' && (updates.paymentStatus === 'Full' || updates.paymentStatus === 'Paid')
+    const wasNotCompletedWithFullPayment = !designBeforeUpdate || designBeforeUpdate.status !== 'Completed' || (designBeforeUpdate.paymentStatus !== 'Full' && designBeforeUpdate.paymentStatus !== 'Paid')
+    
     // Auto-create sale if design is marked as Completed with Full payment
-    if (wantCompletedWithFullPayment && wasNotCompletedWithFullPayment && updates.paymentAmount) {
-      const saleAlreadyExists = data.sales.some(s => s.designId === id)
+    if (wantCompletedWithFullPayment && wasNotCompletedWithFullPayment && (updates.paymentAmount || designBeforeUpdate.paymentAmount)) {
+      const saleAlreadyExists = data.sales.some(s => Number(s.designId) === Number(id))
       
       if (!saleAlreadyExists) {
         const newSale = {
           id: Date.now() + 1,
-          date: updates.paymentDate || new Date().toISOString().split('T')[0],
+          date: updates.paymentDate || designBeforeUpdate.paymentDate || new Date().toISOString().split('T')[0],
           client: designBeforeUpdate.client,
-          dept: designBeforeUpdate.type,
-          amount: updates.paymentAmount,
-          desc: `${designBeforeUpdate.type} - ${designBeforeUpdate.client}`,
+          dept: designBeforeUpdate.title || 'Design',
+          amount: updates.paymentAmount || designBeforeUpdate.paymentAmount,
+          desc: `${designBeforeUpdate.title || 'Design'} - ${designBeforeUpdate.client}`,
           source: 'Design Project',
           designId: id,
-          paymentStatus: updates.paymentStatus || 'Paid',
-          paymentMethod: updates.paymentMethod || updates.paymentMethod || 'Cash',
-          paymentRef: updates.paymentRef || null,
-          handedOver: updates.handedOver || false,
-          handedOverDate: updates.handedOverDate || null
+          paymentMethod: updates.paymentMethod || 'Cash',
+          paymentStatus: 'Paid',
+          handed_over: updates.handed_over || designBeforeUpdate.handed_over || false,
+          handed_over_date: updates.handed_over_date || designBeforeUpdate.handed_over_date || null
         }
-        newData.sales = [...newData.sales, newSale]
-        logAudit('CREATE', 'Sales', `Auto-created sale from Design Project: ${designBeforeUpdate.type} - KSh ${updates.paymentAmount}`)
+        await performAction('sales', 'CREATE', newSale)
+        logAudit('CREATE', 'Sales', `Auto-created sale from Design Project: KSh ${newSale.amount}`)
       }
     }
 
     // If design was marked handed over, propagate to linked sale(s)
-    if (updates.handedOver) {
-      newData.sales = newData.sales.map(s => s.designId === id ? { ...s, handedOver: true, handedOverDate: updates.handedOverDate || new Date().toISOString().split('T')[0] } : s)
-      logAudit('UPDATE', 'Sales', `Marked sale(s) from design ID ${id} as handed over`)
+    if (updates.handed_over) {
+      const linkedSales = data.sales.filter(s => Number(s.designId) === Number(id) && !s.handed_over)
+      for (const sale of linkedSales) {
+        await updateSale(sale.id, { handed_over: true, handed_over_date: updates.handed_over_date || new Date().toISOString().split('T')[0] })
+      }
     }
 
-    // background sync to Supabase for designs
-    try {
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-      if (SUPABASE_URL) {
-        const updated = newData.designs.find(d => d.id === id)
-        ;(async () => {
-          const { error } = await supabase.from('designs').upsert([updated])
-          if (error) console.warn('Supabase upsert design error:', error)
-        })()
-      }
-    } catch (e) {}
-
-    saveData(newData)
+    await performAction('designs', 'UPDATE', updatedDesign)
     logAudit('UPDATE', 'Design Projects', `Updated design ID ${id}`)
   }
 
-  const deleteDesign = (id) => {
-    const newData = {
-      ...data,
-      designs: data.designs.filter(d => d.id !== id)
-    }
-    // background delete in Supabase
-    try {
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-      if (SUPABASE_URL) {
-        ;(async () => {
-          const { error } = await supabase.from('designs').delete().eq('id', id)
-          if (error) console.warn('Supabase delete design error:', error)
-        })()
-      }
-    } catch (e) {}
-
-    saveData(newData)
+  const deleteDesign = async (id) => {
+    await performAction('designs', 'DELETE', { id })
     logAudit('DELETE', 'Design Projects', `Deleted design ID ${id}`)
   }
 
   // Expenses operations
-  const addExpense = (expense) => {
+  const addExpense = async (expense) => {
     const newExpense = { ...expense, id: Date.now() }
-    const newData = { ...data, expenses: [...data.expenses, newExpense] }
-    saveData(newData)
+    await performAction('expenses', 'CREATE', newExpense)
     logAudit('CREATE', 'Expenses', `Added expense of KSh ${expense.amount} in ${expense.cat}`)
     return newExpense
   }
 
-  const updateExpense = (id, updates) => {
-    const newData = {
-      ...data,
-      expenses: data.expenses.map(e => e.id === id ? { ...e, ...updates } : e)
-    }
-    saveData(newData)
+  const updateExpense = async (id, updates) => {
+    const expense = data.expenses.find(e => e.id === id)
+    if (!expense) return;
+    await performAction('expenses', 'UPDATE', { ...expense, ...updates })
     logAudit('UPDATE', 'Expenses', `Updated expense ID ${id}`)
   }
 
-  const deleteExpense = (id) => {
-    const newData = {
-      ...data,
-      expenses: data.expenses.filter(e => e.id !== id)
-    }
-    saveData(newData)
+  const deleteExpense = async (id) => {
+    await performAction('expenses', 'DELETE', { id })
     logAudit('DELETE', 'Expenses', `Deleted expense ID ${id}`)
   }
 
   // Suppliers operations
-  const addSupplier = (supplier) => {
+  const addSupplier = async (supplier) => {
     const newSupplier = { ...supplier, id: Date.now() }
-    const newData = { ...data, suppliers: [...data.suppliers, newSupplier] }
-    saveData(newData)
+    await performAction('suppliers', 'CREATE', newSupplier)
     logAudit('CREATE', 'Suppliers', `Added supplier: ${supplier.name}`)
     return newSupplier
   }
 
-  const updateSupplier = (id, updates) => {
-    const newData = {
-      ...data,
-      suppliers: data.suppliers.map(s => s.id === id ? { ...s, ...updates } : s)
-    }
-    saveData(newData)
+  const updateSupplier = async (id, updates) => {
+    const supplier = data.suppliers.find(s => s.id === id)
+    if (!supplier) return;
+    await performAction('suppliers', 'UPDATE', { ...supplier, ...updates })
     logAudit('UPDATE', 'Suppliers', `Updated supplier ID ${id}`)
   }
 
-  const deleteSupplier = (id) => {
-    const newData = {
-      ...data,
-      suppliers: data.suppliers.filter(s => s.id !== id)
-    }
-    saveData(newData)
+  const deleteSupplier = async (id) => {
+    await performAction('suppliers', 'DELETE', { id })
     logAudit('DELETE', 'Suppliers', `Deleted supplier ID ${id}`)
   }
 
   // Supplier Expenses operations
-  const addSupplierExpense = (expense) => {
+  const addSupplierExpense = async (expense) => {
     const newExpense = { ...expense, id: Date.now() }
-    const newData = { ...data, supplierExpenses: [...data.supplierExpenses, newExpense] }
-    saveData(newData)
+    await performAction('supplier_expenses', 'CREATE', newExpense)
     logAudit('CREATE', 'Supplier Expenses', `Added supplier expense of KSh ${expense.amount}`)
     return newExpense
   }
 
-  const updateSupplierExpense = (id, updates) => {
-    const newData = {
-      ...data,
-      supplierExpenses: data.supplierExpenses.map(e => e.id === id ? { ...e, ...updates } : e)
-    }
-    saveData(newData)
+  const updateSupplierExpense = async (id, updates) => {
+    const expense = data.supplierExpenses.find(e => e.id === id)
+    if (!expense) return;
+    await performAction('supplier_expenses', 'UPDATE', { ...expense, ...updates })
     logAudit('UPDATE', 'Supplier Expenses', `Updated supplier expense ID ${id}`)
   }
 
-  const deleteSupplierExpense = (id) => {
-    const newData = {
-      ...data,
-      supplierExpenses: data.supplierExpenses.filter(e => e.id !== id)
-    }
-    saveData(newData)
+  const deleteSupplierExpense = async (id) => {
+    await performAction('supplier_expenses', 'DELETE', { id })
     logAudit('DELETE', 'Supplier Expenses', `Deleted supplier expense ID ${id}`)
   }
 
   // Inventory operations
-  const addInventoryItem = (item) => {
+  const addInventoryItem = async (item) => {
     const newItem = { ...item, id: Date.now() }
-    const newData = { ...data, inventory: [...data.inventory, newItem] }
-    saveData(newData)
+    await performAction('inventory', 'CREATE', newItem)
     logAudit('CREATE', 'Inventory', `Added inventory item: ${item.name}`)
     return newItem
   }
 
-  const updateInventoryItem = (id, updates) => {
-    const newData = {
-      ...data,
-      inventory: data.inventory.map(i => i.id === id ? { ...i, ...updates } : i)
-    }
-    saveData(newData)
+  const updateInventoryItem = async (id, updates) => {
+    const item = data.inventory.find(i => i.id === id)
+    if (!item) return;
+    await performAction('inventory', 'UPDATE', { ...item, ...updates })
     logAudit('UPDATE', 'Inventory', `Updated inventory ID ${id}`)
   }
 
-  const deleteInventoryItem = (id) => {
-    const newData = {
-      ...data,
-      inventory: data.inventory.filter(i => i.id !== id)
-    }
-    saveData(newData)
+  const deleteInventoryItem = async (id) => {
+    await performAction('inventory', 'DELETE', { id })
     logAudit('DELETE', 'Inventory', `Deleted inventory ID ${id}`)
   }
 
   // User operations
-  const addUser = (user) => {
+  const addUser = async (user) => {
     const username = (user.username || user.email || '').toLowerCase()
     if (!username) throw new Error('Username is required')
-    // prevent duplicates
     if (data.users.some(u => u.username === username)) {
       throw new Error('Username already exists')
     }
     const newUser = { ...user, username }
-    const newData = { ...data, users: [...data.users, newUser] }
-    saveData(newData)
+    await performAction('users', 'CREATE', newUser, 'username')
     logAudit('CREATE', 'Users', `Added user: ${username}`)
     return newUser
   }
 
-  const updateUser = (username, updates) => {
+  const updateUser = async (username, updates) => {
     const normalized = (username || '').toLowerCase()
-    const newData = {
-      ...data,
-      users: data.users.map(u => u.username === normalized ? { ...u, ...updates, username: (updates.username ? updates.username.toLowerCase() : u.username) } : u)
-    }
-    saveData(newData)
+    const user = data.users.find(u => u.username === normalized)
+    if (!user) return;
+    const updatedUser = { ...user, ...updates, username: (updates.username ? updates.username.toLowerCase() : user.username) }
+    await performAction('users', 'UPDATE', updatedUser, 'username')
     logAudit('UPDATE', 'Users', `Updated user: ${normalized}`)
   }
 
-  const deleteUser = (username) => {
+  const deleteUser = async (username) => {
     const normalized = (username || '').toLowerCase()
-    const newData = {
-      ...data,
-      users: data.users.filter(u => u.username !== normalized)
-    }
-    saveData(newData)
+    await performAction('users', 'DELETE', { username: normalized }, 'username')
     logAudit('DELETE', 'Users', `Deleted user: ${normalized}`)
   }
 
   // Audit operations
-  const logAudit = (action, module, details) => {
+  const logAudit = async (action, module, details) => {
     const currentUser = localStorage.getItem('currentUser')
     const parsed = currentUser ? JSON.parse(currentUser) : null
     const user = parsed ? (parsed.username || parsed.email || 'Unknown') : 'Unknown'
     const auditEntry = {
-      timestamp: new Date().toISOString(),
       user,
       action,
       module,
       details
     }
-    setData(prevData => {
-      const updated = { ...prevData, audit: [auditEntry, ...prevData.audit] }
-      try {
-        localStorage.setItem('ighData', JSON.stringify(updated))
-      } catch (e) {}
-      return updated
-    })
+    try {
+      await supabase.from('audit').insert(auditEntry)
+    } catch (e) {
+      console.warn('Audit logging failed:', e)
+    }
   }
 
   // Utility functions
   const getClientName = (id) => {
-    return data.clients.find(c => c.id === id)?.name || 'Unknown'
+    return data.clients.find(c => Number(c.id) === Number(id))?.name || 'Unknown'
   }
 
   const getSupplierName = (id) => {
-    return data.suppliers.find(s => s.id === id)?.name || 'Unknown'
+    return data.suppliers.find(s => Number(s.id) === Number(id))?.name || 'Unknown'
   }
 
   const getTotalSales = (startDate = null, endDate = null) => {
@@ -480,7 +382,7 @@ export function DataProvider({ children }) {
     if (startDate && endDate) {
       sales = sales.filter(s => s.date >= startDate && s.date <= endDate)
     }
-    return sales.reduce((sum, s) => sum + (s.amount || 0), 0)
+    return sales.reduce((sum, s) => sum + (Number(s.amount) || 0), 0)
   }
 
   const getTotalExpenses = (startDate = null, endDate = null) => {
@@ -488,7 +390,7 @@ export function DataProvider({ children }) {
     if (startDate && endDate) {
       expenses = expenses.filter(e => e.date >= startDate && e.date <= endDate)
     }
-    return expenses.reduce((sum, e) => sum + (e.amount || 0), 0)
+    return expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0)
   }
 
   const getNetBalance = (startDate = null, endDate = null) => {
@@ -502,38 +404,34 @@ export function DataProvider({ children }) {
     }
     const grouped = {}
     sales.forEach(s => {
-      grouped[s.dept] = (grouped[s.dept] || 0) + s.amount
+      grouped[s.dept] = (grouped[s.dept] || 0) + Number(s.amount)
     })
     return grouped
   }
 
   const getInventoryStatus = (id) => {
-    const item = data.inventory.find(i => i.id === id)
+    const item = data.inventory.find(i => Number(i.id) === Number(id))
     if (!item) return 'Unknown'
     if (item.quantity === 0) return 'Out of Stock'
     if (item.quantity <= item.reorderLevel) return 'Low Stock'
     return 'In Stock'
   }
 
-  const clearAllData = () => {
-    const newData = {
-      sales: [],
-      clients: [],
-      designs: [],
-      expenses: [],
-      suppliers: [],
-      supplierExpenses: [],
-      inventory: [],
-      audit: [],
-      users: [
-        { email: 'admin@igh.com', password: 'admin123', role: 'admin', pref_compact: false },
-      ]
+  const clearAllData = async () => {
+    const confirmation = window.confirm('Are you sure you want to clear all data from Supabase?')
+    if (!confirmation) return;
+    
+    const tables = ['sales', 'clients', 'designs', 'expenses', 'suppliers', 'supplier_expenses', 'inventory', 'audit', 'users']
+    for (const table of tables) {
+      await supabase.from(table).delete().neq(table === 'users' ? 'username' : 'id', -1)
     }
-    saveData(newData)
+    // Re-add default admin if not present
+    await addUser({ username: 'admin', email: 'admin@igh.com', password: 'admin123', role: 'admin', pref_compact: false })
   }
 
   const value = {
     data,
+    loading,
     // Sales
     addSale, updateSale, deleteSale,
     // Clients
@@ -557,7 +455,7 @@ export function DataProvider({ children }) {
 
   return (
     <DataContext.Provider value={value}>
-      {children}
+      {!loading ? children : <div className="flex items-center justify-center min-h-screen">Loading system data...</div>}
     </DataContext.Provider>
   )
 }
