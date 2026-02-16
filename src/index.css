@@ -90,3 +90,28 @@ canvas {
     @apply shadow-2xl;
   }
 }
+
+/* Compact Mode Overrides */
+.compact main {
+  @apply p-3;
+}
+
+.compact .card {
+  @apply p-4;
+}
+
+.compact table th,
+.compact table td {
+  @apply py-2 px-3 text-sm;
+}
+
+.compact .btn-primary,
+.compact .btn-secondary,
+.compact .btn-success,
+.compact .btn-danger {
+  @apply py-1.5 px-3 text-sm;
+}
+
+.compact .form-input {
+  @apply py-1.5 px-2 text-sm;
+}
