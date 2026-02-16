@@ -155,16 +155,30 @@ export function DataProvider({ children }) {
   }
 
   // Sales operations
+  // Sales operations
   const addSale = async (sale) => {
-    const newSale = { ...sale, id: Date.now(), handed_over: sale.handed_over || false, handed_over_date: sale.handed_over_date || null }
+    // Map camelCase to snake_case for DB
+    const newSale = { 
+      ...sale, 
+      id: Date.now(), 
+      handed_over: sale.handedOver || false, 
+      handed_over_date: sale.handedOverDate || null,
+      // Ensure source is set
+      source: sale.source || 'Direct Sale'
+    }
+    
+    // Remove camelCase keys to avoid confusion (Supabase might ignore them, but better safe)
+    delete newSale.handedOver
+    delete newSale.handedOverDate
+
     updateLocalState('sales', 'CREATE', newSale)
     try {
       await performAction('sales', 'CREATE', newSale)
       logAudit('CREATE', 'Sales', `Added sale of KSh ${sale.amount} from ${sale.client}`)
       return newSale
     } catch (err) {
-      alert('Failed to save sale to cloud! Please check your internet connection or try again.')
-      window.location.reload() // Revert optimistic update
+      alert('Failed to save sale to cloud! ' + err.message)
+      window.location.reload()
       throw err
     }
   }
@@ -224,12 +238,32 @@ export function DataProvider({ children }) {
   }
 
   // Design Projects operations
+  // Design Projects operations
   const addDesign = async (design) => {
-    const newDesign = { ...design, id: Date.now(), handed_over: design.handed_over || false, handed_over_date: design.handed_over_date || null }
+    // Map frontend fields (type, completion, handedOver) to DB columns
+    const newDesign = { 
+      ...design, 
+      id: Date.now(),
+      type: design.type, // Explicitly map type
+      completion: design.completion, // Explicitly map completion
+      handed_over: design.handedOver || false, 
+      handed_over_date: design.handedOverDate || null 
+    }
+
+    // Clean up if needed, though extra keys usually okay if they don't match columns
+    delete newDesign.handedOver
+    delete newDesign.handedOverDate
+
     updateLocalState('designs', 'CREATE', newDesign)
-    await performAction('designs', 'CREATE', newDesign)
-    logAudit('CREATE', 'Design Projects', `Added design project for client ${design.client}`)
-    return newDesign
+    try {
+      await performAction('designs', 'CREATE', newDesign)
+      logAudit('CREATE', 'Design Projects', `Added design project: ${design.type} for ${design.client}`)
+      return newDesign
+    } catch (err) {
+      alert('Failed to save design project! ' + err.message)
+      window.location.reload()
+      throw err
+    }
   }
 
   const updateDesign = async (id, updates) => {
@@ -284,12 +318,19 @@ export function DataProvider({ children }) {
   }
 
   // Expenses operations
+  // Expenses operations
   const addExpense = async (expense) => {
     const newExpense = { ...expense, id: Date.now() }
     updateLocalState('expenses', 'CREATE', newExpense)
-    await performAction('expenses', 'CREATE', newExpense)
-    logAudit('CREATE', 'Expenses', `Added expense of KSh ${expense.amount} in ${expense.cat}`)
-    return newExpense
+    try {
+      await performAction('expenses', 'CREATE', newExpense)
+      logAudit('CREATE', 'Expenses', `Added expense of KSh ${expense.amount} in ${expense.cat}`)
+      return newExpense
+    } catch (err) {
+      alert('Failed to save expense! ' + err.message)
+      window.location.reload()
+      throw err
+    }
   }
 
   const updateExpense = async (id, updates) => {
@@ -307,12 +348,19 @@ export function DataProvider({ children }) {
   }
 
   // Suppliers operations
+  // Suppliers operations
   const addSupplier = async (supplier) => {
     const newSupplier = { ...supplier, id: Date.now() }
     updateLocalState('suppliers', 'CREATE', newSupplier)
-    await performAction('suppliers', 'CREATE', newSupplier)
-    logAudit('CREATE', 'Suppliers', `Added supplier: ${supplier.name}`)
-    return newSupplier
+    try {
+      await performAction('suppliers', 'CREATE', newSupplier)
+      logAudit('CREATE', 'Suppliers', `Added supplier: ${supplier.name}`)
+      return newSupplier
+    } catch (err) {
+      alert('Failed to save supplier! ' + err.message)
+      window.location.reload()
+      throw err
+    }
   }
 
   const updateSupplier = async (id, updates) => {
@@ -330,12 +378,19 @@ export function DataProvider({ children }) {
   }
 
   // Supplier Expenses operations
+  // Supplier Expenses operations
   const addSupplierExpense = async (expense) => {
     const newExpense = { ...expense, id: Date.now() }
     updateLocalState('supplier_expenses', 'CREATE', newExpense)
-    await performAction('supplier_expenses', 'CREATE', newExpense)
-    logAudit('CREATE', 'Supplier Expenses', `Added supplier expense of KSh ${expense.amount}`)
-    return newExpense
+    try {
+      await performAction('supplier_expenses', 'CREATE', newExpense)
+      logAudit('CREATE', 'Supplier Expenses', `Added supplier expense of KSh ${expense.amount}`)
+      return newExpense
+    } catch (err) {
+      alert('Failed to save supplier expense! ' + err.message)
+      window.location.reload()
+      throw err
+    }
   }
 
   const updateSupplierExpense = async (id, updates) => {
@@ -353,12 +408,25 @@ export function DataProvider({ children }) {
   }
 
   // Inventory operations
+  // Inventory operations
   const addInventoryItem = async (item) => {
-    const newItem = { ...item, id: Date.now() }
+    const newItem = { 
+      ...item, 
+      id: Date.now(),
+      // Ensure numeric mapping if needed, though strict mapping handles reorderLevel -> reorderlevel
+      reorderlevel: item.reorderLevel, 
+      unitprice: item.unitPrice
+    }
     updateLocalState('inventory', 'CREATE', newItem)
-    await performAction('inventory', 'CREATE', newItem)
-    logAudit('CREATE', 'Inventory', `Added inventory item: ${item.name}`)
-    return newItem
+    try {
+      await performAction('inventory', 'CREATE', newItem)
+      logAudit('CREATE', 'Inventory', `Added inventory item: ${item.name}`)
+      return newItem
+    } catch (err) {
+      alert('Failed to save inventory item! ' + err.message)
+      window.location.reload()
+      throw err
+    }
   }
 
   const updateInventoryItem = async (id, updates) => {
@@ -376,6 +444,7 @@ export function DataProvider({ children }) {
   }
 
   // User operations
+  // User operations
   const addUser = async (user) => {
     const username = (user.username || user.email || '').toLowerCase()
     if (!username) throw new Error('Username is required')
@@ -384,9 +453,15 @@ export function DataProvider({ children }) {
     }
     const newUser = { ...user, username }
     updateLocalState('users', 'CREATE', newUser, 'username')
-    await performAction('users', 'CREATE', newUser, 'username')
-    logAudit('CREATE', 'Users', `Added user: ${username}`)
-    return newUser
+    try {
+      await performAction('users', 'CREATE', newUser, 'username')
+      logAudit('CREATE', 'Users', `Added user: ${username}`)
+      return newUser
+    } catch (err) {
+      alert('Failed to save user! ' + err.message)
+      window.location.reload()
+      throw err
+    }
   }
 
   const updateUser = async (username, updates) => {
