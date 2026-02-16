@@ -116,7 +116,26 @@ export function DataProvider({ children }) {
     }
   }, [])
 
-  // Combined function to update state and Supabase
+  // Helper for optimistic updates
+  const updateLocalState = (table, action, record, idField = 'id') => {
+    const keyMap = { supplier_expenses: 'supplierExpenses' }
+    const dataKey = keyMap[table] || table
+
+    setData(prev => {
+      const list = prev[dataKey] || []
+      if (action === 'CREATE') {
+        if (list.some(item => item[idField] === record[idField])) return prev;
+        return { ...prev, [dataKey]: [record, ...list] }
+      } else if (action === 'UPDATE') {
+        return { ...prev, [dataKey]: list.map(item => item[idField] === record[idField] ? { ...item, ...record } : item) }
+      } else if (action === 'DELETE') {
+         return { ...prev, [dataKey]: list.filter(item => item[idField] !== record[idField]) }
+      }
+      return prev
+    })
+  }
+
+  // Combined function to update Supabase
   async function performAction(table, action, record, idField = 'id') {
     let result;
     if (action === 'CREATE') {
@@ -129,6 +148,7 @@ export function DataProvider({ children }) {
 
     if (result.error) {
       console.error(`Supabase ${action} error on ${table}:`, result.error)
+      // Optional: Revert local state here if needed, or rely on next fetch
       throw result.error
     }
     return result.data?.[0] || record
@@ -137,6 +157,7 @@ export function DataProvider({ children }) {
   // Sales operations
   const addSale = async (sale) => {
     const newSale = { ...sale, id: Date.now(), handed_over: sale.handed_over || false, handed_over_date: sale.handed_over_date || null }
+    updateLocalState('sales', 'CREATE', newSale)
     await performAction('sales', 'CREATE', newSale)
     logAudit('CREATE', 'Sales', `Added sale of KSh ${sale.amount} from ${sale.client}`)
     return newSale
@@ -156,11 +177,13 @@ export function DataProvider({ children }) {
       }
     }
 
+    updateLocalState('sales', 'UPDATE', updatedSale)
     await performAction('sales', 'UPDATE', updatedSale)
     logAudit('UPDATE', 'Sales', `Updated sale ID ${id}`)
   }
 
   const deleteSale = async (id) => {
+    updateLocalState('sales', 'DELETE', { id })
     await performAction('sales', 'DELETE', { id })
     logAudit('DELETE', 'Sales', `Deleted sale ID ${id}`)
   }
@@ -168,6 +191,7 @@ export function DataProvider({ children }) {
   // Clients operations
   const addClient = async (client) => {
     const newClient = { ...client, id: Date.now() }
+    updateLocalState('clients', 'CREATE', newClient)
     await performAction('clients', 'CREATE', newClient)
     logAudit('CREATE', 'Clients', `Added client: ${client.name}`)
     return newClient
@@ -176,11 +200,13 @@ export function DataProvider({ children }) {
   const updateClient = async (id, updates) => {
     const client = data.clients.find(c => c.id === id)
     if (!client) return;
+    updateLocalState('clients', 'UPDATE', { ...client, ...updates })
     await performAction('clients', 'UPDATE', { ...client, ...updates })
     logAudit('UPDATE', 'Clients', `Updated client ID ${id}`)
   }
 
   const deleteClient = async (id) => {
+    updateLocalState('clients', 'DELETE', { id })
     await performAction('clients', 'DELETE', { id })
     logAudit('DELETE', 'Clients', `Deleted client ID ${id}`)
   }
@@ -188,6 +214,7 @@ export function DataProvider({ children }) {
   // Design Projects operations
   const addDesign = async (design) => {
     const newDesign = { ...design, id: Date.now(), handed_over: design.handed_over || false, handed_over_date: design.handed_over_date || null }
+    updateLocalState('designs', 'CREATE', newDesign)
     await performAction('designs', 'CREATE', newDesign)
     logAudit('CREATE', 'Design Projects', `Added design project for client ${design.client}`)
     return newDesign
@@ -233,11 +260,13 @@ export function DataProvider({ children }) {
       }
     }
 
+    updateLocalState('designs', 'UPDATE', updatedDesign)
     await performAction('designs', 'UPDATE', updatedDesign)
     logAudit('UPDATE', 'Design Projects', `Updated design ID ${id}`)
   }
 
   const deleteDesign = async (id) => {
+    updateLocalState('designs', 'DELETE', { id })
     await performAction('designs', 'DELETE', { id })
     logAudit('DELETE', 'Design Projects', `Deleted design ID ${id}`)
   }
@@ -245,6 +274,7 @@ export function DataProvider({ children }) {
   // Expenses operations
   const addExpense = async (expense) => {
     const newExpense = { ...expense, id: Date.now() }
+    updateLocalState('expenses', 'CREATE', newExpense)
     await performAction('expenses', 'CREATE', newExpense)
     logAudit('CREATE', 'Expenses', `Added expense of KSh ${expense.amount} in ${expense.cat}`)
     return newExpense
@@ -253,11 +283,13 @@ export function DataProvider({ children }) {
   const updateExpense = async (id, updates) => {
     const expense = data.expenses.find(e => e.id === id)
     if (!expense) return;
+    updateLocalState('expenses', 'UPDATE', { ...expense, ...updates })
     await performAction('expenses', 'UPDATE', { ...expense, ...updates })
     logAudit('UPDATE', 'Expenses', `Updated expense ID ${id}`)
   }
 
   const deleteExpense = async (id) => {
+    updateLocalState('expenses', 'DELETE', { id })
     await performAction('expenses', 'DELETE', { id })
     logAudit('DELETE', 'Expenses', `Deleted expense ID ${id}`)
   }
@@ -265,6 +297,7 @@ export function DataProvider({ children }) {
   // Suppliers operations
   const addSupplier = async (supplier) => {
     const newSupplier = { ...supplier, id: Date.now() }
+    updateLocalState('suppliers', 'CREATE', newSupplier)
     await performAction('suppliers', 'CREATE', newSupplier)
     logAudit('CREATE', 'Suppliers', `Added supplier: ${supplier.name}`)
     return newSupplier
@@ -273,11 +306,13 @@ export function DataProvider({ children }) {
   const updateSupplier = async (id, updates) => {
     const supplier = data.suppliers.find(s => s.id === id)
     if (!supplier) return;
+    updateLocalState('suppliers', 'UPDATE', { ...supplier, ...updates })
     await performAction('suppliers', 'UPDATE', { ...supplier, ...updates })
     logAudit('UPDATE', 'Suppliers', `Updated supplier ID ${id}`)
   }
 
   const deleteSupplier = async (id) => {
+    updateLocalState('suppliers', 'DELETE', { id })
     await performAction('suppliers', 'DELETE', { id })
     logAudit('DELETE', 'Suppliers', `Deleted supplier ID ${id}`)
   }
@@ -285,6 +320,7 @@ export function DataProvider({ children }) {
   // Supplier Expenses operations
   const addSupplierExpense = async (expense) => {
     const newExpense = { ...expense, id: Date.now() }
+    updateLocalState('supplier_expenses', 'CREATE', newExpense)
     await performAction('supplier_expenses', 'CREATE', newExpense)
     logAudit('CREATE', 'Supplier Expenses', `Added supplier expense of KSh ${expense.amount}`)
     return newExpense
@@ -293,11 +329,13 @@ export function DataProvider({ children }) {
   const updateSupplierExpense = async (id, updates) => {
     const expense = data.supplierExpenses.find(e => e.id === id)
     if (!expense) return;
+    updateLocalState('supplier_expenses', 'UPDATE', { ...expense, ...updates })
     await performAction('supplier_expenses', 'UPDATE', { ...expense, ...updates })
     logAudit('UPDATE', 'Supplier Expenses', `Updated supplier expense ID ${id}`)
   }
 
   const deleteSupplierExpense = async (id) => {
+    updateLocalState('supplier_expenses', 'DELETE', { id })
     await performAction('supplier_expenses', 'DELETE', { id })
     logAudit('DELETE', 'Supplier Expenses', `Deleted supplier expense ID ${id}`)
   }
@@ -305,6 +343,7 @@ export function DataProvider({ children }) {
   // Inventory operations
   const addInventoryItem = async (item) => {
     const newItem = { ...item, id: Date.now() }
+    updateLocalState('inventory', 'CREATE', newItem)
     await performAction('inventory', 'CREATE', newItem)
     logAudit('CREATE', 'Inventory', `Added inventory item: ${item.name}`)
     return newItem
@@ -313,11 +352,13 @@ export function DataProvider({ children }) {
   const updateInventoryItem = async (id, updates) => {
     const item = data.inventory.find(i => i.id === id)
     if (!item) return;
+    updateLocalState('inventory', 'UPDATE', { ...item, ...updates })
     await performAction('inventory', 'UPDATE', { ...item, ...updates })
     logAudit('UPDATE', 'Inventory', `Updated inventory ID ${id}`)
   }
 
   const deleteInventoryItem = async (id) => {
+    updateLocalState('inventory', 'DELETE', { id })
     await performAction('inventory', 'DELETE', { id })
     logAudit('DELETE', 'Inventory', `Deleted inventory ID ${id}`)
   }
@@ -330,6 +371,7 @@ export function DataProvider({ children }) {
       throw new Error('Username already exists')
     }
     const newUser = { ...user, username }
+    updateLocalState('users', 'CREATE', newUser, 'username')
     await performAction('users', 'CREATE', newUser, 'username')
     logAudit('CREATE', 'Users', `Added user: ${username}`)
     return newUser
@@ -340,12 +382,14 @@ export function DataProvider({ children }) {
     const user = data.users.find(u => u.username === normalized)
     if (!user) return;
     const updatedUser = { ...user, ...updates, username: (updates.username ? updates.username.toLowerCase() : user.username) }
+    updateLocalState('users', 'UPDATE', updatedUser, 'username')
     await performAction('users', 'UPDATE', updatedUser, 'username')
     logAudit('UPDATE', 'Users', `Updated user: ${normalized}`)
   }
 
   const deleteUser = async (username) => {
     const normalized = (username || '').toLowerCase()
+    updateLocalState('users', 'DELETE', { username: normalized }, 'username')
     await performAction('users', 'DELETE', { username: normalized }, 'username')
     logAudit('DELETE', 'Users', `Deleted user: ${normalized}`)
   }
