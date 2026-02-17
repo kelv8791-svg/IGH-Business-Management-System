@@ -79,9 +79,7 @@ function App() {
                       <Route path="/suppliers" element={<Suppliers />} />
                       <Route path="/inventory" element={<Inventory />} />
                       <Route path="/reports" element={<Reports />} />
-                      {user.role === 'admin' && (
-                        <Route path="/settings" element={<Settings />} />
-                      )}
+                      <Route path="/settings" element={<Settings />} />
                       <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                   </Layout>
