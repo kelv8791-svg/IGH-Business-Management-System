@@ -57,21 +57,19 @@ export default function Sidebar({ open }) {
         })}
       </nav>
 
-      {user?.role === 'admin' && (
-        <div className="mt-auto p-4 border-t border-gray-700">
-          <Link
-            to="/settings"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-              isActive('/settings')
-                ? 'bg-primary-gold/20 border-l-4 border-primary-gold text-primary-gold'
-                : 'text-gray-300 hover:text-primary-gold hover:bg-gray-800'
-            }`}
-          >
-            <Settings size={20} />
-            {open && <span className="text-sm font-medium">Settings</span>}
-          </Link>
-        </div>
-      )}
+      <div className="mt-auto p-4 border-t border-gray-700">
+        <Link
+          to="/settings"
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+            isActive('/settings')
+              ? 'bg-primary-gold/20 border-l-4 border-primary-gold text-primary-gold'
+              : 'text-gray-300 hover:text-primary-gold hover:bg-gray-800'
+          }`}
+        >
+          <Settings size={20} />
+          {open && <span className="text-sm font-medium">Settings</span>}
+        </Link>
+      </div>
     </aside>
   )
 }
