@@ -31,7 +31,17 @@ export default function LoginPage() {
 
     const user = data.users.find(u => u.username === username.toLowerCase() && u.password === password)
     if (user) {
-      login({ username: user.username, role: user.role })
+      // Generate unique session token
+      const sessionToken = Date.now().toString(36) + Math.random().toString(36).substr(2)
+      
+      // Update user in DB with new token
+      // Note: This is an async operation but we don't strictly need to await it for the UI to transition
+      // However, creating the session in DB is crucial for the mechanism to work
+      updateUser(user.username, { session_token: sessionToken })
+        .catch(err => console.error('Failed to set session token', err))
+
+      // Login with the new token included in user object
+      login({ ...user, session_token: sessionToken })
       navigate('/')
     } else {
       setError('Invalid username or password')
