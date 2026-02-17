@@ -2,17 +2,18 @@ import { useState } from 'react'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../App'
 import Modal from '../components/Modal'
-import { Plus, Edit2, Trash2, Trash, CloudCog } from 'lucide-react'
+import { Plus, Edit2, Trash2, Trash, CloudCog, User, Key, Save, Shield } from 'lucide-react'
 import { migrateLocalStorageToSupabase } from '../utils/migrateData'
 
 export default function Settings() {
   const { data, addUser, updateUser, deleteUser, clearAllData, logAudit } = useData()
   const { user } = useAuth()
-  const [tab, setTab] = useState('users')
+  const [tab, setTab] = useState('account') // Default to 'account' for all users
   const [isOpen, setIsOpen] = useState(false)
   const [editId, setEditId] = useState(null)
   const [auditSearch, setAuditSearch] = useState('')
 
+  // User Management Form
   const [userForm, setUserForm] = useState({
     username: '',
     email: '',
@@ -21,9 +22,17 @@ export default function Settings() {
     pref_compact: false
   })
 
+  // Change Password Form (My Account)
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  const [passwordMsg, setPasswordMsg] = useState({ type: '', text: '' })
+
   const roles = ['admin', 'designer', 'user']
 
-  // User Management
+  // User Management Handlers
   const handleOpenUserModal = (u = null) => {
     if (u) {
       setUserForm({ ...u })
@@ -42,7 +51,6 @@ export default function Settings() {
       return
     }
 
-    // enforce lowercase username
     const normalized = userForm.username.toLowerCase()
     const payload = { ...userForm, username: normalized }
 
@@ -61,12 +69,48 @@ export default function Settings() {
     setIsOpen(false)
   }
 
+  // Change Password Handler
+  const handleChangePassword = async (e) => {
+    e.preventDefault()
+    setPasswordMsg({ type: '', text: '' })
+
+    const { currentPassword, newPassword, confirmPassword } = passwordForm
+
+    if (newPassword !== confirmPassword) {
+      setPasswordMsg({ type: 'error', text: 'New passwords do not match' })
+      return
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordMsg({ type: 'error', text: 'New password must be at least 6 characters' })
+      return
+    }
+
+    // Verify current password against data
+    // Note: In a real app, strict backend verification is better, but here we check against loaded data
+    // equivalent to how authentication checks are done in this app context.
+    const currentUserRecord = data.users.find(u => u.username === user.username)
+    
+    if (!currentUserRecord || currentUserRecord.password !== currentPassword) {
+      setPasswordMsg({ type: 'error', text: 'Incorrect current password' })
+      return
+    }
+
+    try {
+      await updateUser(user.username, { password: newPassword })
+      setPasswordMsg({ type: 'success', text: 'Password updated successfully!' })
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      logAudit('UPDATE', 'Users', `User ${user.username} changed their own password`)
+    } catch (err) {
+      setPasswordMsg({ type: 'error', text: 'Failed to update password: ' + err.message })
+    }
+  }
+
   const filteredUsers = data.users.filter(u =>
     (u.username || '').toLowerCase().includes(auditSearch.toLowerCase()) ||
     (u.email || '').toLowerCase().includes(auditSearch.toLowerCase())
   )
 
-  // Audit Trail
   const filteredAudit = data.audit.filter(a =>
     a.user.toLowerCase().includes(auditSearch.toLowerCase()) ||
     a.action.toLowerCase().includes(auditSearch.toLowerCase()) ||
@@ -94,7 +138,7 @@ export default function Settings() {
         if (result.success) {
           alert('Migration completed successfully!')
           logAudit('SYSTEM', 'Migration', 'Local data migrated to Supabase')
-          window.location.reload() // Reload to fetch fresh data from Supabase
+          window.location.reload()
         } else {
           alert('Migration failed: ' + (result.message || 'Unknown error'))
         }
@@ -111,41 +155,134 @@ export default function Settings() {
       <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Settings</h1>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex gap-4 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
         <button
-          onClick={() => { setTab('users'); setAuditSearch(''); }}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-            tab === 'users'
+          onClick={() => setTab('account')}
+          className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
+            tab === 'account'
               ? 'border-primary-gold text-primary-gold'
               : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
           }`}
         >
-          User Management
+          My Account
         </button>
-        <button
-          onClick={() => { setTab('audit'); setAuditSearch(''); }}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-            tab === 'audit'
-              ? 'border-primary-gold text-primary-gold'
-              : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-          }`}
-        >
-          Audit Trail
-        </button>
-        <button
-          onClick={() => { setTab('system'); setAuditSearch(''); }}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-            tab === 'system'
-              ? 'border-primary-gold text-primary-gold'
-              : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-          }`}
-        >
-          System
-        </button>
+        {/* Only Admin sees User Management and System */}
+        {user?.role === 'admin' && (
+          <>
+            <button
+              onClick={() => { setTab('users'); setAuditSearch(''); }}
+              className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
+                tab === 'users'
+                  ? 'border-primary-gold text-primary-gold'
+                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+              }`}
+            >
+              User Management
+            </button>
+            <button
+              onClick={() => { setTab('audit'); setAuditSearch(''); }}
+              className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
+                tab === 'audit'
+                  ? 'border-primary-gold text-primary-gold'
+                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+              }`}
+            >
+              Audit Trail
+            </button>
+            <button
+              onClick={() => { setTab('system'); setAuditSearch(''); }}
+              className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
+                tab === 'system'
+                  ? 'border-primary-gold text-primary-gold'
+                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+              }`}
+            >
+              System
+            </button>
+          </>
+        )}
       </div>
 
-      {/* User Management Tab */}
-      {tab === 'users' && (
+      {/* My Account Tab */}
+      {tab === 'account' && (
+        <div className="max-w-2xl mx-auto md:mx-0">
+          <div className="card space-y-6">
+            <div className="flex items-center gap-4 border-b border-gray-100 dark:border-gray-700 pb-4">
+              <div className="w-16 h-16 bg-primary-gold/10 rounded-full flex items-center justify-center text-primary-gold">
+                <User size={32} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800 dark:text-white capitalize">{user?.username || 'User'}</h2>
+                <p className="text-sm text-gray-500 capitalize flex items-center gap-1">
+                  <Shield size={14} />
+                  {user?.role || 'Guest'}
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                <Key size={18} />
+                Change Password
+              </h3>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Password</label>
+                <input
+                  type="password"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
+                  <input
+                    type="password"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                    className="form-input"
+                    required
+                    minLength={6}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
+                  <input
+                    type="password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                    className="form-input"
+                    required
+                    minLength={6}
+                  />
+                </div>
+              </div>
+
+              {passwordMsg.text && (
+                <div className={`p-3 rounded text-sm ${
+                  passwordMsg.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'
+                }`}>
+                  {passwordMsg.text}
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2">
+                <button type="submit" className="btn-primary flex items-center gap-2">
+                  <Save size={18} />
+                  Update Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* User Management Tab (Admin Only) */}
+      {tab === 'users' && user?.role === 'admin' && (
         <div className="space-y-4">
           <button onClick={() => handleOpenUserModal()} className="btn-primary flex items-center gap-2">
             <Plus size={20} />
@@ -204,8 +341,8 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Audit Trail Tab */}
-      {tab === 'audit' && (
+      {/* Audit Trail Tab (Admin Only) */}
+      {tab === 'audit' && user?.role === 'admin' && (
         <div className="space-y-4">
           <div className="card">
             <input
@@ -256,8 +393,8 @@ export default function Settings() {
         </div>
       )}
 
-      {/* System Tab */}
-      {tab === 'system' && (
+      {/* System Tab (Admin Only) */}
+      {tab === 'system' && user?.role === 'admin' && (
         <div className="space-y-4">
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">System Information</h3>
@@ -326,7 +463,7 @@ export default function Settings() {
       )}
 
       {/* User Modal */}
-          <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editId ? 'Edit User' : 'Add New User'}>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editId ? 'Edit User' : 'Add New User'}>
         <form onSubmit={handleUserSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Username* (lowercase)</label>
