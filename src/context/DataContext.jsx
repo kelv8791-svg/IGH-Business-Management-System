@@ -267,6 +267,7 @@ export function DataProvider({ children }) {
   // Design Projects operations
   // Design Projects operations
   const addDesign = async (design) => {
+    const newDesign = {
       ...design, 
       id: Date.now(),
       amount: Number(design.amount) || 0,
