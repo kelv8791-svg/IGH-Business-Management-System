@@ -231,7 +231,7 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-400">Welcome to IGH Business Management System</p>
         </div>
-        </div>
+
         <div className="flex items-start gap-2">
           {/* Branch Switcher for Admin */}
           {user?.role === 'admin' && (
