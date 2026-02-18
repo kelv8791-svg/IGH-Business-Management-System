@@ -243,6 +243,8 @@ export function DataProvider({ children }) {
       id: Date.now(),
       amount: Number(design.amount) || 0,
       paymentAmount: Number(design.paymentAmount) || 0,
+      completion: design.completion || null,
+      paymentDate: design.paymentDate || null,
       handed_over: design.handedOver || false, 
       handed_over_date: design.handedOverDate || null 
     }
@@ -271,6 +273,11 @@ export function DataProvider({ children }) {
     const sanitizedUpdates = { ...updates }
     if ('amount' in updates) sanitizedUpdates.amount = Number(updates.amount) || 0
     if ('paymentAmount' in updates) sanitizedUpdates.paymentAmount = Number(updates.paymentAmount) || 0
+    
+    // Sanitize date fields
+    if ('completion' in updates) sanitizedUpdates.completion = updates.completion || null
+    if ('paymentDate' in updates) sanitizedUpdates.paymentDate = updates.paymentDate || null
+    if ('handed_over_date' in updates) sanitizedUpdates.handed_over_date = updates.handed_over_date || null
 
     const updatedDesign = { ...designBeforeUpdate, ...sanitizedUpdates }
     
