@@ -34,11 +34,14 @@ export default function LoginPage() {
       // Generate unique session token
       const sessionToken = Date.now().toString(36) + Math.random().toString(36).substr(2)
       
-      // Update user in DB with new token
-      // Note: This is an async operation but we don't strictly need to await it for the UI to transition
-      // However, creating the session in DB is crucial for the mechanism to work
-      updateUser(user.username, { session_token: sessionToken })
-        .catch(err => console.error('Failed to set session token', err))
+      // Update user in DB with new token and await it to prevent race condition with SessionManager
+      try {
+        await updateUser(user.username, { session_token: sessionToken })
+      } catch (err) {
+        console.error('Failed to set session token', err)
+        // Continue anyway, otherwise login is blocked by network issues? 
+        // Ideally should block if session strictly required, but for now we proceed.
+      }
 
       // Login with the new token included in user object
       login({ ...user, session_token: sessionToken })
