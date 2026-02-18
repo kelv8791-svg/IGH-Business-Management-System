@@ -11,6 +11,7 @@ export default function Inventory() {
   const [editId, setEditId] = useState(null)
   const [search, setSearch] = useState('')
   const [filterCat, setFilterCat] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
   const [isAdjustOpen, setIsAdjustOpen] = useState(false)
   const [adjustItem, setAdjustItem] = useState(null)
   const [adjustData, setAdjustData] = useState({
