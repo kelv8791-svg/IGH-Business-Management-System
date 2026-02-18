@@ -28,25 +28,71 @@ const initialData = {
 export function DataProvider({ children }) {
   const [data, setData] = useState(initialData)
   const [loading, setLoading] = useState(true)
-  const { user } = useAuth()
+  const [selectedBranch, setSelectedBranch] = useState('IGH')
+  const { user, setUser } = useAuth()
 
+  // Derived filtered data based on branch selection (for Admins)
+  const filteredData = useMemo(() => {
+    if (!user || user.role !== 'admin') return data;
+    
+    // For admins, filter everything by selectedBranch
+    // Note: Clients and Suppliers might be shared, but let's filter if they have a branch column
+    // For now, we assume strict separation for core modules.
+    const filterByBranch = (list) => {
+      if (selectedBranch === 'All') return list
+      return list.filter(item => !item.branch || item.branch === selectedBranch)
+    }
+
+    return {
+      sales: filterByBranch(data.sales),
+      clients: data.clients, // Clients are often shared, or we can add branch column later if needed.
+      designs: filterByBranch(data.designs),
+      expenses: filterByBranch(data.expenses),
+      suppliers: data.suppliers, // Suppliers often shared
+      supplierExpenses: filterByBranch(data.supplierExpenses),
+      inventory: filterByBranch(data.inventory),
+      stockTransactions: filterByBranch(data.stockTransactions),
+      audit: data.audit, // Audit logs usually global for admin
+      users: data.users
+    }
+  }, [data, user, selectedBranch])
+
+  useEffect(() => {
+    const currentUser = localStorage.getItem('currentUser')
+    if (currentUser) {
+      const parsedUser = JSON.parse(currentUser)
+      setUser(parsedUser)
+      // Set initial branch
+      if (parsedUser.branch) {
+        setSelectedBranch(parsedUser.branch)
+      }
+    }
+    setLoading(false)
+  }, [])
+  
   // Fetch all data from Supabase on mount or when user changes
   useEffect(() => {
     async function fetchAllData() {
+      // If no user is logged in, don't fetch sensitive data
+      if (!user) {
+        setLoading(false)
+        return
+      }
+
       setLoading(true)
       try {
         // Base queries
-        let salesQuery = supabase.from('sales').select('*').order('id', { ascending: false })
-        let designsQuery = supabase.from('designs').select('*').order('id', { ascending: false })
+        let salesQuery = supabase.from('sales').select('*').order('date', { ascending: false })
+        let designsQuery = supabase.from('designs').select('*').order('date', { ascending: false })
         let expensesQuery = supabase.from('expenses').select('*').order('date', { ascending: false })
         let inventoryQuery = supabase.from('inventory').select('*').order('name')
-        let stockTransQuery = supabase.from('stock_transactions').select('*').order('created_at', { ascending: false }).limit(500)
+        let stockTransQuery = supabase.from('stock_transactions').select('*').order('created_at', { ascending: false })
         
         // Multi-branch filtering
         // If not logged in, we only strictly need 'users' for login check. 
         // But for safety, let's fetch nothing else or public stuff?
         // If logged in as non-admin, filter by branch.
-        if (user && user.role !== 'admin' && user.branch) {
+        if (user.role !== 'admin') {
             salesQuery = salesQuery.eq('branch', user.branch)
             designsQuery = designsQuery.eq('branch', user.branch)
             expensesQuery = expensesQuery.eq('branch', user.branch)
@@ -79,7 +125,7 @@ export function DataProvider({ children }) {
           supabase.from('supplier_expenses').select('*').order('date', { ascending: false }),
           user ? inventoryQuery : Promise.resolve({ data: [] }),
           user ? stockTransQuery : Promise.resolve({ data: [] }),
-          supabase.from('audit').select('*').order('timestamp', { ascending: false }).limit(200),
+          supabase.from('audit').select('*').order('timestamp', { ascending: false }),
           supabase.from('users').select('*') // Always fetch users
         ])
 
@@ -690,7 +736,10 @@ export function DataProvider({ children }) {
   }
 
   const value = {
-    data,
+    data: filteredData, // Expose filtered data to the app
+    allData: data,      // Expose raw data if needed (e.g. for debug or specific admin views)
+    selectedBranch,     // Global branch selection
+    setSelectedBranch,  // Function to switch branch
     loading,
     // Sales
     addSale, updateSale, deleteSale,

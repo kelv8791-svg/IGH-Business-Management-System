@@ -1,8 +1,10 @@
 import { useAuth } from '../App'
+import { useData } from '../context/DataContext'
 import { LogOut, Moon, Sun, Maximize2, Minimize2 } from 'lucide-react'
 
 export default function Topbar({ onToggleSidebar }) {
   const { user, logout, darkMode, setDarkMode, compactMode, setCompactMode } = useAuth()
+  const { selectedBranch, setSelectedBranch } = useData()
 
   return (
     <div className={`sticky top-0 z-40 bg-white dark:bg-gray-900 text-gray-800 dark:text-white shadow-md h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-gray-700`}>
@@ -19,6 +21,22 @@ export default function Topbar({ onToggleSidebar }) {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Global Branch Switcher for Admin */}
+        {user?.role === 'admin' && (
+          <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-lg">
+            <span className="text-xs font-semibold text-gray-500 uppercase">Branch:</span>
+            <select
+              value={selectedBranch}
+              onChange={(e) => setSelectedBranch(e.target.value)}
+              className="bg-transparent border-none text-sm font-bold text-gray-800 dark:text-white focus:ring-0 cursor-pointer"
+            >
+              <option value="All">All Branches</option>
+              <option value="IGH">IGH</option>
+              <option value="iGift">iGift</option>
+            </select>
+          </div>
+        )}
+
         {/* Dark Mode Toggle */}
         <button
           onClick={() => setDarkMode(!darkMode)}

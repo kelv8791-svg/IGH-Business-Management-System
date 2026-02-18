@@ -117,7 +117,18 @@ export default function Reports() {
       filteredData.forEach(trans => {
         const itemName = data.inventory.find(i => i.id === trans.item_id)?.name || 'Unknown Item'
         const date = new Date(trans.created_at).toLocaleString()
-        csv += `"${date}","${itemName}","${trans.transaction_type}","${trans.quantity_change}","${trans.reason}","${trans.created_by}","${trans.notes || ''}"\n`
+        
+        let reason = trans.reason
+        const projectMatch = reason.match(/Project #(\d+)/)
+        if (projectMatch) {
+            const designId = projectMatch[1]
+            const design = data.designs.find(d => d.id == designId)
+            if (design) {
+                reason = `${reason} - ${design.client}`
+            }
+        }
+
+        csv += `"${date}","${itemName}","${trans.transaction_type}","${trans.quantity_change}","${reason}","${trans.created_by}","${trans.notes || ''}"\n`
       })
     }
 
@@ -386,7 +397,24 @@ export default function Reports() {
                     <td className={`px-4 py-2 text-right font-bold ${trans.quantity_change > 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {trans.quantity_change > 0 ? '+' : ''}{trans.quantity_change}
                     </td>
-                    <td className="px-4 py-2">{trans.reason}</td>
+                    <td className="px-4 py-2">
+                        {(() => {
+                            let reason = trans.reason
+                            const projectMatch = reason.match(/Project #(\d+)/)
+                            if (projectMatch) {
+                                const designId = projectMatch[1]
+                                const design = data.designs.find(d => d.id == designId)
+                                if (design) {
+                                    return (
+                                        <span>
+                                            {reason} <span className="font-semibold text-blue-600"> - {design.client}</span>
+                                        </span>
+                                    )
+                                }
+                            }
+                            return reason
+                        })()}
+                    </td>
                     <td className="px-4 py-2 text-xs text-gray-500">{trans.created_by}</td>
                   </tr>
                 )

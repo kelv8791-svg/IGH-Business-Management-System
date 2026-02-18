@@ -32,7 +32,7 @@ export default function Dashboard() {
   const { data } = useData()
   const { user } = useAuth()
   const [period, setPeriod] = useState('monthly')
-  const [selectedBranch, setSelectedBranch] = useState('All')
+  // Removed local selectedBranch state
 
   const getDateRange = (p) => {
     const now = new Date()
@@ -74,20 +74,16 @@ export default function Dashboard() {
   const filteredSales = useMemo(() => {
     return data.sales.filter(s => {
       const sd = new Date(s.date)
-      const matchesPeriod = sd >= dateRange.start && sd <= dateRange.end
-      const matchesBranch = selectedBranch === 'All' || s.branch === selectedBranch
-      return matchesPeriod && matchesBranch
+      return sd >= dateRange.start && sd <= dateRange.end
     })
-  }, [data.sales, dateRange, selectedBranch])
+  }, [data.sales, dateRange])
 
   const filteredExpenses = useMemo(() => {
     return data.expenses.filter(e => {
       const ed = new Date(e.date)
-      const matchesPeriod = ed >= dateRange.start && ed <= dateRange.end
-      const matchesBranch = selectedBranch === 'All' || e.branch === selectedBranch
-      return matchesPeriod && matchesBranch
+      return ed >= dateRange.start && ed <= dateRange.end
     })
-  }, [data.expenses, dateRange, selectedBranch])
+  }, [data.expenses, dateRange])
 
   const stats = useMemo(() => {
     const totalSales = filteredSales.reduce((sum, s) => sum + (s.amount || 0), 0)
@@ -233,18 +229,7 @@ export default function Dashboard() {
         </div>
 
         <div className="flex items-start gap-2">
-          {/* Branch Switcher for Admin */}
-          {user?.role === 'admin' && (
-            <select
-              value={selectedBranch}
-              onChange={(e) => setSelectedBranch(e.target.value)}
-              className="form-input w-40"
-            >
-              <option value="All">All Branches</option>
-              <option value="IGH">IGH</option>
-              <option value="iGift">iGift</option>
-            </select>
-          )}
+
           
           <select
             value={period}
