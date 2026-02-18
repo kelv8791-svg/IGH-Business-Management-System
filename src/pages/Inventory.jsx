@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../App'
 import Modal from '../components/Modal'
-import { Plus, Edit2, Trash2, AlertTriangle, AlertCircle, CheckCircle, ArrowUpDown } from 'lucide-react'
+import { Plus, Edit2, Trash2, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react'
 
 export default function Inventory() {
   const { data, addInventoryItem, updateInventoryItem, deleteInventoryItem, getInventoryStatus, addStockTransaction } = useData()
@@ -221,7 +221,7 @@ export default function Inventory() {
                       <Edit2 size={16} />
                     </button>
                     <button onClick={() => handleOpenAdjust(item)} className="btn-secondary p-2 text-blue-600 bg-blue-50 hover:bg-blue-100" title="Adjust Stock">
-                      <ArrowUpDown size={16} />
+                      <span>Adj</span>
                     </button>
                     {user?.role === 'admin' && (
                       <button onClick={() => deleteInventoryItem(item.id)} className="btn-danger p-2">
