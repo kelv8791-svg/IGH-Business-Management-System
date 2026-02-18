@@ -18,7 +18,7 @@ export default function Settings() {
     username: '',
     email: '',
     password: '',
-    password: '',
+
     role: 'user',
     branch: 'IGH',
     pref_compact: false
