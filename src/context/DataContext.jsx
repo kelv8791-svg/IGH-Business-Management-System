@@ -73,11 +73,7 @@ export function DataProvider({ children }) {
   // Fetch all data from Supabase on mount or when user changes
   useEffect(() => {
     async function fetchAllData() {
-      // If no user is logged in, don't fetch sensitive data
-      if (!user) {
-        setLoading(false)
-        return
-      }
+
 
       setLoading(true)
       try {
@@ -92,7 +88,7 @@ export function DataProvider({ children }) {
         // If not logged in, we only strictly need 'users' for login check. 
         // But for safety, let's fetch nothing else or public stuff?
         // If logged in as non-admin, filter by branch.
-        if (user.role !== 'admin') {
+        if (user && user.role !== 'admin') {
             salesQuery = salesQuery.eq('branch', user.branch)
             designsQuery = designsQuery.eq('branch', user.branch)
             expensesQuery = expensesQuery.eq('branch', user.branch)
