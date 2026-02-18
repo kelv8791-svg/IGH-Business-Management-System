@@ -2,16 +2,23 @@ import { useState } from 'react'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../App'
 import Modal from '../components/Modal'
-import { Plus, Edit2, Trash2, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react'
+import { Plus, Edit2, Trash2, AlertTriangle, AlertCircle, CheckCircle, ArrowUpDown } from 'lucide-react'
 
 export default function Inventory() {
-  const { data, addInventoryItem, updateInventoryItem, deleteInventoryItem, getInventoryStatus } = useData()
+  const { data, addInventoryItem, updateInventoryItem, deleteInventoryItem, getInventoryStatus, addStockTransaction } = useData()
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [editId, setEditId] = useState(null)
   const [search, setSearch] = useState('')
   const [filterCat, setFilterCat] = useState('')
-  const [filterStatus, setFilterStatus] = useState('')
+  const [isAdjustOpen, setIsAdjustOpen] = useState(false)
+  const [adjustItem, setAdjustItem] = useState(null)
+  const [adjustData, setAdjustData] = useState({
+    type: 'RESTOCK', // RESTOCK, VARIANCE, CORRECTION
+    quantity: 0,
+    reason: 'Restock',
+    notes: ''
+  })
 
   const [formData, setFormData] = useState({
     name: '',
@@ -42,6 +49,44 @@ export default function Inventory() {
       setEditId(null)
     }
     setIsOpen(true)
+  }
+
+  const handleOpenAdjust = (item) => {
+    setAdjustItem(item)
+    setAdjustData({
+      type: 'RESTOCK',
+      quantity: 0,
+      reason: 'Restock',
+      notes: ''
+    })
+    setIsAdjustOpen(true)
+  }
+
+  const handleAdjustSubmit = async (e) => {
+    e.preventDefault()
+    if (!adjustItem || adjustData.quantity <= 0) {
+      alert('Please enter a valid quantity')
+      return
+    }
+
+    try {
+      const quantityChange = adjustData.type === 'RESTOCK' 
+        ? adjustData.quantity 
+        : -adjustData.quantity
+
+      await addStockTransaction({
+        item_id: adjustItem.id,
+        quantity_change: quantityChange,
+        transaction_type: adjustData.type,
+        reason: adjustData.reason,
+        notes: adjustData.notes,
+        created_by: user?.username || 'unknown'
+      })
+      
+      setIsAdjustOpen(false)
+    } catch (err) {
+      // Error is handled in context
+    }
   }
 
   const handleSubmit = (e) => {
@@ -172,8 +217,11 @@ export default function Inventory() {
                     </div>
                   </td>
                   <td className="px-6 py-3 text-sm flex gap-2">
-                    <button onClick={() => handleOpenModal(item)} className="btn-secondary p-2">
+                    <button onClick={() => handleOpenModal(item)} className="btn-secondary p-2" title="Edit Item">
                       <Edit2 size={16} />
+                    </button>
+                    <button onClick={() => handleOpenAdjust(item)} className="btn-secondary p-2 text-blue-600 bg-blue-50 hover:bg-blue-100" title="Adjust Stock">
+                      <ArrowUpDown size={16} />
                     </button>
                     {user?.role === 'admin' && (
                       <button onClick={() => deleteInventoryItem(item.id)} className="btn-danger p-2">
@@ -273,6 +321,94 @@ export default function Inventory() {
           <div className="flex gap-3 pt-4">
             <button type="submit" className="btn-success flex-1">Save Item</button>
             <button type="button" onClick={() => setIsOpen(false)} className="btn-secondary flex-1">Cancel</button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Stock Adjustment Modal */}
+      <Modal isOpen={isAdjustOpen} onClose={() => setIsAdjustOpen(false)} title={`Adjust Stock: ${adjustItem?.name || ''}`}>
+        <form onSubmit={handleAdjustSubmit} className="space-y-4">
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg mb-4">
+             <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Current Stock</span>
+                <span className="text-xl font-bold">{adjustItem?.quantity || 0}</span>
+             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Action Type</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                className={`p-2 rounded-lg border text-sm font-medium transition-colors ${adjustData.type === 'RESTOCK' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                onClick={() => setAdjustData({ ...adjustData, type: 'RESTOCK', reason: 'Restock' })}
+              >
+                Add Stock (+)
+              </button>
+              <button
+                type="button"
+                className={`p-2 rounded-lg border text-sm font-medium transition-colors ${adjustData.type === 'VARIANCE' ? 'bg-red-50 border-red-500 text-red-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                onClick={() => setAdjustData({ ...adjustData, type: 'VARIANCE', reason: 'Damaged' })}
+              >
+                Remove Stock (-)
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quantity to {adjustData.type === 'RESTOCK' ? 'Add' : 'Remove'}</label>
+            <input
+              type="number"
+              min="1"
+              value={adjustData.quantity}
+              onChange={(e) => setAdjustData({ ...adjustData, quantity: parseInt(e.target.value) })}
+              className="form-input"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason</label>
+            <select
+              value={adjustData.reason}
+              onChange={(e) => setAdjustData({ ...adjustData, reason: e.target.value })}
+              className="form-input"
+            >
+              {adjustData.type === 'RESTOCK' ? (
+                <>
+                  <option value="Restock">New Purchase / Restock</option>
+                  <option value="Return">Customer Return</option>
+                  <option value="Correction">Inventory Correction (+) </option>
+                  <option value="Other">Other</option>
+                </>
+              ) : (
+                <>
+                  <option value="Damaged">Damaged</option>
+                  <option value="Spoilt">Spoilt</option>
+                  <option value="Expired">Expired</option>
+                  <option value="Theft">Theft / Lost</option>
+                  <option value="Usage">Internal Usage</option>
+                  <option value="Correction">Inventory Correction (-)</option>
+                  <option value="Other">Other</option>
+                </>
+              )}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notes</label>
+            <textarea
+              value={adjustData.notes}
+              onChange={(e) => setAdjustData({ ...adjustData, notes: e.target.value })}
+              className="form-input"
+              placeholder="Optional details..."
+              rows={2}
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button type="submit" className="btn-success flex-1">Confirm Adjustment</button>
+            <button type="button" onClick={() => setIsAdjustOpen(false)} className="btn-secondary flex-1">Cancel</button>
           </div>
         </form>
       </Modal>

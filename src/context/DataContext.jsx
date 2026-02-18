@@ -469,6 +469,40 @@ export function DataProvider({ children }) {
     logAudit('DELETE', 'Users', `Deleted user: ${normalized}`)
   }
 
+  // Stock Transaction operations
+  const addStockTransaction = async (transaction) => {
+    // 1. Calculate new quantity
+    const item = data.inventory.find(i => Number(i.id) === Number(transaction.item_id))
+    if (!item) throw new Error('Item not found')
+
+    const newQuantity = (item.quantity || 0) + transaction.quantity_change
+
+    // 2. Insert transaction
+    const newTransaction = { ...transaction }
+    // optimistic update for transaction? Maybe not needed for UI immediately, but good practice
+    
+    try {
+        const { error: transError } = await supabase.from('stock_transactions').insert(newTransaction)
+        if (transError) throw transError
+
+        // 3. Update inventory item quantity
+        const { error: invError } = await supabase.from('inventory').update({ quantity: newQuantity }).eq('id', item.id)
+        if (invError) throw invError
+        
+        // Update local state for inventory
+        updateLocalState('inventory', 'UPDATE', { ...item, quantity: newQuantity })
+
+        // 4. Log audit
+        logAudit('UPDATE', 'Inventory', `Adjusted stock for ${item.name}: ${transaction.quantity_change > 0 ? '+' : ''}${transaction.quantity_change} (${transaction.transaction_type})`)
+
+        return newQuantity
+    } catch (err) {
+        console.error('Stock transaction failed:', err)
+        alert('Failed to update stock! ' + err.message)
+        throw err
+    }
+  }
+
   // Audit operations
   const logAudit = async (action, module, details) => {
     const currentUser = localStorage.getItem('currentUser')
@@ -563,7 +597,7 @@ export function DataProvider({ children }) {
     addSupplier, updateSupplier, deleteSupplier,
     addSupplierExpense, updateSupplierExpense, deleteSupplierExpense,
     // Inventory
-    addInventoryItem, updateInventoryItem, deleteInventoryItem,
+    addInventoryItem, updateInventoryItem, deleteInventoryItem, addStockTransaction,
     // Users
     addUser, updateUser, deleteUser,
     // Utilities
