@@ -241,6 +241,8 @@ export function DataProvider({ children }) {
     const newDesign = { 
       ...design, 
       id: Date.now(),
+      amount: Number(design.amount) || 0,
+      paymentAmount: Number(design.paymentAmount) || 0,
       handed_over: design.handedOver || false, 
       handed_over_date: design.handedOverDate || null 
     }
@@ -263,7 +265,14 @@ export function DataProvider({ children }) {
   const updateDesign = async (id, updates) => {
     const designBeforeUpdate = data.designs.find(d => d.id === id)
     if (!designBeforeUpdate) return;
-    const updatedDesign = { ...designBeforeUpdate, ...updates }
+    if (!designBeforeUpdate) return;
+    
+    // Sanitize numeric fields if present
+    const sanitizedUpdates = { ...updates }
+    if ('amount' in updates) sanitizedUpdates.amount = Number(updates.amount) || 0
+    if ('paymentAmount' in updates) sanitizedUpdates.paymentAmount = Number(updates.paymentAmount) || 0
+
+    const updatedDesign = { ...designBeforeUpdate, ...sanitizedUpdates }
     
     const wantCompletedWithFullPayment = updates.status === 'Completed' && (updates.paymentStatus === 'Full' || updates.paymentStatus === 'Paid')
     const wasNotCompletedWithFullPayment = !designBeforeUpdate || designBeforeUpdate.status !== 'Completed' || (designBeforeUpdate.paymentStatus !== 'Full' && designBeforeUpdate.paymentStatus !== 'Paid')
