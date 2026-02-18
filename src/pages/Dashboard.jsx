@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useData } from '../context/DataContext'
+import { useAuth } from '../App'
 import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -29,7 +30,9 @@ ChartJS.register(
 
 export default function Dashboard() {
   const { data } = useData()
+  const { user } = useAuth()
   const [period, setPeriod] = useState('monthly')
+  const [selectedBranch, setSelectedBranch] = useState('All')
 
   const getDateRange = (p) => {
     const now = new Date()
@@ -71,16 +74,20 @@ export default function Dashboard() {
   const filteredSales = useMemo(() => {
     return data.sales.filter(s => {
       const sd = new Date(s.date)
-      return sd >= dateRange.start && sd <= dateRange.end
+      const matchesPeriod = sd >= dateRange.start && sd <= dateRange.end
+      const matchesBranch = selectedBranch === 'All' || s.branch === selectedBranch
+      return matchesPeriod && matchesBranch
     })
-  }, [data.sales, dateRange])
+  }, [data.sales, dateRange, selectedBranch])
 
   const filteredExpenses = useMemo(() => {
     return data.expenses.filter(e => {
       const ed = new Date(e.date)
-      return ed >= dateRange.start && ed <= dateRange.end
+      const matchesPeriod = ed >= dateRange.start && ed <= dateRange.end
+      const matchesBranch = selectedBranch === 'All' || e.branch === selectedBranch
+      return matchesPeriod && matchesBranch
     })
-  }, [data.expenses, dateRange])
+  }, [data.expenses, dateRange, selectedBranch])
 
   const stats = useMemo(() => {
     const totalSales = filteredSales.reduce((sum, s) => sum + (s.amount || 0), 0)
@@ -224,20 +231,34 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-400">Welcome to IGH Business Management System</p>
         </div>
+        </div>
         <div className="flex items-start gap-2">
-        <select
-          value={period}
-          onChange={(e) => setPeriod(e.target.value)}
-          className="form-input w-40"
-        >
-          <option value="daily">Last 24 Hours</option>
-          <option value="weekly">Last 7 Days</option>
-          <option value="monthly">Last Month</option>
-          <option value="yearly">Last Year</option>
-        </select>
-        <span title={"Periods:\nLast 24 Hours — show entries from the previous 24 hours.\nLast 7 Days — show entries from the previous 7 days.\nLast Month — show entries from the previous month.\nLast Year — show entries from the previous year."} className="mt-1">
-          <Info size={16} className="opacity-60" />
-        </span>
+          {/* Branch Switcher for Admin */}
+          {user?.role === 'admin' && (
+            <select
+              value={selectedBranch}
+              onChange={(e) => setSelectedBranch(e.target.value)}
+              className="form-input w-40"
+            >
+              <option value="All">All Branches</option>
+              <option value="IGH">IGH</option>
+              <option value="iGift">iGift</option>
+            </select>
+          )}
+          
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            className="form-input w-40"
+          >
+            <option value="daily">Last 24 Hours</option>
+            <option value="weekly">Last 7 Days</option>
+            <option value="monthly">Last Month</option>
+            <option value="yearly">Last Year</option>
+          </select>
+          <span title={"Periods:\nLast 24 Hours — show entries from the previous 24 hours.\nLast 7 Days — show entries from the previous 7 days.\nLast Month — show entries from the previous month.\nLast Year — show entries from the previous year."} className="mt-1">
+            <Info size={16} className="opacity-60" />
+          </span>
         </div>
         <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Showing: {formatDate(dateRange.start)} — {formatDate(dateRange.end)}</div>
       </div>

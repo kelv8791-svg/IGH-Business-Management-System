@@ -18,7 +18,9 @@ export default function Settings() {
     username: '',
     email: '',
     password: '',
+    password: '',
     role: 'user',
+    branch: 'IGH',
     pref_compact: false
   })
 
@@ -38,7 +40,9 @@ export default function Settings() {
       setUserForm({ ...u })
       setEditId(u.username)
     } else {
-      setUserForm({ username: '', email: '', password: '', role: 'user', pref_compact: false })
+      setEditId(u.username)
+    } else {
+      setUserForm({ username: '', email: '', password: '', role: 'user', branch: 'IGH', pref_compact: false })
       setEditId(null)
     }
     setIsOpen(true)
@@ -296,6 +300,7 @@ export default function Settings() {
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Username</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Email</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Role</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Branch</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Compact Mode</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
                 </tr>
@@ -314,6 +319,7 @@ export default function Settings() {
                         {u.role}
                       </span>
                     </td>
+                    <td className="px-6 py-3 text-sm">{u.branch || 'IGH'}</td>
                     <td className="px-6 py-3 text-sm">{u.pref_compact ? 'Yes' : 'No'}</td>
                     <td className="px-6 py-3 text-sm flex gap-2">
                       <button onClick={() => handleOpenUserModal(u)} className="btn-secondary p-2">
@@ -503,6 +509,17 @@ export default function Settings() {
               className="form-input"
             >
               {roles.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Branch</label>
+            <select
+              value={userForm.branch || 'IGH'}
+              onChange={(e) => setUserForm({ ...userForm, branch: e.target.value })}
+              className="form-input"
+            >
+              <option value="IGH">IGH</option>
+              <option value="iGift">iGift</option>
             </select>
           </div>
           <div className="flex items-center gap-2">

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import supabase from '../lib/supabaseClient'
+import { useAuth } from '../App'
 
 const DataContext = createContext()
 
@@ -27,12 +28,37 @@ const initialData = {
 export function DataProvider({ children }) {
   const [data, setData] = useState(initialData)
   const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
 
-  // Fetch all data from Supabase on mount
+  // Fetch all data from Supabase on mount or when user changes
   useEffect(() => {
     async function fetchAllData() {
       setLoading(true)
       try {
+        // Base queries
+        let salesQuery = supabase.from('sales').select('*').order('id', { ascending: false })
+        let designsQuery = supabase.from('designs').select('*').order('id', { ascending: false })
+        let expensesQuery = supabase.from('expenses').select('*').order('date', { ascending: false })
+        let inventoryQuery = supabase.from('inventory').select('*').order('name')
+        let stockTransQuery = supabase.from('stock_transactions').select('*').order('created_at', { ascending: false }).limit(500)
+        
+        // Multi-branch filtering
+        // If not logged in, we only strictly need 'users' for login check. 
+        // But for safety, let's fetch nothing else or public stuff?
+        // If logged in as non-admin, filter by branch.
+        if (user && user.role !== 'admin' && user.branch) {
+            salesQuery = salesQuery.eq('branch', user.branch)
+            designsQuery = designsQuery.eq('branch', user.branch)
+            expensesQuery = expensesQuery.eq('branch', user.branch)
+            inventoryQuery = inventoryQuery.eq('branch', user.branch)
+            stockTransQuery = stockTransQuery.eq('branch', user.branch)
+            // Note: Suppliers/Clients/SupplierExpenses might be shared or filtered. 
+            // For now, let's leave them global or filter if needed. 
+            // Plan didn't specify strict segregation for them, but let's be consistent if 'branch' exists.
+            // checking schema update: I added branch to them.
+            // Let's filter them too for standard users.
+        }
+
         const [
           { data: sales, error: salesErr },
           { data: clients, error: clientsErr },
@@ -45,21 +71,19 @@ export function DataProvider({ children }) {
           { data: audit, error: auditErr },
           { data: users, error: usersErr }
         ] = await Promise.all([
-          supabase.from('sales').select('*').order('id', { ascending: false }),
-          supabase.from('clients').select('*').order('name'),
-          supabase.from('designs').select('*').order('id', { ascending: false }),
-          supabase.from('expenses').select('*').order('date', { ascending: false }),
-          supabase.from('suppliers').select('*').order('name'),
+          user ? salesQuery : Promise.resolve({ data: [] }), // Only fetch if user exists
+          supabase.from('clients').select('*').order('name'), // Clients might be shared? Let's keep global for now
+          user ? designsQuery : Promise.resolve({ data: [] }),
+          user ? expensesQuery : Promise.resolve({ data: [] }),
+          supabase.from('suppliers').select('*').order('name'), // Suppliers might be shared
           supabase.from('supplier_expenses').select('*').order('date', { ascending: false }),
-          supabase.from('inventory').select('*').order('name'),
-          supabase.from('stock_transactions').select('*').order('created_at', { ascending: false }).limit(500),
+          user ? inventoryQuery : Promise.resolve({ data: [] }),
+          user ? stockTransQuery : Promise.resolve({ data: [] }),
           supabase.from('audit').select('*').order('timestamp', { ascending: false }).limit(200),
-          supabase.from('users').select('*')
+          supabase.from('users').select('*') // Always fetch users
         ])
 
-        if (salesErr || clientsErr || designsErr || expensesErr || suppliersErr || supplierExpensesErr || inventoryErr || auditErr || usersErr) {
-           console.warn('One or more fetches failed. This is expected if tables are not yet created.')
-        }
+        if (usersErr) console.error('Error fetching users:', usersErr)
 
         setData({
           sales: sales || [],
@@ -81,7 +105,7 @@ export function DataProvider({ children }) {
     }
 
     fetchAllData()
-  }, [])
+  }, [user])
 
   // Real-time subscriptions
   useEffect(() => {
@@ -165,8 +189,12 @@ export function DataProvider({ children }) {
       ...sale, 
       id: Date.now(), 
       handed_over: sale.handedOver || false, 
+      ...sale, 
+      id: Date.now(), 
+      handed_over: sale.handedOver || false, 
       handed_over_date: sale.handedOverDate || null,
-      source: sale.source || 'Direct Sale'
+      source: sale.source || 'Direct Sale',
+      branch: user?.branch || 'IGH'
     }
     
     // Cleanup camelCase fields that we manually map or don't need
@@ -249,8 +277,11 @@ export function DataProvider({ children }) {
       paymentAmount: Number(design.paymentAmount) || 0,
       completion: design.completion || null,
       paymentDate: design.paymentDate || null,
+      completion: design.completion || null,
+      paymentDate: design.paymentDate || null,
       handed_over: design.handedOver || false, 
-      handed_over_date: design.handedOverDate || null 
+      handed_over_date: design.handedOverDate || null,
+      branch: user?.branch || 'IGH'
     }
 
     delete newDesign.handedOver
@@ -424,7 +455,7 @@ export function DataProvider({ children }) {
   // Inventory operations
   // Inventory operations
   const addInventoryItem = async (item) => {
-    const newItem = { ...item, id: Date.now() }
+    const newItem = { ...item, id: Date.now(), branch: user?.branch || 'IGH' }
     updateLocalState('inventory', 'CREATE', newItem)
     try {
       await performAction('inventory', 'CREATE', newItem)
@@ -498,7 +529,7 @@ export function DataProvider({ children }) {
     const newQuantity = (item.quantity || 0) + transaction.quantity_change
 
     // 2. Insert transaction
-    const newTransaction = { ...transaction }
+    const newTransaction = { ...transaction, branch: user?.branch || 'IGH' }
     // optimistic update for transaction? Maybe not needed for UI immediately, but good practice
     
     try {
