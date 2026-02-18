@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAuth } from '../App'
+import { useAuth } from '../context/AuthContext'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 import SessionManager from './SessionManager'

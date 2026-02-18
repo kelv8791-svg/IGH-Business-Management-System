@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../App'
+import { useAuth } from '../context/AuthContext'
 import { useData } from '../context/DataContext'
 import Modal from '../components/Modal'
 import { Lock, Key, User, Save } from 'lucide-react'

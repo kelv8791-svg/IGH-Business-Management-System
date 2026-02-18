@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useData } from '../context/DataContext'
-import { useAuth } from '../App'
+import { useAuth } from '../context/AuthContext'
 import Modal from '../components/Modal'
 import { Plus, Edit2, Trash2, Trash, CloudCog, User, Key, Save, Shield } from 'lucide-react'
 import { migrateLocalStorageToSupabase } from '../utils/migrateData'

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useData } from '../context/DataContext'
-import { useAuth } from '../App'
+import { useAuth } from '../context/AuthContext'
 import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2'
 import {
   Chart as ChartJS,

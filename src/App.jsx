@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
@@ -12,13 +12,7 @@ import Reports from './pages/Reports'
 import Settings from './pages/Settings'
 import Layout from './components/Layout'
 import { DataProvider } from './context/DataContext'
-
-// Auth Context
-const AuthContext = createContext()
-
-export function useAuth() {
-  return useContext(AuthContext)
-}
+import AuthContext from './context/AuthContext'
 
 function App() {
   const [user, setUser] = useState(null)

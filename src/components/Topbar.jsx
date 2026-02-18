@@ -1,4 +1,4 @@
-import { useAuth } from '../App'
+import { useAuth } from '../context/AuthContext'
 import { useData } from '../context/DataContext'
 import { LogOut, Moon, Sun, Maximize2, Minimize2 } from 'lucide-react'
 

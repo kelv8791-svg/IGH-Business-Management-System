@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useAuth } from '../App'
+import { useAuth } from '../context/AuthContext'
 import { useData } from '../context/DataContext'
 import { useNavigate } from 'react-router-dom'
 import supabase from '../lib/supabaseClient'

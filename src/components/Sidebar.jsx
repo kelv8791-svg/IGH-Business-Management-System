@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useAuth } from '../App'
+import { useAuth } from '../context/AuthContext'
 import {
   BarChart3, Users, Package, FileText, Settings, Menu,
   DollarSign, Layers, Briefcase, ShoppingCart, LayoutDashboard
