@@ -25,7 +25,7 @@ export default function LoginPage() {
   const { login } = useAuth()
   const { data, updateUser } = useData()
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
     setError('')
 
