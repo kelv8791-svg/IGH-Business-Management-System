@@ -16,6 +16,8 @@ export default function Reports() {
     { value: 'designs', label: 'Design Project Report' },
     { value: 'suppliers', label: 'Supplier Report' },
     { value: 'supplierExpenses', label: 'Supplier Expense Report' },
+    { value: 'inventory', label: 'Inventory Valuation' },
+    { value: 'stockMovement', label: 'Stock Movement Log' },
     { value: 'full', label: 'Full System Report' },
   ]
 
@@ -48,6 +50,14 @@ export default function Reports() {
         }))
       case 'supplierExpenses':
         return data.supplierExpenses.filter(dateFilter)
+      case 'inventory':
+        return data.inventory // Snapshot, no date filter usually, or maybe added items?
+      case 'stockMovement':
+        return data.stockTransactions.filter(t => {
+            if (!startDate || !endDate) return true
+            const date = t.created_at.split('T')[0]
+            return date >= startDate && date <= endDate
+        })
       case 'full':
         return {
           sales: data.sales.filter(dateFilter),
@@ -95,6 +105,19 @@ export default function Reports() {
       filteredData.forEach(expense => {
         const supplierName = data.suppliers.find(s => s.id === expense.supplier)?.name || 'Unknown'
         csv += `"${expense.date}","${supplierName}","${expense.type}","${expense.amount}","${expense.remarks}"\n`
+      })
+    } else if (reportType === 'inventory') {
+      csv = 'Item Name,Category,SKU,Quantity,Reorder Level,Unit Price,Total Value\n'
+      filteredData.forEach(item => {
+        const value = (item.quantity || 0) * (item.unitPrice || 0)
+        csv += `"${item.name}","${item.category}","${item.sku}","${item.quantity}","${item.reorderLevel}","${item.unitPrice}","${value}"\n`
+      })
+    } else if (reportType === 'stockMovement') {
+      csv = 'Date,Item,Type,Quantity Change,Reason,User,Notes\n'
+      filteredData.forEach(trans => {
+        const itemName = data.inventory.find(i => i.id === trans.item_id)?.name || 'Unknown Item'
+        const date = new Date(trans.created_at).toLocaleString()
+        csv += `"${date}","${itemName}","${trans.transaction_type}","${trans.quantity_change}","${trans.reason}","${trans.created_by}","${trans.notes || ''}"\n`
       })
     }
 
@@ -289,6 +312,85 @@ export default function Reports() {
                 <td colSpan="3" className="px-4 py-2 text-right">Total:</td>
                 <td className="px-4 py-2 text-right">KSh {filteredData.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</td>
               </tr>
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+
+    if (reportType === 'inventory') {
+      const totalValue = filteredData.reduce((sum, item) => sum + ((item.quantity || 0) * (item.unitPrice || 0)), 0)
+      return (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                <th className="px-4 py-2 text-left">Item Name</th>
+                <th className="px-4 py-2 text-left">Category</th>
+                <th className="px-4 py-2 text-right">Quantity</th>
+                <th className="px-4 py-2 text-right">Unit Price</th>
+                <th className="px-4 py-2 text-right">Total Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.map(item => (
+                <tr key={item.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <td className="px-4 py-2 font-medium">{item.name}</td>
+                  <td className="px-4 py-2">{item.category}</td>
+                  <td className={`px-4 py-2 text-right ${item.quantity <= item.reorderLevel ? 'text-red-600 font-bold' : ''}`}>{item.quantity}</td>
+                  <td className="px-4 py-2 text-right">KSh {item.unitPrice?.toLocaleString() || '0'}</td>
+                  <td className="px-4 py-2 text-right font-semibold">KSh {((item.quantity || 0) * (item.unitPrice || 0)).toLocaleString()}</td>
+                </tr>
+              ))}
+              <tr className="border-t-2 border-gray-300 dark:border-gray-600 font-bold">
+                <td colSpan="4" className="px-4 py-2 text-right">Total Inventory Value:</td>
+                <td className="px-4 py-2 text-right">KSh {totalValue.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+
+    if (reportType === 'stockMovement') {
+      return (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                <th className="px-4 py-2 text-left">Date</th>
+                <th className="px-4 py-2 text-left">Item</th>
+                <th className="px-4 py-2 text-left">Type</th>
+                <th className="px-4 py-2 text-right">Change</th>
+                <th className="px-4 py-2 text-left">Reason</th>
+                <th className="px-4 py-2 text-left">User</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.map(trans => {
+                const itemName = data.inventory.find(i => i.id === trans.item_id)?.name || 'Unknown Item'
+                return (
+                  <tr key={trans.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <td className="px-4 py-2 text-xs">{new Date(trans.created_at).toLocaleString()}</td>
+                    <td className="px-4 py-2 font-medium">{itemName}</td>
+                    <td className="px-4 py-2">
+                        <span className={`px-2 py-1 rounded text-xs ${
+                            trans.transaction_type === 'RESTOCK' ? 'bg-green-100 text-green-800' :
+                            trans.transaction_type === 'VARIANCE' ? 'bg-red-100 text-red-800' :
+                            trans.transaction_type === 'PROJECT_USAGE' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100'
+                        }`}>
+                            {trans.transaction_type}
+                        </span>
+                    </td>
+                    <td className={`px-4 py-2 text-right font-bold ${trans.quantity_change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {trans.quantity_change > 0 ? '+' : ''}{trans.quantity_change}
+                    </td>
+                    <td className="px-4 py-2">{trans.reason}</td>
+                    <td className="px-4 py-2 text-xs text-gray-500">{trans.created_by}</td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

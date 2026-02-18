@@ -19,6 +19,7 @@ const initialData = {
   suppliers: [],
   supplierExpenses: [],
   inventory: [],
+  stockTransactions: [],
   audit: [],
   users: []
 }
@@ -40,6 +41,7 @@ export function DataProvider({ children }) {
           { data: suppliers, error: suppliersErr },
           { data: supplierExpenses, error: supplierExpensesErr },
           { data: inventory, error: inventoryErr },
+          { data: stockTransactions, error: stockTransErr },
           { data: audit, error: auditErr },
           { data: users, error: usersErr }
         ] = await Promise.all([
@@ -50,6 +52,7 @@ export function DataProvider({ children }) {
           supabase.from('suppliers').select('*').order('name'),
           supabase.from('supplier_expenses').select('*').order('date', { ascending: false }),
           supabase.from('inventory').select('*').order('name'),
+          supabase.from('stock_transactions').select('*').order('created_at', { ascending: false }).limit(500),
           supabase.from('audit').select('*').order('timestamp', { ascending: false }).limit(200),
           supabase.from('users').select('*')
         ])
@@ -66,6 +69,7 @@ export function DataProvider({ children }) {
           suppliers: suppliers || [],
           supplierExpenses: supplierExpenses || [],
           inventory: inventory || [],
+          stockTransactions: stockTransactions || [],
           audit: audit || [],
           users: users || []
         })
@@ -81,10 +85,10 @@ export function DataProvider({ children }) {
 
   // Real-time subscriptions
   useEffect(() => {
-    const tables = ['sales', 'clients', 'designs', 'expenses', 'suppliers', 'supplier_expenses', 'inventory', 'audit', 'users']
+    const tables = ['sales', 'clients', 'designs', 'expenses', 'suppliers', 'supplier_expenses', 'inventory', 'stock_transactions', 'audit', 'users']
     
     const channels = tables.map(table => {
-      const keyMap = { supplier_expenses: 'supplierExpenses' }
+      const keyMap = { supplier_expenses: 'supplierExpenses', stock_transactions: 'stockTransactions' }
       const dataKey = keyMap[table] || table
 
       return supabase.channel(`public:${table}`)
