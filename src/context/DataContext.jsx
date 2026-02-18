@@ -503,6 +503,67 @@ export function DataProvider({ children }) {
     }
   }
 
+  // Design Materials operations
+  const getDesignMaterials = async (designId) => {
+    const { data: materials, error } = await supabase
+      .from('design_materials')
+      .select('*, inventory(name, unitPrice)')
+      .eq('design_id', designId)
+    
+    if (error) {
+      console.error('Error fetching design materials:', error)
+      return []
+    }
+    return materials
+  }
+
+  const addDesignMaterial = async (material) => {
+    try {
+      // 1. Add to design_materials table
+      const { data: newMaterial, error: matError } = await supabase
+        .from('design_materials')
+        .insert(material)
+        .select()
+        .single()
+      
+      if (matError) throw matError
+
+      // 2. Deduct from Inventory (Stock Transaction)
+      await addStockTransaction({
+        item_id: material.item_id,
+        quantity_change: -material.quantity_used,
+        transaction_type: 'PROJECT_USAGE',
+        reason: `Used for Design Project #${material.design_id}`,
+        created_by: material.assigned_by
+      })
+
+      return newMaterial
+    } catch (err) {
+      console.error('Failed to add design material:', err)
+      throw err
+    }
+  }
+
+  const deleteDesignMaterial = async (id, itemId, quantity, designId) => {
+    try {
+        // 1. Delete from design_materials
+        const { error } = await supabase.from('design_materials').delete().eq('id', id)
+        if (error) throw error
+
+        // 2. Refund stock (optional, but good for corrections)
+        await addStockTransaction({
+            item_id: itemId,
+            quantity_change: quantity,
+            transaction_type: 'PROJECT_RETURN',
+            reason: `Removed from Design Project #${designId}`,
+            created_by: 'system'
+        })
+    } catch (err) {
+        console.error('Failed to remove material:', err)
+        throw err
+    }
+  }
+
   // Audit operations
   const logAudit = async (action, module, details) => {
     const currentUser = localStorage.getItem('currentUser')
@@ -598,6 +659,8 @@ export function DataProvider({ children }) {
     addSupplierExpense, updateSupplierExpense, deleteSupplierExpense,
     // Inventory
     addInventoryItem, updateInventoryItem, deleteInventoryItem, addStockTransaction,
+    // Project Materials
+    addDesignMaterial, getDesignMaterials, deleteDesignMaterial,
     // Users
     addUser, updateUser, deleteUser,
     // Utilities

@@ -2,15 +2,19 @@ import { useState } from 'react'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../App'
 import Modal from '../components/Modal'
-import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-react'
+import { Plus, Edit2, Trash2, AlertCircle, Package, X } from 'lucide-react'
 
 export default function DesignProjects() {
-  const { data, addDesign, updateDesign, deleteDesign } = useData()
+  const { data, addDesign, updateDesign, deleteDesign, addDesignMaterial, getDesignMaterials, deleteDesignMaterial } = useData()
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [editId, setEditId] = useState(null)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [isMaterialOpen, setIsMaterialOpen] = useState(false)
+  const [currentProject, setCurrentProject] = useState(null)
+  const [projectMaterials, setProjectMaterials] = useState([])
+  const [materialForm, setMaterialForm] = useState({ itemId: '', quantity: 1 })
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -91,6 +95,46 @@ export default function DesignProjects() {
   }
 
   const noClientsWarning = data.clients.length === 0
+
+  const handleOpenMaterials = async (design) => {
+    setCurrentProject(design)
+    setIsMaterialOpen(true)
+    const materials = await getDesignMaterials(design.id)
+    setProjectMaterials(materials)
+    setMaterialForm({ itemId: '', quantity: 1 })
+  }
+
+  const handleAddMaterial = async (e) => {
+    e.preventDefault()
+    if (!materialForm.itemId || materialForm.quantity <= 0) return
+
+    try {
+      await addDesignMaterial({
+        design_id: currentProject.id,
+        item_id: materialForm.itemId,
+        quantity_used: materialForm.quantity,
+        assigned_by: user?.username || 'unknown'
+      })
+      
+      // Refresh list
+      const materials = await getDesignMaterials(currentProject.id)
+      setProjectMaterials(materials)
+      setMaterialForm({ itemId: '', quantity: 1 })
+    } catch (err) {
+      alert('Failed to add material: ' + err.message)
+    }
+  }
+
+  const handleDeleteMaterial = async (id, itemId, quantity) => {
+    if (!window.confirm('Remove this material? Stock will be refunded.')) return
+    try {
+        await deleteDesignMaterial(id, itemId, quantity, currentProject.id)
+        const materials = await getDesignMaterials(currentProject.id)
+        setProjectMaterials(materials)
+    } catch (err) {
+        alert('Failed to remove material')
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -190,6 +234,11 @@ export default function DesignProjects() {
                   {(user?.role === 'admin' || user?.role === 'designer') && (
                     <button onClick={() => handleOpenModal(design)} className="btn-secondary p-2">
                       <Edit2 size={16} />
+                    </button>
+                  )}
+                  {(user?.role === 'admin' || user?.role === 'designer') && (
+                    <button onClick={() => handleOpenMaterials(design)} className="btn-secondary p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100" title="Manage Materials">
+                      <Package size={16} />
                     </button>
                   )}
                   {user?.role === 'admin' && (
@@ -336,6 +385,67 @@ export default function DesignProjects() {
             <button type="button" onClick={() => setIsOpen(false)} className="btn-secondary flex-1">Cancel</button>
           </div>
         </form>
+      </Modal>
+      <Modal isOpen={isMaterialOpen} onClose={() => setIsMaterialOpen(false)} title={`Materials for: ${currentProject?.type || 'Project'}`}>
+        <div className="space-y-6">
+          {/* Add Material Form */}
+          <form onSubmit={handleAddMaterial} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
+             <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300">Add Material from Inventory</h4>
+             <div className="flex gap-2">
+               <select
+                 className="form-input flex-1"
+                 value={materialForm.itemId}
+                 onChange={(e) => setMaterialForm({ ...materialForm, itemId: e.target.value })}
+                 required
+               >
+                 <option value="">Select Item...</option>
+                 {data.inventory.map(item => (
+                   <option key={item.id} value={item.id} disabled={item.quantity <= 0}>
+                     {item.name} (Stock: {item.quantity})
+                   </option>
+                 ))}
+               </select>
+               <input
+                 type="number"
+                 className="form-input w-24"
+                 min="1"
+                 value={materialForm.quantity}
+                 onChange={(e) => setMaterialForm({ ...materialForm, quantity: parseInt(e.target.value) })}
+                 required
+               />
+               <button type="submit" className="btn-primary">Add</button>
+             </div>
+          </form>
+
+          {/* List */}
+          <div>
+            <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300 mb-2">Used Materials ({projectMaterials.length})</h4>
+            {projectMaterials.length === 0 ? (
+                <p className="text-gray-500 text-sm italic">No materials assigned yet.</p>
+            ) : (
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {projectMaterials.map(mat => (
+                        <div key={mat.id} className="flex justify-between items-center p-3 border border-gray-100 dark:border-gray-700 rounded-lg">
+                            <div>
+                                <p className="font-medium text-sm">{mat.inventory?.name || 'Unknown Item'}</p>
+                                <p className="text-xs text-gray-500">Qty: {mat.quantity_used}</p>
+                            </div>
+                            <button 
+                                onClick={() => handleDeleteMaterial(mat.id, mat.item_id, mat.quantity_used)}
+                                className="text-red-500 hover:text-red-700 p-1"
+                                title="Remove & Refund Stock"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+          </div>
+          <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+             <button onClick={() => setIsMaterialOpen(false)} className="btn-secondary w-full">Close</button>
+          </div>
+        </div>
       </Modal>
     </div>
   )
