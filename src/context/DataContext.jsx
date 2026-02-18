@@ -189,9 +189,6 @@ export function DataProvider({ children }) {
       ...sale, 
       id: Date.now(), 
       handed_over: sale.handedOver || false, 
-      ...sale, 
-      id: Date.now(), 
-      handed_over: sale.handedOver || false, 
       handed_over_date: sale.handedOverDate || null,
       source: sale.source || 'Direct Sale',
       branch: user?.branch || 'IGH'
@@ -270,13 +267,10 @@ export function DataProvider({ children }) {
   // Design Projects operations
   // Design Projects operations
   const addDesign = async (design) => {
-    const newDesign = { 
       ...design, 
       id: Date.now(),
       amount: Number(design.amount) || 0,
       paymentAmount: Number(design.paymentAmount) || 0,
-      completion: design.completion || null,
-      paymentDate: design.paymentDate || null,
       completion: design.completion || null,
       paymentDate: design.paymentDate || null,
       handed_over: design.handedOver || false, 

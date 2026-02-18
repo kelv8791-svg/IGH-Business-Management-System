@@ -40,8 +40,6 @@ export default function Settings() {
       setUserForm({ ...u })
       setEditId(u.username)
     } else {
-      setEditId(u.username)
-    } else {
       setUserForm({ username: '', email: '', password: '', role: 'user', branch: 'IGH', pref_compact: false })
       setEditId(null)
     }
