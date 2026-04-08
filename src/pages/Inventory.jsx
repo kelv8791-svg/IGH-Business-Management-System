@@ -5,7 +5,7 @@ import Modal from '../components/Modal'
 import { Plus, Edit2, Trash2, AlertTriangle, AlertCircle, CheckCircle, ArrowUpDown } from 'lucide-react'
 
 export default function Inventory() {
-  const { data, addInventoryItem, updateInventoryItem, deleteInventoryItem, getInventoryStatus, addStockTransaction } = useData()
+  const { data, addInventoryItem, updateInventoryItem, deleteInventoryItem, getInventoryStatus, addStockTransaction, addInventoryCategory } = useData()
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [editId, setEditId] = useState(null)
@@ -26,17 +26,15 @@ export default function Inventory() {
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
-    category: 'Printing Materials',
+    category: '',
     quantity: '',
     reorderLevel: '',
     unitPrice: '',
     supplier: ''
   })
 
-  // Dynamic categories from Datacontext, fallback to a small set if absolutely empty
-  const categoriesList = (data.inventoryCategories || []).length > 0 
-    ? data.inventoryCategories.map(c => c.name) 
-    : ['Printing Materials', 'T-shirt Stock', 'Signage Materials', 'Office Supplies', 'Other']
+  // Dynamic categories from Datacontext
+  const categoriesList = (data.inventoryCategories || []).map(c => c.name)
 
   const handleOpenModal = (item = null) => {
     if (item) {
@@ -46,7 +44,7 @@ export default function Inventory() {
       setFormData({
         name: '',
         sku: '',
-        category: 'Printing Materials',
+        category: '',
         quantity: '',
         reorderLevel: '',
         unitPrice: '',
@@ -114,7 +112,7 @@ export default function Inventory() {
     e.preventDefault()
     if(!newCategoryName.trim()) return
     try {
-      await data.addInventoryCategory(newCategoryName.trim())
+      await addInventoryCategory(newCategoryName.trim())
       setNewCategoryName('')
       setIsCategoryModalOpen(false)
       // The current form data category might need updating to new if they are adding one
@@ -304,6 +302,7 @@ export default function Inventory() {
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="form-input"
               >
+                <option value="">Select Category</option>
                 {!categoriesList.includes(formData.category) && formData.category && (
                   <option value={formData.category}>{formData.category}</option>
                 )}

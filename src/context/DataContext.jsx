@@ -33,7 +33,14 @@ export function DataProvider({ children }) {
 
   // Derived filtered data based on branch selection (for Admins)
   const filteredData = useMemo(() => {
-    if (!user || user.role !== 'admin') return data;
+    if (!user) return data;
+    
+    if (user.role !== 'admin') {
+      return {
+        ...data,
+        users: data.users.filter(u => !u.branch || u.branch === user.branch || u.role === 'admin')
+      }
+    }
     
     // For admins, filter everything by selectedBranch
     // Note: Clients and Suppliers might be shared, but let's filter if they have a branch column

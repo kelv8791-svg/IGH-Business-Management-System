@@ -6,7 +6,7 @@ import { Plus, Edit2, Trash2, Trash, CloudCog, User, Key, Save, Shield } from 'l
 import { migrateLocalStorageToSupabase } from '../utils/migrateData'
 
 export default function Settings() {
-  const { data, addUser, updateUser, deleteUser, clearAllData, logAudit } = useData()
+  const { data, allData, addUser, updateUser, deleteUser, clearAllData, logAudit } = useData()
   const { user } = useAuth()
   const [tab, setTab] = useState('account') // Default to 'account' for all users
   const [isOpen, setIsOpen] = useState(false)
@@ -108,7 +108,7 @@ export default function Settings() {
     }
   }
 
-  const filteredUsers = data.users.filter(u =>
+  const filteredUsers = (allData?.users || data.users).filter(u =>
     (u.username || '').toLowerCase().includes(auditSearch.toLowerCase()) ||
     (u.email || '').toLowerCase().includes(auditSearch.toLowerCase())
   )
@@ -323,7 +323,7 @@ export default function Settings() {
                       <button onClick={() => handleOpenUserModal(u)} className="btn-secondary p-2">
                         <Edit2 size={16} />
                       </button>
-                        {user?.role === 'admin' && data.users.length > 1 && (
+                        {user?.role === 'admin' && (allData?.users || data.users).length > 1 && (
                           <button
                             onClick={() => {
                               if (window.confirm(`Delete user ${u.username}?`)) {
@@ -405,7 +405,7 @@ export default function Settings() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Users</p>
-                <p className="text-2xl font-bold text-blue-600">{data.users.length}</p>
+                <p className="text-2xl font-bold text-blue-600">{(allData?.users || data.users).length}</p>
               </div>
               <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Clients</p>
