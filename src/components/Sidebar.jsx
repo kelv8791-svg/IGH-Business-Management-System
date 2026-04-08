@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useData } from '../context/DataContext'
 import {
   BarChart3, Users, Package, FileText, Settings, Menu,
   DollarSign, Layers, Briefcase, ShoppingCart, LayoutDashboard
@@ -8,6 +9,7 @@ import {
 export default function Sidebar({ open }) {
   const location = useLocation()
   const { user } = useAuth()
+  const { selectedBranch } = useData()
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -19,7 +21,11 @@ export default function Sidebar({ open }) {
     { path: '/inventory', label: 'Inventory', icon: Package },
     { path: '/reports', label: 'Reports', icon: BarChart3 },
   ].filter(item => {
-    if (item.path === '/inventory' && user?.branch === 'IGH' && user?.role !== 'admin') {
+    const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
+    if (item.path === '/inventory' && activeBranch === 'IGH') {
+      return false
+    }
+    if (item.path === '/reports' && user?.role !== 'admin') {
       return false
     }
     return true

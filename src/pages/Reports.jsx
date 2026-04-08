@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useData } from '../context/DataContext'
-import { Download, Eye } from 'lucide-react'
+import { Download, Eye, FileText } from 'lucide-react'
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
 
 export default function Reports() {
   const { data } = useData()
@@ -141,6 +143,73 @@ export default function Reports() {
     document.body.appendChild(element)
     element.click()
     document.body.removeChild(element)
+  }
+
+  const generatePDF = () => {
+    const filteredData = getFilteredData()
+    const doc = new jsPDF('landscape') // wider space
+    const timestamp = new Date().toLocaleDateString()
+    
+    doc.setFontSize(18)
+    doc.text(`IGH BMS - ${reportTypes.find(r => r.value === reportType)?.label}`, 14, 22)
+    doc.setFontSize(11)
+    doc.text(`Generated on: ${timestamp}`, 14, 30)
+
+    let head = []
+    let body = []
+
+    if (reportType === 'sales') {
+      head = [['Date', 'Client', 'Department', 'Amount', 'Status']]
+      filteredData.forEach(s => body.push([s.date, s.client, s.dept, `KSh ${s.amount.toLocaleString()}`, s.paymentStatus]))
+    } else if (reportType === 'expenses') {
+      head = [['Date', 'Category', 'Description', 'Amount']]
+      filteredData.forEach(e => body.push([e.date, e.cat, e.desc, `KSh ${e.amount.toLocaleString()}`]))
+    } else if (reportType === 'clients') {
+      head = [['Name', 'Phone', 'Location', 'Total Sales']]
+      filteredData.forEach(c => body.push([c.name, c.phone, c.location, `KSh ${c.totalSales.toLocaleString()}`]))
+    } else if (reportType === 'designs') {
+      head = [['Date', 'Type', 'Client', 'Designer', 'Amount', 'Status']]
+      filteredData.forEach(d => body.push([d.date, d.type, d.client, d.assignedTo, `KSh ${d.amount?.toLocaleString() || '0'}`, d.status]))
+    } else if (reportType === 'suppliers') {
+      head = [['Name', 'Contact', 'Phone', 'Total Spent']]
+      filteredData.forEach(s => body.push([s.name, s.contact, s.phone, `KSh ${s.totalSpent.toLocaleString()}`]))
+    } else if (reportType === 'supplierExpenses') {
+      head = [['Date', 'Supplier', 'Type', 'Amount', 'Remarks']]
+      filteredData.forEach(e => {
+        const supName = data.suppliers.find(s => s.id === e.supplier)?.name || 'Unknown'
+        body.push([e.date, supName, e.type, `KSh ${e.amount.toLocaleString()}`, e.remarks || ''])
+      })
+    } else if (reportType === 'inventory') {
+      head = [['Item', 'Category', 'Quantity', 'Price', 'Value']]
+      filteredData.forEach(i => {
+        const val = (i.quantity || 0) * (i.unitPrice || 0)
+        body.push([i.name, i.category, String(i.quantity), `KSh ${i.unitPrice?.toLocaleString() || '0'}`, `KSh ${val.toLocaleString()}`])
+      })
+    } else if (reportType === 'stockMovement') {
+      head = [['Date', 'Item', 'Type', 'Change', 'Reason', 'User']]
+      filteredData.forEach(t => {
+        const itemName = data.inventory.find(i => i.id === t.item_id)?.name || 'Unknown Item'
+        let reason = t.reason
+        const pMatch = reason.match(/Project #(\d+)/)
+        if (pMatch) {
+            const des = data.designs.find(d => d.id == pMatch[1])
+            if (des) reason = `${reason} - ${des.client}`
+        }
+        body.push([new Date(t.created_at).toLocaleDateString(), itemName, t.transaction_type, String(t.quantity_change), reason, t.created_by])
+      })
+    } else if (reportType === 'full') {
+      doc.text('A full system export is best generated via CSV due to multiple data shapes.', 14, 40)
+      doc.save(`system_report_${timestamp}.pdf`)
+      return
+    }
+
+    if (body.length > 0) {
+      doc.autoTable({ startY: 35, head, body })
+    } else {
+      doc.text('No matching data for given filters.', 14, 40)
+    }
+
+    doc.save(`${reportType}_report_${timestamp}.pdf`)
   }
 
   const renderReportPreview = () => {
@@ -503,10 +572,14 @@ export default function Reports() {
           )}
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 mt-4">
           <button onClick={generateCSV} className="btn-primary flex items-center gap-2">
             <Download size={20} />
             Export to CSV
+          </button>
+          <button onClick={generatePDF} className="btn-secondary flex items-center gap-2 text-red-600 border-red-200 bg-red-50 hover:bg-red-100">
+            <FileText size={20} />
+            Export to PDF
           </button>
         </div>
       </div>

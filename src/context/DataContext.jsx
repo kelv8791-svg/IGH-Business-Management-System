@@ -51,6 +51,7 @@ export function DataProvider({ children }) {
       suppliers: data.suppliers, // Suppliers often shared
       supplierExpenses: filterByBranch(data.supplierExpenses),
       inventory: filterByBranch(data.inventory),
+      inventoryCategories: data.inventoryCategories,
       stockTransactions: filterByBranch(data.stockTransactions),
       audit: data.audit, // Audit logs usually global for admin
       users: data.users
@@ -73,30 +74,14 @@ export function DataProvider({ children }) {
   // Fetch all data from Supabase on mount or when user changes
   useEffect(() => {
     async function fetchAllData() {
-
-
       setLoading(true)
       try {
-        // Base queries
-        let salesQuery = supabase.from('sales').select('*').order('date', { ascending: false })
-        let designsQuery = supabase.from('designs').select('*').order('date', { ascending: false })
-        let expensesQuery = supabase.from('expenses').select('*').order('date', { ascending: false })
-        let inventoryQuery = supabase.from('inventory').select('*').order('name')
-        let stockTransQuery = supabase.from('stock_transactions').select('*').order('created_at', { ascending: false })
-        let clientsQuery = supabase.from('clients').select('*').order('name')
-        let suppliersQuery = supabase.from('suppliers').select('*').order('name')
-        let supplierExpensesQuery = supabase.from('supplier_expenses').select('*').order('date', { ascending: false })
-        
-        // Multi-branch filtering
-        if (user && user.role !== 'admin') {
-            salesQuery = salesQuery.eq('branch', user.branch)
-            designsQuery = designsQuery.eq('branch', user.branch)
-            expensesQuery = expensesQuery.eq('branch', user.branch)
-            inventoryQuery = inventoryQuery.eq('branch', user.branch)
-            stockTransQuery = stockTransQuery.eq('branch', user.branch)
-            clientsQuery = clientsQuery.eq('branch', user.branch)
-            suppliersQuery = suppliersQuery.eq('branch', user.branch)
-            supplierExpensesQuery = supplierExpensesQuery.eq('branch', user.branch)
+        const buildQuery = (table) => {
+            let query = supabase.from(table).select('*')
+            if (user && user.role !== 'admin') {
+                query = query.eq('branch', user.branch)
+            }
+            return query
         }
 
         const [
@@ -107,18 +92,20 @@ export function DataProvider({ children }) {
           { data: suppliers, error: suppliersErr },
           { data: supplierExpenses, error: supplierExpensesErr },
           { data: inventory, error: inventoryErr },
+          { data: inventoryCategories, error: invCatErr },
           { data: stockTransactions, error: stockTransErr },
           { data: audit, error: auditErr },
           { data: users, error: usersErr }
         ] = await Promise.all([
-          user ? salesQuery : Promise.resolve({ data: [] }),
-          user ? clientsQuery : Promise.resolve({ data: [] }),
-          user ? designsQuery : Promise.resolve({ data: [] }),
-          user ? expensesQuery : Promise.resolve({ data: [] }),
-          user ? suppliersQuery : Promise.resolve({ data: [] }),
-          user ? supplierExpensesQuery : Promise.resolve({ data: [] }),
-          user ? inventoryQuery : Promise.resolve({ data: [] }),
-          user ? stockTransQuery : Promise.resolve({ data: [] }),
+          user ? buildQuery('sales').order('date', { ascending: false }) : Promise.resolve({ data: [] }),
+          user ? buildQuery('clients').order('name') : Promise.resolve({ data: [] }),
+          user ? buildQuery('designs').order('date', { ascending: false }) : Promise.resolve({ data: [] }),
+          user ? buildQuery('expenses').order('date', { ascending: false }) : Promise.resolve({ data: [] }),
+          user ? buildQuery('suppliers').order('name') : Promise.resolve({ data: [] }),
+          user ? buildQuery('supplier_expenses').order('date', { ascending: false }) : Promise.resolve({ data: [] }),
+          user ? buildQuery('inventory').order('name') : Promise.resolve({ data: [] }),
+          supabase.from('inventory_categories').select('*').order('name'),
+          user ? buildQuery('stock_transactions').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
           supabase.from('audit').select('*').order('timestamp', { ascending: false }),
           supabase.from('users').select('*') // Always fetch users
         ])
@@ -133,6 +120,7 @@ export function DataProvider({ children }) {
           suppliers: suppliers || [],
           supplierExpenses: supplierExpenses || [],
           inventory: inventory || [],
+          inventoryCategories: inventoryCategories || [],
           stockTransactions: stockTransactions || [],
           audit: audit || [],
           users: users || []
@@ -149,10 +137,10 @@ export function DataProvider({ children }) {
 
   // Real-time subscriptions
   useEffect(() => {
-    const tables = ['sales', 'clients', 'designs', 'expenses', 'suppliers', 'supplier_expenses', 'inventory', 'stock_transactions', 'audit', 'users']
+    const tables = ['sales', 'clients', 'designs', 'expenses', 'suppliers', 'supplier_expenses', 'inventory', 'inventory_categories', 'stock_transactions', 'audit', 'users']
     
     const channels = tables.map(table => {
-      const keyMap = { supplier_expenses: 'supplierExpenses', stock_transactions: 'stockTransactions' }
+      const keyMap = { supplier_expenses: 'supplierExpenses', stock_transactions: 'stockTransactions', inventory_categories: 'inventoryCategories' }
       const dataKey = keyMap[table] || table
 
       return supabase.channel(`public:${table}`)
@@ -160,7 +148,6 @@ export function DataProvider({ children }) {
           setData(prev => {
             const list = prev[dataKey] || []
             if (payload.eventType === 'INSERT') {
-              // Avoid duplicates
               const idField = table === 'users' ? 'username' : 'id'
               if (list.some(item => item[idField] === payload.new[idField])) return prev;
               return { ...prev, [dataKey]: [payload.new, ...list] }
@@ -186,7 +173,7 @@ export function DataProvider({ children }) {
 
   // Helper for optimistic updates
   const updateLocalState = (table, action, record, idField = 'id') => {
-    const keyMap = { supplier_expenses: 'supplierExpenses' }
+    const keyMap = { supplier_expenses: 'supplierExpenses', inventory_categories: 'inventoryCategories' }
     const dataKey = keyMap[table] || table
 
     setData(prev => {
@@ -216,13 +203,11 @@ export function DataProvider({ children }) {
 
     if (result.error) {
       console.error(`Supabase ${action} error on ${table}:`, result.error)
-      // Optional: Revert local state here if needed, or rely on next fetch
       throw result.error
     }
     return result.data?.[0] || record
   }
 
-  // Sales operations
   // Sales operations
   const addSale = async (sale) => {
     const newSale = { 
@@ -234,7 +219,6 @@ export function DataProvider({ children }) {
       branch: user?.branch || 'IGH'
     }
     
-    // Cleanup camelCase fields that we manually map or don't need
     delete newSale.handedOver
     delete newSale.handedOverDate
 
@@ -255,7 +239,6 @@ export function DataProvider({ children }) {
     if (!sale) return;
     const updatedSale = { ...sale, ...updates }
     
-    // If sale is marked handed_over and it's linked to a design, propagate to design
     if (updatedSale.handed_over && updatedSale.designId) {
       const design = data.designs.find(d => d.id === updatedSale.designId)
       if (design && !design.handed_over) {
@@ -305,7 +288,6 @@ export function DataProvider({ children }) {
   }
 
   // Design Projects operations
-  // Design Projects operations
   const addDesign = async (design) => {
     const newDesign = {
       ...design, 
@@ -337,14 +319,11 @@ export function DataProvider({ children }) {
   const updateDesign = async (id, updates) => {
     const designBeforeUpdate = data.designs.find(d => d.id === id)
     if (!designBeforeUpdate) return;
-    if (!designBeforeUpdate) return;
     
-    // Sanitize numeric fields if present
     const sanitizedUpdates = { ...updates }
     if ('amount' in updates) sanitizedUpdates.amount = Number(updates.amount) || 0
     if ('paymentAmount' in updates) sanitizedUpdates.paymentAmount = Number(updates.paymentAmount) || 0
     
-    // Sanitize date fields
     if ('completion' in updates) sanitizedUpdates.completion = updates.completion || null
     if ('paymentDate' in updates) sanitizedUpdates.paymentDate = updates.paymentDate || null
     if ('handed_over_date' in updates) sanitizedUpdates.handed_over_date = updates.handed_over_date || null
@@ -354,7 +333,6 @@ export function DataProvider({ children }) {
     const wantCompletedWithFullPayment = updates.status === 'Completed' && (updates.paymentStatus === 'Full' || updates.paymentStatus === 'Paid')
     const wasNotCompletedWithFullPayment = !designBeforeUpdate || designBeforeUpdate.status !== 'Completed' || (designBeforeUpdate.paymentStatus !== 'Full' && designBeforeUpdate.paymentStatus !== 'Paid')
     
-    // Auto-create sale if design is marked as Completed with Full payment
     if (wantCompletedWithFullPayment && wasNotCompletedWithFullPayment && (updates.paymentAmount || designBeforeUpdate.paymentAmount)) {
       const saleAlreadyExists = data.sales.some(s => Number(s.designId) === Number(id))
       
@@ -378,7 +356,6 @@ export function DataProvider({ children }) {
       }
     }
 
-    // If design was marked handed over, propagate to linked sale(s)
     if (updates.handed_over) {
       const linkedSales = data.sales.filter(s => Number(s.designId) === Number(id) && !s.handed_over)
       for (const sale of linkedSales) {
@@ -397,7 +374,6 @@ export function DataProvider({ children }) {
     logAudit('DELETE', 'Design Projects', `Deleted design ID ${id}`)
   }
 
-  // Expenses operations
   // Expenses operations
   const addExpense = async (expense) => {
     const newExpense = { ...expense, id: Date.now(), branch: user?.branch || 'IGH' }
@@ -428,7 +404,6 @@ export function DataProvider({ children }) {
   }
 
   // Suppliers operations
-  // Suppliers operations
   const addSupplier = async (supplier) => {
     const newSupplier = { ...supplier, id: Date.now(), branch: user?.branch || 'IGH' }
     updateLocalState('suppliers', 'CREATE', newSupplier)
@@ -457,7 +432,6 @@ export function DataProvider({ children }) {
     logAudit('DELETE', 'Suppliers', `Deleted supplier ID ${id}`)
   }
 
-  // Supplier Expenses operations
   // Supplier Expenses operations
   const addSupplierExpense = async (expense) => {
     const newExpense = { ...expense, id: Date.now(), branch: user?.branch || 'IGH' }
@@ -488,7 +462,6 @@ export function DataProvider({ children }) {
   }
 
   // Inventory operations
-  // Inventory operations
   const addInventoryItem = async (item) => {
     const newItem = { ...item, id: Date.now(), branch: user?.branch || 'IGH' }
     updateLocalState('inventory', 'CREATE', newItem)
@@ -517,7 +490,19 @@ export function DataProvider({ children }) {
     logAudit('DELETE', 'Inventory', `Deleted inventory ID ${id}`)
   }
 
-  // User operations
+  const addInventoryCategory = async (name) => {
+    const newCat = { id: Date.now(), name }
+    updateLocalState('inventory_categories', 'CREATE', newCat)
+    try {
+      await performAction('inventory_categories', 'CREATE', newCat)
+      logAudit('CREATE', 'Inventory', `Added category: ${name}`)
+      return newCat
+    } catch (err) {
+      alert('Failed to save category! ' + err.message)
+      throw err
+    }
+  }
+
   // User operations
   const addUser = async (user) => {
     const username = (user.username || user.email || '').toLowerCase()
@@ -557,28 +542,22 @@ export function DataProvider({ children }) {
 
   // Stock Transaction operations
   const addStockTransaction = async (transaction) => {
-    // 1. Calculate new quantity
     const item = data.inventory.find(i => Number(i.id) === Number(transaction.item_id))
     if (!item) throw new Error('Item not found')
 
     const newQuantity = (item.quantity || 0) + transaction.quantity_change
 
-    // 2. Insert transaction
     const newTransaction = { ...transaction, branch: user?.branch || 'IGH' }
-    // optimistic update for transaction? Maybe not needed for UI immediately, but good practice
     
     try {
         const { error: transError } = await supabase.from('stock_transactions').insert(newTransaction)
         if (transError) throw transError
 
-        // 3. Update inventory item quantity
         const { error: invError } = await supabase.from('inventory').update({ quantity: newQuantity }).eq('id', item.id)
         if (invError) throw invError
         
-        // Update local state for inventory
         updateLocalState('inventory', 'UPDATE', { ...item, quantity: newQuantity })
 
-        // 4. Log audit
         logAudit('UPDATE', 'Inventory', `Adjusted stock for ${item.name}: ${transaction.quantity_change > 0 ? '+' : ''}${transaction.quantity_change} (${transaction.transaction_type})`)
 
         return newQuantity
@@ -605,7 +584,6 @@ export function DataProvider({ children }) {
 
   const addDesignMaterial = async (material) => {
     try {
-      // 1. Add to design_materials table
       const { data: newMaterial, error: matError } = await supabase
         .from('design_materials')
         .insert(material)
@@ -614,7 +592,6 @@ export function DataProvider({ children }) {
       
       if (matError) throw matError
 
-      // 2. Deduct from Inventory (Stock Transaction)
       await addStockTransaction({
         item_id: material.item_id,
         quantity_change: -material.quantity_used,
@@ -632,11 +609,9 @@ export function DataProvider({ children }) {
 
   const deleteDesignMaterial = async (id, itemId, quantity, designId) => {
     try {
-        // 1. Delete from design_materials
         const { error } = await supabase.from('design_materials').delete().eq('id', id)
         if (error) throw error
 
-        // 2. Refund stock (optional, but good for corrections)
         await addStockTransaction({
             item_id: itemId,
             quantity_change: quantity,
@@ -721,38 +696,29 @@ export function DataProvider({ children }) {
     const confirmation = window.confirm('Are you sure you want to clear all data from Supabase?')
     if (!confirmation) return;
     
-    const tables = ['sales', 'clients', 'designs', 'expenses', 'suppliers', 'supplier_expenses', 'inventory', 'audit', 'users']
+    const tables = ['sales', 'clients', 'designs', 'expenses', 'suppliers', 'supplier_expenses', 'inventory', 'inventory_categories', 'audit', 'users']
     for (const table of tables) {
       await supabase.from(table).delete().neq(table === 'users' ? 'username' : 'id', -1)
     }
-    // Re-add default admin if not present
     await addUser({ username: 'admin', email: 'admin@igh.com', password: 'admin123', role: 'admin', pref_compact: false })
   }
 
   const value = {
-    data: filteredData, // Expose filtered data to the app
-    allData: data,      // Expose raw data if needed (e.g. for debug or specific admin views)
-    selectedBranch,     // Global branch selection
-    setSelectedBranch,  // Function to switch branch
+    data: filteredData,
+    allData: data,
+    selectedBranch,
+    setSelectedBranch,
     loading,
-    // Sales
     addSale, updateSale, deleteSale,
-    // Clients
     addClient, updateClient, deleteClient,
-    // Designs
     addDesign, updateDesign, deleteDesign,
-    // Expenses
     addExpense, updateExpense, deleteExpense,
-    // Suppliers
     addSupplier, updateSupplier, deleteSupplier,
     addSupplierExpense, updateSupplierExpense, deleteSupplierExpense,
-    // Inventory
     addInventoryItem, updateInventoryItem, deleteInventoryItem, addStockTransaction,
-    // Project Materials
+    addInventoryCategory,
     addDesignMaterial, getDesignMaterials, deleteDesignMaterial,
-    // Users
     addUser, updateUser, deleteUser,
-    // Utilities
     getClientName, getSupplierName, getTotalSales, getTotalExpenses,
     getNetBalance, getSalesByDepartment, getInventoryStatus, clearAllData,
     logAudit

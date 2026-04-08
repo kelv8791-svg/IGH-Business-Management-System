@@ -5,7 +5,7 @@ import Modal from '../components/Modal'
 import { Plus, Edit2, Trash2, AlertCircle, Package, X } from 'lucide-react'
 
 export default function DesignProjects() {
-  const { data, addDesign, updateDesign, deleteDesign, addDesignMaterial, getDesignMaterials, deleteDesignMaterial, addExpense, deleteExpense } = useData()
+  const { data, addDesign, updateDesign, deleteDesign, addDesignMaterial, getDesignMaterials, deleteDesignMaterial, addExpense, deleteExpense, selectedBranch } = useData()
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [editId, setEditId] = useState(null)
@@ -416,7 +416,7 @@ export default function DesignProjects() {
       <Modal isOpen={isMaterialOpen} onClose={() => setIsMaterialOpen(false)} title={`Materials for: ${currentProject?.type || 'Project'}`}>
         <div className="space-y-6">
           {/* Form varies by branch */}
-          {user?.branch === 'IGH' && user?.role !== 'admin' ? (
+          {(user?.role === 'admin' ? selectedBranch : user?.branch) === 'IGH' ? (
             <form onSubmit={handleAddDirectExpense} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
                <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300">Add Direct Material Expense</h4>
                <p className="text-xs text-gray-500 mb-2">Record materials bought out-of-pocket for this project.</p>

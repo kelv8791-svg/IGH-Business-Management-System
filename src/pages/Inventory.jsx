@@ -9,9 +9,12 @@ export default function Inventory() {
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [editId, setEditId] = useState(null)
+  const [editId, setEditId] = useState(null)
   const [search, setSearch] = useState('')
   const [filterCat, setFilterCat] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
   const [isAdjustOpen, setIsAdjustOpen] = useState(false)
   const [adjustItem, setAdjustItem] = useState(null)
   const [adjustData, setAdjustData] = useState({
@@ -29,9 +32,13 @@ export default function Inventory() {
     reorderLevel: '',
     unitPrice: '',
     supplier: ''
+    supplier: ''
   })
 
-  const categories = ['Printing Materials', 'T-shirt Stock', 'Signage Materials', 'Office Supplies', 'Other']
+  // Dynamic categories from Datacontext, fallback to a small set if absolutely empty
+  const categoriesList = (data.inventoryCategories || []).length > 0 
+    ? data.inventoryCategories.map(c => c.name) 
+    : ['Printing Materials', 'T-shirt Stock', 'Signage Materials', 'Office Supplies', 'Other']
 
   const handleOpenModal = (item = null) => {
     if (item) {
@@ -105,6 +112,24 @@ export default function Inventory() {
     setIsOpen(false)
   }
 
+  const handleAddCategory = async (e) => {
+    e.preventDefault()
+    if(!newCategoryName.trim()) return
+    try {
+      await data.addInventoryCategory(newCategoryName.trim())
+      setNewCategoryName('')
+      setIsCategoryModalOpen(false)
+      // The current form data category might need updating to new if they are adding one
+      if (isOpen) setFormData(prev => ({ ...prev, category: newCategoryName.trim() }))
+    } catch (err) {
+      if (err.code !== '23505') { // 23505 is usually unqiue violation
+         // just fail silently or specific error handled in context already 
+      } else {
+        alert("Category already exists!")
+      }
+    }
+  }
+
   const filteredItems = data.inventory.filter(item => {
     const matchSearch = item.name.toLowerCase().includes(search.toLowerCase()) ||
                        item.sku.toLowerCase().includes(search.toLowerCase())
@@ -135,10 +160,18 @@ export default function Inventory() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Inventory Management</h1>
-        <button onClick={() => handleOpenModal()} className="btn-primary flex items-center gap-2">
-          <Plus size={20} />
-          Add Item
-        </button>
+        <div className="flex gap-3">
+          {(user?.branch === 'iGift' || user?.role === 'admin') && (
+            <button onClick={() => setIsCategoryModalOpen(true)} className="btn-secondary flex items-center gap-2">
+              <Plus size={20} />
+              Add Category
+            </button>
+          )}
+          <button onClick={() => handleOpenModal()} className="btn-primary flex items-center gap-2">
+            <Plus size={20} />
+            Add Item
+          </button>
+        </div>
       </div>
 
       {/* Status Summary */}
@@ -168,7 +201,7 @@ export default function Inventory() {
         />
         <select value={filterCat} onChange={(e) => setFilterCat(e.target.value)} className="form-input">
           <option value="">All Categories</option>
-          {categories.map(c => <option key={c} value={c}>{c}</option>)}
+          {categoriesList.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="form-input">
           <option value="">All Statuses</option>
@@ -273,7 +306,10 @@ export default function Inventory() {
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="form-input"
               >
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                {!categoriesList.includes(formData.category) && formData.category && (
+                  <option value={formData.category}>{formData.category}</option>
+                )}
+                {categoriesList.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
@@ -412,6 +448,27 @@ export default function Inventory() {
             <button type="button" onClick={() => setIsAdjustOpen(false)} className="btn-secondary flex-1">Cancel</button>
           </div>
         </form>
+      </Modal>
+
+      {/* Add Category Modal */}
+      <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title="Add New Category">
+         <form onSubmit={handleAddCategory} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category Name</label>
+              <input
+                type="text"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                className="form-input"
+                required
+                placeholder="e.g. Branding Materials"
+              />
+            </div>
+            <div className="flex gap-3 pt-4">
+              <button type="submit" className="btn-success flex-1">Save Category</button>
+              <button type="button" onClick={() => setIsCategoryModalOpen(false)} className="btn-secondary flex-1">Cancel</button>
+            </div>
+         </form>
       </Modal>
     </div>
   )
