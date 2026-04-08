@@ -55,9 +55,10 @@ function App() {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, darkMode, setDarkMode, compactMode, setCompactMode }}>
-      <DataProvider>
-        <Router>
+    <ErrorBoundary>
+      <AuthContext.Provider value={{ user, login, logout, darkMode, setDarkMode, compactMode, setCompactMode }}>
+        <DataProvider>
+          <Router>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route
@@ -65,20 +66,18 @@ function App() {
               element={
                 user ? (
                   <Layout>
-                    <ErrorBoundary>
-                      <Routes>
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/sales" element={<Sales />} />
-                        <Route path="/clients" element={<Clients />} />
-                        <Route path="/design-projects" element={<DesignProjects />} />
-                        <Route path="/expenses" element={<Expenses />} />
-                        <Route path="/suppliers" element={<Suppliers />} />
-                        <Route path="/inventory" element={<Inventory />} />
-                        <Route path="/reports" element={<Reports />} />
-                        <Route path="/settings" element={<Settings />} />
-                        <Route path="*" element={<Navigate to="/" />} />
-                      </Routes>
-                    </ErrorBoundary>
+                    <Routes>
+                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/sales" element={<Sales />} />
+                      <Route path="/clients" element={<Clients />} />
+                      <Route path="/design-projects" element={<DesignProjects />} />
+                      <Route path="/expenses" element={<Expenses />} />
+                      <Route path="/suppliers" element={<Suppliers />} />
+                      <Route path="/inventory" element={<Inventory />} />
+                      <Route path="/reports" element={<Reports />} />
+                      <Route path="/settings" element={<Settings />} />
+                      <Route path="*" element={<Navigate to="/" />} />
+                    </Routes>
                   </Layout>
                 ) : (
                   <Navigate to="/login" />
@@ -89,6 +88,7 @@ function App() {
         </Router>
       </DataProvider>
     </AuthContext.Provider>
+    </ErrorBoundary>
   )
 }
 
