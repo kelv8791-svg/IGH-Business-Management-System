@@ -9,7 +9,6 @@ export default function Inventory() {
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [editId, setEditId] = useState(null)
-  const [editId, setEditId] = useState(null)
   const [search, setSearch] = useState('')
   const [filterCat, setFilterCat] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
@@ -31,7 +30,6 @@ export default function Inventory() {
     quantity: '',
     reorderLevel: '',
     unitPrice: '',
-    supplier: ''
     supplier: ''
   })
 
