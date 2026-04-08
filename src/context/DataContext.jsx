@@ -83,22 +83,20 @@ export function DataProvider({ children }) {
         let expensesQuery = supabase.from('expenses').select('*').order('date', { ascending: false })
         let inventoryQuery = supabase.from('inventory').select('*').order('name')
         let stockTransQuery = supabase.from('stock_transactions').select('*').order('created_at', { ascending: false })
+        let clientsQuery = supabase.from('clients').select('*').order('name')
+        let suppliersQuery = supabase.from('suppliers').select('*').order('name')
+        let supplierExpensesQuery = supabase.from('supplier_expenses').select('*').order('date', { ascending: false })
         
         // Multi-branch filtering
-        // If not logged in, we only strictly need 'users' for login check. 
-        // But for safety, let's fetch nothing else or public stuff?
-        // If logged in as non-admin, filter by branch.
         if (user && user.role !== 'admin') {
             salesQuery = salesQuery.eq('branch', user.branch)
             designsQuery = designsQuery.eq('branch', user.branch)
             expensesQuery = expensesQuery.eq('branch', user.branch)
             inventoryQuery = inventoryQuery.eq('branch', user.branch)
             stockTransQuery = stockTransQuery.eq('branch', user.branch)
-            // Note: Suppliers/Clients/SupplierExpenses might be shared or filtered. 
-            // For now, let's leave them global or filter if needed. 
-            // Plan didn't specify strict segregation for them, but let's be consistent if 'branch' exists.
-            // checking schema update: I added branch to them.
-            // Let's filter them too for standard users.
+            clientsQuery = clientsQuery.eq('branch', user.branch)
+            suppliersQuery = suppliersQuery.eq('branch', user.branch)
+            supplierExpensesQuery = supplierExpensesQuery.eq('branch', user.branch)
         }
 
         const [
@@ -113,12 +111,12 @@ export function DataProvider({ children }) {
           { data: audit, error: auditErr },
           { data: users, error: usersErr }
         ] = await Promise.all([
-          user ? salesQuery : Promise.resolve({ data: [] }), // Only fetch if user exists
-          supabase.from('clients').select('*').order('name'), // Clients might be shared? Let's keep global for now
+          user ? salesQuery : Promise.resolve({ data: [] }),
+          user ? clientsQuery : Promise.resolve({ data: [] }),
           user ? designsQuery : Promise.resolve({ data: [] }),
           user ? expensesQuery : Promise.resolve({ data: [] }),
-          supabase.from('suppliers').select('*').order('name'), // Suppliers might be shared
-          supabase.from('supplier_expenses').select('*').order('date', { ascending: false }),
+          user ? suppliersQuery : Promise.resolve({ data: [] }),
+          user ? supplierExpensesQuery : Promise.resolve({ data: [] }),
           user ? inventoryQuery : Promise.resolve({ data: [] }),
           user ? stockTransQuery : Promise.resolve({ data: [] }),
           supabase.from('audit').select('*').order('timestamp', { ascending: false }),
@@ -279,7 +277,7 @@ export function DataProvider({ children }) {
 
   // Clients operations
   const addClient = async (client) => {
-    const newClient = { ...client, id: Date.now() }
+    const newClient = { ...client, id: Date.now(), branch: user?.branch || 'IGH' }
     updateLocalState('clients', 'CREATE', newClient)
     try {
       await performAction('clients', 'CREATE', newClient)
@@ -402,7 +400,7 @@ export function DataProvider({ children }) {
   // Expenses operations
   // Expenses operations
   const addExpense = async (expense) => {
-    const newExpense = { ...expense, id: Date.now() }
+    const newExpense = { ...expense, id: Date.now(), branch: user?.branch || 'IGH' }
     updateLocalState('expenses', 'CREATE', newExpense)
     try {
       await performAction('expenses', 'CREATE', newExpense)
@@ -432,7 +430,7 @@ export function DataProvider({ children }) {
   // Suppliers operations
   // Suppliers operations
   const addSupplier = async (supplier) => {
-    const newSupplier = { ...supplier, id: Date.now() }
+    const newSupplier = { ...supplier, id: Date.now(), branch: user?.branch || 'IGH' }
     updateLocalState('suppliers', 'CREATE', newSupplier)
     try {
       await performAction('suppliers', 'CREATE', newSupplier)
@@ -462,7 +460,7 @@ export function DataProvider({ children }) {
   // Supplier Expenses operations
   // Supplier Expenses operations
   const addSupplierExpense = async (expense) => {
-    const newExpense = { ...expense, id: Date.now() }
+    const newExpense = { ...expense, id: Date.now(), branch: user?.branch || 'IGH' }
     updateLocalState('supplier_expenses', 'CREATE', newExpense)
     try {
       await performAction('supplier_expenses', 'CREATE', newExpense)

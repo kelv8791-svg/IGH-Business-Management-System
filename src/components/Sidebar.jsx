@@ -18,7 +18,12 @@ export default function Sidebar({ open }) {
     { path: '/suppliers', label: 'Suppliers', icon: Briefcase },
     { path: '/inventory', label: 'Inventory', icon: Package },
     { path: '/reports', label: 'Reports', icon: BarChart3 },
-  ]
+  ].filter(item => {
+    if (item.path === '/inventory' && user?.branch === 'IGH' && user?.role !== 'admin') {
+      return false
+    }
+    return true
+  })
 
   const isActive = (path) => location.pathname === path
 

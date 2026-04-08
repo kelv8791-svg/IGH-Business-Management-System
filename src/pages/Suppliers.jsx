@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../context/AuthContext'
 import Modal from '../components/Modal'
-import { Plus, Edit2, Trash2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, FileText } from 'lucide-react'
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
 
 export default function Suppliers() {
   const { data, addSupplier, updateSupplier, deleteSupplier, addSupplierExpense, updateSupplierExpense, deleteSupplierExpense } = useData()
@@ -68,6 +70,44 @@ export default function Suppliers() {
     return data.supplierExpenses
       .filter(e => e.supplier === supplierId)
       .reduce((sum, e) => sum + e.amount, 0)
+  }
+
+  const handleExportSOA = (supplier) => {
+    const doc = new jsPDF()
+    const expenses = data.supplierExpenses.filter(e => e.supplier === supplier.id)
+    
+    doc.setFontSize(20)
+    doc.text(`Statement of Account`, 14, 22)
+    doc.setFontSize(12)
+    doc.text(`Supplier: ${supplier.name}`, 14, 32)
+    doc.text(`Phone: ${supplier.phone}`, 14, 38)
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 44)
+
+    let totalSpent = 0
+
+    const tableData = expenses.map(e => {
+      const amt = Number(e.amount) || 0
+      totalSpent += amt
+      return [
+        e.date,
+        e.type,
+        e.remarks || '-',
+        `KSh ${amt.toLocaleString()}`
+      ]
+    })
+
+    doc.autoTable({
+      startY: 50,
+      head: [['Date', 'Expense Type', 'Remarks', 'Amount Paid']],
+      body: tableData,
+    })
+
+    const finalY = doc.lastAutoTable.finalY || 50
+    doc.setFontSize(14)
+    doc.text(`Credit Limit: KSh ${supplier.credit?.toLocaleString() || '0'}`, 14, finalY + 10)
+    doc.text(`Total Spent: KSh ${totalSpent.toLocaleString()}`, 14, finalY + 18)
+
+    doc.save(`${supplier.name}_SOA.pdf`)
   }
 
   // Supplier Expenses handlers
@@ -183,6 +223,9 @@ export default function Suppliers() {
                     <td className="px-6 py-3 text-sm">KSh {supplier.credit?.toLocaleString() || '0'}</td>
                     <td className="px-6 py-3 text-sm font-semibold text-orange-600">KSh {getSupplierTotal(supplier.id).toLocaleString()}</td>
                     <td className="px-6 py-3 text-sm flex gap-2">
+                      <button onClick={() => handleExportSOA(supplier)} className="btn-secondary p-2 text-blue-600 bg-blue-50 hover:bg-blue-100" title="Export SOA">
+                        <FileText size={16} />
+                      </button>
                       <button onClick={() => handleOpenSupplierModal(supplier)} className="btn-secondary p-2">
                         <Edit2 size={16} />
                       </button>

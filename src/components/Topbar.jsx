@@ -17,7 +17,7 @@ export default function Topbar({ onToggleSidebar }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-white">IGH Business Management System</h2>
+        <h2 className="hidden sm:block text-lg font-semibold text-gray-800 dark:text-white">IGH Business Management System</h2>
       </div>
 
       <div className="flex items-center gap-4">

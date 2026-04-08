@@ -5,7 +5,7 @@ import Modal from '../components/Modal'
 import { Plus, Edit2, Trash2, AlertCircle, Package, X } from 'lucide-react'
 
 export default function DesignProjects() {
-  const { data, addDesign, updateDesign, deleteDesign, addDesignMaterial, getDesignMaterials, deleteDesignMaterial } = useData()
+  const { data, addDesign, updateDesign, deleteDesign, addDesignMaterial, getDesignMaterials, deleteDesignMaterial, addExpense, deleteExpense } = useData()
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [editId, setEditId] = useState(null)
@@ -14,7 +14,9 @@ export default function DesignProjects() {
   const [isMaterialOpen, setIsMaterialOpen] = useState(false)
   const [currentProject, setCurrentProject] = useState(null)
   const [projectMaterials, setProjectMaterials] = useState([])
+  const [projectExpenses, setProjectExpenses] = useState([])
   const [materialForm, setMaterialForm] = useState({ itemId: '', quantity: 1 })
+  const [directExpenseForm, setDirectExpenseForm] = useState({ amount: '', desc: '' })
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -101,7 +103,9 @@ export default function DesignProjects() {
     setIsMaterialOpen(true)
     const materials = await getDesignMaterials(design.id)
     setProjectMaterials(materials)
+    setProjectExpenses(data.expenses.filter(e => e.designId === design.id))
     setMaterialForm({ itemId: '', quantity: 1 })
+    setDirectExpenseForm({ amount: '', desc: '' })
   }
 
   const handleAddMaterial = async (e) => {
@@ -134,6 +138,29 @@ export default function DesignProjects() {
     } catch (err) {
         alert('Failed to remove material')
     }
+  }
+
+  const handleAddDirectExpense = async (e) => {
+    e.preventDefault()
+    if (!directExpenseForm.amount || !directExpenseForm.desc) return
+    try {
+      await addExpense({
+        date: new Date().toISOString().split('T')[0],
+        cat: 'Design Material',
+        amount: parseFloat(directExpenseForm.amount),
+        desc: directExpenseForm.desc,
+        designId: currentProject.id
+      })
+      alert('Expense recorded!')
+      setDirectExpenseForm({ amount: '', desc: '' })
+      setProjectExpenses([...data.expenses.filter(e => e.designId === currentProject.id), { ...directExpenseForm, id: Date.now() }]) // optimistic manual push to save a fetch, or just rely on re-open
+    } catch(err) { alert('Failed: ' + err.message) }
+  }
+
+  const handleDeleteDirectExpense = async (id) => {
+    if (!window.confirm('Delete this direct expense?')) return
+    await deleteExpense(id)
+    setProjectExpenses(projectExpenses.filter(e => e.id !== id))
   }
 
   return (
@@ -388,39 +415,66 @@ export default function DesignProjects() {
       </Modal>
       <Modal isOpen={isMaterialOpen} onClose={() => setIsMaterialOpen(false)} title={`Materials for: ${currentProject?.type || 'Project'}`}>
         <div className="space-y-6">
-          {/* Add Material Form */}
-          <form onSubmit={handleAddMaterial} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
-             <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300">Add Material from Inventory</h4>
-             <div className="flex gap-2">
-               <select
-                 className="form-input flex-1"
-                 value={materialForm.itemId}
-                 onChange={(e) => setMaterialForm({ ...materialForm, itemId: e.target.value })}
-                 required
-               >
-                 <option value="">Select Item...</option>
-                 {data.inventory.map(item => (
-                   <option key={item.id} value={item.id} disabled={item.quantity <= 0}>
-                     {item.name} (Stock: {item.quantity})
-                   </option>
-                 ))}
-               </select>
-               <input
-                 type="number"
-                 className="form-input w-24"
-                 min="1"
-                 value={materialForm.quantity}
-                 onChange={(e) => setMaterialForm({ ...materialForm, quantity: parseInt(e.target.value) })}
-                 required
-               />
-               <button type="submit" className="btn-primary">Add</button>
-             </div>
-          </form>
+          {/* Form varies by branch */}
+          {user?.branch === 'IGH' && user?.role !== 'admin' ? (
+            <form onSubmit={handleAddDirectExpense} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
+               <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300">Add Direct Material Expense</h4>
+               <p className="text-xs text-gray-500 mb-2">Record materials bought out-of-pocket for this project.</p>
+               <div className="flex gap-2">
+                 <input
+                   type="text"
+                   className="form-input flex-1"
+                   placeholder="Item description (e.g. Paint)"
+                   value={directExpenseForm.desc}
+                   onChange={(e) => setDirectExpenseForm({ ...directExpenseForm, desc: e.target.value })}
+                   required
+                 />
+                 <input
+                   type="number"
+                   className="form-input w-32"
+                   placeholder="Cost (KSh)"
+                   min="1"
+                   value={directExpenseForm.amount}
+                   onChange={(e) => setDirectExpenseForm({ ...directExpenseForm, amount: e.target.value })}
+                   required
+                 />
+                 <button type="submit" className="btn-primary whitespace-nowrap">Add Expense</button>
+               </div>
+            </form>
+          ) : (
+            <form onSubmit={handleAddMaterial} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
+               <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300">Add Material from Inventory</h4>
+               <div className="flex gap-2">
+                 <select
+                   className="form-input flex-1"
+                   value={materialForm.itemId}
+                   onChange={(e) => setMaterialForm({ ...materialForm, itemId: e.target.value })}
+                   required
+                 >
+                   <option value="">Select Item...</option>
+                   {data.inventory.map(item => (
+                     <option key={item.id} value={item.id} disabled={item.quantity <= 0}>
+                       {item.name} (Stock: {item.quantity})
+                     </option>
+                   ))}
+                 </select>
+                 <input
+                   type="number"
+                   className="form-input w-24"
+                   min="1"
+                   value={materialForm.quantity}
+                   onChange={(e) => setMaterialForm({ ...materialForm, quantity: parseInt(e.target.value) })}
+                   required
+                 />
+                 <button type="submit" className="btn-primary">Add</button>
+               </div>
+            </form>
+          )}
 
           {/* List */}
           <div>
-            <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300 mb-2">Used Materials ({projectMaterials.length})</h4>
-            {projectMaterials.length === 0 ? (
+            <h4 className="font-semibold text-sm text-gray-700 dark:text-gray-300 mb-2">Recorded Materials / Expenses</h4>
+            {(projectMaterials.length === 0 && projectExpenses.length === 0) ? (
                 <p className="text-gray-500 text-sm italic">No materials assigned yet.</p>
             ) : (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -434,6 +488,21 @@ export default function DesignProjects() {
                                 onClick={() => handleDeleteMaterial(mat.id, mat.item_id, mat.quantity_used)}
                                 className="text-red-500 hover:text-red-700 p-1"
                                 title="Remove & Refund Stock"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                    ))}
+                    {projectExpenses.map(exp => (
+                        <div key={exp.id || Math.random()} className="flex justify-between items-center p-3 border border-gray-100 dark:border-gray-700 rounded-lg bg-orange-50 dark:bg-orange-900/10">
+                            <div>
+                                <p className="font-medium text-sm text-orange-800 dark:text-orange-300">{exp.desc}</p>
+                                <p className="text-xs text-orange-600">Cost: KSh {Number(exp.amount).toLocaleString()}</p>
+                            </div>
+                            <button 
+                                onClick={() => handleDeleteDirectExpense(exp.id)}
+                                className="text-red-500 hover:text-red-700 p-1"
+                                title="Delete Expense"
                             >
                                 <X size={16} />
                             </button>

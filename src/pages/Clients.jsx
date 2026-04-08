@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../context/AuthContext'
 import Modal from '../components/Modal'
-import { Plus, Edit2, Trash2, Phone, MapPin } from 'lucide-react'
+import { Plus, Edit2, Trash2, Phone, MapPin, FileText } from 'lucide-react'
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
 
 export default function Clients() {
   const { data, addClient, updateClient, deleteClient } = useData()
@@ -56,6 +58,66 @@ export default function Clients() {
       .reduce((sum, s) => sum + s.amount, 0)
   }
 
+  const handleExportSOA = (client) => {
+    const doc = new jsPDF()
+    const projects = data.designs.filter(d => d.client === client.name)
+    const sales = data.sales.filter(s => s.client === client.name)
+    
+    doc.setFontSize(20)
+    doc.text(`Statement of Account`, 14, 22)
+    doc.setFontSize(12)
+    doc.text(`Client: ${client.name}`, 14, 32)
+    doc.text(`Phone: ${client.phone}`, 14, 38)
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 44)
+
+    let totalBilled = 0
+    let totalPaid = 0
+
+    const tableData = projects.map(p => {
+      const b = Number(p.amount) || 0
+      const pd = Number(p.paymentAmount) || 0
+      totalBilled += b
+      totalPaid += pd
+      return [
+        p.date,
+        p.type,
+        `KSh ${b.toLocaleString()}`,
+        `KSh ${pd.toLocaleString()}`,
+        `KSh ${(b - pd).toLocaleString()}`
+      ]
+    })
+
+    // Include direct sales
+    sales.forEach(s => {
+      if (!s.designId) {
+         const amt = Number(s.amount) || 0
+         totalBilled += amt
+         totalPaid += amt
+         tableData.push([
+           s.date,
+           `Direct Sale: ${s.desc || s.dept}`,
+           `KSh ${amt.toLocaleString()}`,
+           `KSh ${amt.toLocaleString()}`,
+           `KSh 0`
+         ])
+      }
+    })
+
+    doc.autoTable({
+      startY: 50,
+      head: [['Date', 'Description', 'Amount Billed', 'Amount Paid', 'Balance']],
+      body: tableData,
+    })
+
+    const finalY = doc.lastAutoTable.finalY || 50
+    doc.setFontSize(14)
+    doc.text(`Total Billed: KSh ${totalBilled.toLocaleString()}`, 14, finalY + 10)
+    doc.text(`Total Paid: KSh ${totalPaid.toLocaleString()}`, 14, finalY + 18)
+    doc.text(`Outstanding Balance: KSh ${(totalBilled - totalPaid).toLocaleString()}`, 14, finalY + 26)
+
+    doc.save(`${client.name}_SOA.pdf`)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -105,6 +167,9 @@ export default function Clients() {
                 </td>
                 <td className="px-6 py-3 text-sm font-semibold text-green-600">KSh {getClientTotalSales(client.name).toLocaleString()}</td>
                 <td className="px-6 py-3 text-sm flex gap-2">
+                  <button onClick={() => handleExportSOA(client)} className="btn-secondary p-2 text-blue-600 bg-blue-50 hover:bg-blue-100" title="Export SOA">
+                    <FileText size={16} />
+                  </button>
                   <button onClick={() => handleOpenModal(client)} className="btn-secondary p-2">
                     <Edit2 size={16} />
                   </button>

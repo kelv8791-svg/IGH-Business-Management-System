@@ -27,7 +27,7 @@ export default function Sales() {
     handedOverDate: ''
   })
 
-  const departments = ['Reception', 'Branding', 'Designing', '3D Design & Signage', 'Marketing']
+  const departments = ['Walk-in', 'Online', 'Referal', 'Client']
   const paymentMethods = ['Cash', 'M-Pesa', 'Bank Transfer', 'Cheque', 'Credit']
   const paymentStatuses = ['Paid', 'Pending', 'Partial']
 
@@ -39,7 +39,7 @@ export default function Sales() {
       setFormData({
         date: new Date().toISOString().split('T')[0],
         client: '',
-        dept: 'Reception',
+        dept: 'Walk-in',
         amount: '',
         desc: '',
         paymentMethod: 'Cash',
@@ -54,8 +54,8 @@ export default function Sales() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!formData.client || !formData.amount) {
-      alert('Please fill all required fields')
+    if (!formData.amount) {
+      alert('Please fill the amount')
       return
     }
     // Confirmation when marking handed over
@@ -77,8 +77,7 @@ export default function Sales() {
   }
 
   const filteredSales = data.sales.filter(s => {
-    const matchSearch = s.client.toLowerCase().includes(search.toLowerCase()) ||
-                       s.desc.toLowerCase().includes(search.toLowerCase())
+    const matchSearch = (s.desc || '').toLowerCase().includes(search.toLowerCase())
     const matchDept = !filterDept || s.dept === filterDept
     const matchStatus = !filterStatus || s.paymentStatus === filterStatus
     return matchSearch && matchDept && matchStatus
@@ -100,13 +99,13 @@ export default function Sales() {
       <div className="card grid grid-cols-1 md:grid-cols-4 gap-4">
         <input
           type="text"
-          placeholder="Search by client or description..."
+          placeholder="Search by description..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="form-input"
         />
         <select value={filterDept} onChange={(e) => setFilterDept(e.target.value)} className="form-input">
-          <option value="">All Departments</option>
+          <option value="">All Sale Types</option>
           {departments.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="form-input">
@@ -125,8 +124,7 @@ export default function Sales() {
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-700">
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Date</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Client</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Department</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Sale Type</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Description</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Amount</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Source</th>
@@ -140,7 +138,6 @@ export default function Sales() {
             {filteredSales.map((sale, idx) => (
               <tr key={sale.id} className={`border-b border-gray-200 dark:border-gray-700 ${idx % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : ''} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}>
                 <td className="px-6 py-3 text-sm">{sale.date}</td>
-                <td className="px-6 py-3 text-sm font-medium">{sale.client}</td>
                 <td className="px-6 py-3 text-sm">{sale.dept}</td>
                 <td className="px-6 py-3 text-sm text-gray-600 dark:text-gray-400">{sale.desc}</td>
                 <td className="px-6 py-3 text-sm font-semibold text-green-600">KSh {sale.amount.toLocaleString()}</td>
@@ -208,18 +205,9 @@ export default function Sales() {
                 required
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Client*</label>
-              <input
-                type="text"
-                value={formData.client}
-                onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-                className="form-input"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Department</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sale Type</label>
               <select
                 value={formData.dept}
                 onChange={(e) => setFormData({ ...formData, dept: e.target.value })}
