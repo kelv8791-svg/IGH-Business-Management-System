@@ -215,6 +215,12 @@ export function DataProvider({ children }) {
     return result.data?.[0] || record
   }
 
+  // Calculate strict payload branch (fixes admin ghost-data entries)
+  const getPayloadBranch = () => {
+    if (user?.role === 'admin' && selectedBranch !== 'All') return selectedBranch;
+    return user?.branch || 'IGH';
+  }
+
   // Sales operations
   const addSale = async (sale) => {
     const newSale = { 
@@ -223,7 +229,7 @@ export function DataProvider({ children }) {
       handed_over: sale.handedOver || false, 
       handed_over_date: sale.handedOverDate || null,
       source: sale.source || 'Direct Sale',
-      branch: user?.branch || 'IGH'
+      branch: getPayloadBranch()
     }
     
     delete newSale.handedOver
@@ -267,7 +273,7 @@ export function DataProvider({ children }) {
 
   // Clients operations
   const addClient = async (client) => {
-    const newClient = { ...client, id: Date.now(), branch: user?.branch || 'IGH' }
+    const newClient = { ...client, id: Date.now(), branch: getPayloadBranch() }
     updateLocalState('clients', 'CREATE', newClient)
     try {
       await performAction('clients', 'CREATE', newClient)
@@ -305,7 +311,7 @@ export function DataProvider({ children }) {
       paymentDate: design.paymentDate || null,
       handed_over: design.handedOver || false, 
       handed_over_date: design.handedOverDate || null,
-      branch: user?.branch || 'IGH'
+      branch: getPayloadBranch()
     }
 
     delete newDesign.handedOver
@@ -383,7 +389,7 @@ export function DataProvider({ children }) {
 
   // Expenses operations
   const addExpense = async (expense) => {
-    const newExpense = { ...expense, id: Date.now(), branch: user?.branch || 'IGH' }
+    const newExpense = { ...expense, id: Date.now(), branch: getPayloadBranch() }
     updateLocalState('expenses', 'CREATE', newExpense)
     try {
       await performAction('expenses', 'CREATE', newExpense)
@@ -412,7 +418,7 @@ export function DataProvider({ children }) {
 
   // Suppliers operations
   const addSupplier = async (supplier) => {
-    const newSupplier = { ...supplier, id: Date.now(), branch: user?.branch || 'IGH' }
+    const newSupplier = { ...supplier, id: Date.now(), branch: getPayloadBranch() }
     updateLocalState('suppliers', 'CREATE', newSupplier)
     try {
       await performAction('suppliers', 'CREATE', newSupplier)
@@ -441,7 +447,7 @@ export function DataProvider({ children }) {
 
   // Supplier Expenses operations
   const addSupplierExpense = async (expense) => {
-    const newExpense = { ...expense, id: Date.now(), branch: user?.branch || 'IGH' }
+    const newExpense = { ...expense, id: Date.now(), branch: getPayloadBranch() }
     updateLocalState('supplier_expenses', 'CREATE', newExpense)
     try {
       await performAction('supplier_expenses', 'CREATE', newExpense)
@@ -470,7 +476,7 @@ export function DataProvider({ children }) {
 
   // Inventory operations
   const addInventoryItem = async (item) => {
-    const newItem = { ...item, id: Date.now(), branch: user?.branch || 'IGH' }
+    const newItem = { ...item, id: Date.now(), branch: getPayloadBranch() }
     updateLocalState('inventory', 'CREATE', newItem)
     try {
       await performAction('inventory', 'CREATE', newItem)
@@ -554,7 +560,7 @@ export function DataProvider({ children }) {
 
     const newQuantity = (item.quantity || 0) + transaction.quantity_change
 
-    const newTransaction = { ...transaction, branch: user?.branch || 'IGH' }
+    const newTransaction = { ...transaction, branch: getPayloadBranch() }
     
     try {
         const { error: transError } = await supabase.from('stock_transactions').insert(newTransaction)
