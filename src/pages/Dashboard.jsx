@@ -72,14 +72,16 @@ export default function Dashboard() {
   }
 
   const filteredSales = useMemo(() => {
-    return data.sales.filter(s => {
+    const list = Array.isArray(data.sales) ? data.sales : []
+    return list.filter(s => {
       const sd = new Date(s.date)
       return sd >= dateRange.start && sd <= dateRange.end
     })
   }, [data.sales, dateRange])
 
   const filteredExpenses = useMemo(() => {
-    return data.expenses.filter(e => {
+    const list = Array.isArray(data.expenses) ? data.expenses : []
+    return list.filter(e => {
       const ed = new Date(e.date)
       return ed >= dateRange.start && ed <= dateRange.end
     })
@@ -100,7 +102,8 @@ export default function Dashboard() {
   // Chart data
   const salesByDate = useMemo(() => {
     const grouped = {}
-    filteredSales.forEach(s => {
+    const salesList = Array.isArray(filteredSales) ? filteredSales : []
+    salesList.forEach(s => {
       const d = new Date(s.date)
       const key = formatDate(d)
       grouped[key] = (grouped[key] || 0) + (s.amount || 0)
@@ -129,7 +132,8 @@ export default function Dashboard() {
 
   const departmentSales = useMemo(() => {
     const grouped = {}
-    filteredSales.forEach(s => {
+    const salesList = Array.isArray(filteredSales) ? filteredSales : []
+    salesList.forEach(s => {
       grouped[s.dept] = (grouped[s.dept] || 0) + (s.amount || 0)
     })
 
@@ -149,7 +153,8 @@ export default function Dashboard() {
 
   const expenseCategories = useMemo(() => {
     const grouped = {}
-    filteredExpenses.forEach(e => {
+    const expensesList = Array.isArray(filteredExpenses) ? filteredExpenses : []
+    expensesList.forEach(e => {
       grouped[e.cat] = (grouped[e.cat] || 0) + (e.amount || 0)
     })
 
@@ -308,7 +313,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2 card">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Recent Transactions</h3>
           <div className="space-y-3">
-            {[...filteredSales, ...filteredExpenses]
+            {[...(Array.isArray(filteredSales) ? filteredSales : []), ...(Array.isArray(filteredExpenses) ? filteredExpenses : [])]
               .sort((a, b) => new Date(b.date) - new Date(a.date))
               .slice(0, 5)
               .map(item => (
@@ -320,7 +325,7 @@ export default function Dashboard() {
                     <p className="text-sm text-gray-500">{item.date}</p>
                   </div>
                   <div className={`font-semibold ${item.dept ? 'text-green-600' : 'text-red-600'}`}>
-                    {item.dept ? '+' : '-'}KSh {item.amount.toLocaleString()}
+                    {item.dept ? '+' : '-'}KSh {(Number(item.amount) || 0).toLocaleString()}
                   </div>
                 </div>
               ))}
@@ -337,7 +342,7 @@ export default function Dashboard() {
             <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-400">Active Projects</p>
               <p className="text-2xl font-bold text-purple-600">
-                {data.designs.filter(d => d.status === 'In Progress').length}
+                {(Array.isArray(data.designs) ? data.designs : []).filter(d => d.status === 'In Progress').length}
               </p>
             </div>
             <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
@@ -347,7 +352,7 @@ export default function Dashboard() {
             <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-400">Low Stock Items</p>
               <p className="text-2xl font-bold text-red-600">
-                {data.inventory.filter(i => i.quantity <= i.reorderLevel).length}
+                {(Array.isArray(data.inventory) ? data.inventory : []).filter(i => i.quantity <= i.reorderLevel).length}
               </p>
             </div>
           </div>

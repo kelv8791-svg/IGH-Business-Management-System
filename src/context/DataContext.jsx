@@ -44,10 +44,11 @@ export function DataProvider({ children }) {
     
     // For admins, filter everything by selectedBranch
     const filterByBranch = (list) => {
+      if (!Array.isArray(list)) return []
       if (selectedBranch === 'All') return list
       return list.filter(item => {
         // Strict separation: missing branch defaults to 'IGH' as per user request
-        const itemBranch = item.branch || 'IGH'
+        const itemBranch = item?.branch || 'IGH'
         return itemBranch === selectedBranch
       })
     }
@@ -547,7 +548,8 @@ export function DataProvider({ children }) {
 
   const updateUser = async (username, updates) => {
     const normalized = (username || '').toLowerCase()
-    const user = data.users.find(u => u.username === normalized)
+    const userList = Array.isArray(data.users) ? data.users : []
+    const user = userList.find(u => u.username === normalized)
     if (!user) return;
     const updatedUser = { ...user, ...updates, username: (updates.username ? updates.username.toLowerCase() : user.username) }
     updateLocalState('users', 'UPDATE', updatedUser, 'username')
@@ -564,7 +566,8 @@ export function DataProvider({ children }) {
 
   // Stock Transaction operations
   const addStockTransaction = async (transaction) => {
-    const item = data.inventory.find(i => Number(i.id) === Number(transaction.item_id))
+    const inventoryList = Array.isArray(data.inventory) ? data.inventory : []
+    const item = inventoryList.find(i => Number(i.id) === Number(transaction.item_id))
     if (!item) throw new Error('Item not found')
 
     const newQuantity = (item.quantity || 0) + transaction.quantity_change
@@ -667,15 +670,17 @@ export function DataProvider({ children }) {
 
   // Utility functions
   const getClientName = (id) => {
-    return data.clients.find(c => Number(c.id) === Number(id))?.name || 'Unknown'
+    const list = Array.isArray(data.clients) ? data.clients : []
+    return list.find(c => Number(c.id) === Number(id))?.name || 'Unknown'
   }
 
   const getSupplierName = (id) => {
-    return data.suppliers.find(s => Number(s.id) === Number(id))?.name || 'Unknown'
+    const list = Array.isArray(data.suppliers) ? data.suppliers : []
+    return list.find(s => Number(s.id) === Number(id))?.name || 'Unknown'
   }
 
   const getTotalSales = (startDate = null, endDate = null) => {
-    let sales = data.sales
+    let sales = Array.isArray(data.sales) ? data.sales : []
     if (startDate && endDate) {
       sales = sales.filter(s => s.date >= startDate && s.date <= endDate)
     }
@@ -683,7 +688,7 @@ export function DataProvider({ children }) {
   }
 
   const getTotalExpenses = (startDate = null, endDate = null) => {
-    let expenses = data.expenses
+    let expenses = Array.isArray(data.expenses) ? data.expenses : []
     if (startDate && endDate) {
       expenses = expenses.filter(e => e.date >= startDate && e.date <= endDate)
     }
@@ -695,7 +700,7 @@ export function DataProvider({ children }) {
   }
 
   const getSalesByDepartment = (startDate = null, endDate = null) => {
-    let sales = data.sales
+    let sales = Array.isArray(data.sales) ? data.sales : []
     if (startDate && endDate) {
       sales = sales.filter(s => s.date >= startDate && s.date <= endDate)
     }
@@ -707,7 +712,8 @@ export function DataProvider({ children }) {
   }
 
   const getInventoryStatus = (id) => {
-    const item = data.inventory.find(i => Number(i.id) === Number(id))
+    const inventoryList = Array.isArray(data.inventory) ? data.inventory : []
+    const item = inventoryList.find(i => Number(i.id) === Number(id))
     if (!item) return 'Unknown'
     if (item.quantity === 0) return 'Out of Stock'
     if (item.quantity <= item.reorderLevel) return 'Low Stock'
