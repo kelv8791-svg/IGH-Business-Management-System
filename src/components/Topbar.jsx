@@ -20,17 +20,17 @@ export default function Topbar({ onToggleSidebar }) {
         <h2 className="hidden sm:block text-lg font-semibold text-gray-800 dark:text-white">IGH Business Management System</h2>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {/* Global Branch Switcher for Admin */}
         {user?.role === 'admin' && (
-          <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-lg">
-            <span className="text-xs font-semibold text-gray-500 uppercase">Branch:</span>
+          <div className="flex items-center gap-1 sm:gap-2 bg-gray-100 dark:bg-gray-800 px-2 sm:px-3 py-1 rounded-lg">
+            <span className="hidden lg:inline text-xs font-semibold text-gray-500 uppercase">Branch:</span>
             <select
               value={selectedBranch}
               onChange={(e) => setSelectedBranch(e.target.value)}
-              className="bg-transparent border-none text-sm font-bold text-gray-800 dark:text-white focus:ring-0 cursor-pointer"
+              className="bg-transparent border-none text-xs sm:text-sm font-bold text-gray-800 dark:text-white focus:ring-0 cursor-pointer p-0"
             >
-              <option value="All">All Branches</option>
+              <option value="All">All</option>
               <option value="IGH">IGH</option>
               <option value="iGift">iGift</option>
             </select>
@@ -43,25 +43,25 @@ export default function Topbar({ onToggleSidebar }) {
           className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           title={darkMode ? 'Light Mode' : 'Dark Mode'}
         >
-          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          {darkMode ? <Sun size={18} /> : <Moon size={18} />}
         </button>
 
-        {/* Compact Mode Toggle */}
+        {/* Compact Mode Toggle - Hidden on mobile */}
         <button
           onClick={() => setCompactMode(!compactMode)}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          className="hidden sm:block p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           title={compactMode ? 'Expand' : 'Compact'}
         >
-          {compactMode ? <Maximize2 size={20} /> : <Minimize2 size={20} />}
+          {compactMode ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
         </button>
 
-        {/* User Info */}
-        <div className="flex items-center gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div className="text-right">
+        {/* User Info - Simplified on mobile */}
+        <div className="flex items-center gap-2 sm:gap-3 sm:px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="hidden md:block text-right">
             <p className="text-sm font-medium text-gray-800 dark:text-white">{user?.username || user?.email}</p>
             <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user?.role}</p>
           </div>
-          <div className="w-8 h-8 rounded-full bg-primary-gold flex items-center justify-center text-white text-sm font-bold">
+          <div className="w-8 h-8 rounded-full bg-primary-gold flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
             {(user?.username || user?.email || 'U').charAt(0).toUpperCase()}
           </div>
         </div>
@@ -69,10 +69,10 @@ export default function Topbar({ onToggleSidebar }) {
         {/* Logout Button */}
         <button
           onClick={logout}
-          className="btn-danger flex items-center gap-2 whitespace-nowrap"
+          className="btn-danger flex items-center gap-1 sm:gap-2 whitespace-nowrap px-3 sm:px-4"
         >
           <LogOut size={16} />
-          Logout
+          <span className="hidden xs:block">Logout</span>
         </button>
       </div>
     </div>

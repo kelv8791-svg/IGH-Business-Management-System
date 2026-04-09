@@ -231,6 +231,20 @@ export default function Clients() {
               placeholder="City / Area"
             />
           </div>
+          {user?.role === 'admin' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Branch Assignment</label>
+              <select
+                value={formData.branch || 'IGH'}
+                onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                className="form-input font-semibold"
+              >
+                <option value="IGH">IGH</option>
+                <option value="iGift">iGift</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">Assign this client to a specific shop.</p>
+            </div>
+          )}
           <div className="flex gap-3 pt-4">
             <button type="submit" className="btn-success flex-1">Save Client</button>
             <button type="button" onClick={() => setIsOpen(false)} className="btn-secondary flex-1">Cancel</button>

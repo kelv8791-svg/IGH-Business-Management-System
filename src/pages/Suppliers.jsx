@@ -354,15 +354,20 @@ export default function Suppliers() {
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Credit Limit (KSh)</label>
-              <input
-                type="number"
-                value={supplierForm.credit}
-                onChange={(e) => setSupplierForm({ ...supplierForm, credit: parseFloat(e.target.value) })}
-                className="form-input"
-              />
-            </div>
+            {user?.role === 'admin' && (
+              <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 font-bold">Branch Assignment</label>
+                <select
+                  value={supplierForm.branch || 'IGH'}
+                  onChange={(e) => setSupplierForm({ ...supplierForm, branch: e.target.value })}
+                  className="form-input"
+                >
+                  <option value="IGH">IGH</option>
+                  <option value="iGift">iGift</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">Determine which shop can see and use this supplier.</p>
+              </div>
+            )}
             <div className="flex gap-3 pt-4">
               <button type="submit" className="btn-success flex-1">Save Supplier</button>
               <button type="button" onClick={() => setIsOpen(false)} className="btn-secondary flex-1">Cancel</button>

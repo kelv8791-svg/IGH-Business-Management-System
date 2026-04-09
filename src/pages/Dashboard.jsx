@@ -86,8 +86,11 @@ export default function Dashboard() {
   }, [data.expenses, dateRange])
 
   const stats = useMemo(() => {
-    const totalSales = filteredSales.reduce((sum, s) => sum + (s.amount || 0), 0)
-    const totalExpenses = filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0)
+    const salesList = Array.isArray(filteredSales) ? filteredSales : []
+    const expensesList = Array.isArray(filteredExpenses) ? filteredExpenses : []
+    
+    const totalSales = salesList.reduce((sum, s) => sum + (Number(s.amount) || 0), 0)
+    const totalExpenses = expensesList.reduce((sum, e) => sum + (Number(e.amount) || 0), 0)
     const netBalance = totalSales - totalExpenses
     const profitMargin = totalSales > 0 ? ((netBalance / totalSales) * 100).toFixed(2) : 0
 

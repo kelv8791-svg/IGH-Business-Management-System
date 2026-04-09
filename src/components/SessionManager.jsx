@@ -23,9 +23,10 @@ export default function SessionManager() {
 
   // 1. Check against Real-time Data (Fastest if WebSocket is working)
   useEffect(() => {
-    if (!user || !user.username || processingLogout.current) return
+    // Defensive check: ensure user and data.users are available
+    if (!user || !user.username || !Array.isArray(data.users) || processingLogout.current) return
 
-    const remoteUser = data.users.find(u => u.username === user.username)
+    const remoteUser = data.users.find(u => u && u.username === user.username)
 
     if (remoteUser) {
       if (remoteUser.session_token && remoteUser.session_token !== user.session_token) {

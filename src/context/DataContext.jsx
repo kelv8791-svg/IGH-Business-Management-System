@@ -43,25 +43,27 @@ export function DataProvider({ children }) {
     }
     
     // For admins, filter everything by selectedBranch
-    // Note: Clients and Suppliers might be shared, but let's filter if they have a branch column
-    // For now, we assume strict separation for core modules.
     const filterByBranch = (list) => {
       if (selectedBranch === 'All') return list
-      return list.filter(item => !item.branch || item.branch === selectedBranch)
+      return list.filter(item => {
+        // Strict separation: missing branch defaults to 'IGH' as per user request
+        const itemBranch = item.branch || 'IGH'
+        return itemBranch === selectedBranch
+      })
     }
 
     return {
       sales: filterByBranch(data.sales),
-      clients: data.clients, // Clients are often shared, or we can add branch column later if needed.
+      clients: filterByBranch(data.clients), 
       designs: filterByBranch(data.designs),
       expenses: filterByBranch(data.expenses),
-      suppliers: data.suppliers, // Suppliers often shared
+      suppliers: filterByBranch(data.suppliers), 
       supplierExpenses: filterByBranch(data.supplierExpenses),
       inventory: filterByBranch(data.inventory),
-      inventoryCategories: data.inventoryCategories,
+      inventoryCategories: filterByBranch(data.inventoryCategories),
       stockTransactions: filterByBranch(data.stockTransactions),
-      audit: data.audit, // Audit logs usually global for admin
-      users: data.users
+      audit: filterByBranch(data.audit),
+      users: data.users // Users listing for admin remains global for management
     }
   }, [data, user, selectedBranch])
 
@@ -504,7 +506,11 @@ export function DataProvider({ children }) {
   }
 
   const addInventoryCategory = async (name) => {
-    const newCat = { id: Date.now(), name }
+    const newCat = { 
+      id: Date.now(), 
+      name,
+      branch: getPayloadBranch()
+    }
     updateLocalState('inventory_categories', 'CREATE', newCat)
     try {
       await performAction('inventory_categories', 'CREATE', newCat)
