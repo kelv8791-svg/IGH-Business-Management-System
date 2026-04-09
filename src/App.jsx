@@ -56,7 +56,7 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <AuthContext.Provider value={{ user, login, logout, darkMode, setDarkMode, compactMode, setCompactMode }}>
+      <AuthContext.Provider value={{ user, setUser, login, logout, darkMode, setDarkMode, compactMode, setCompactMode }}>
         <DataProvider>
           <Router>
           <Routes>

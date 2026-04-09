@@ -68,17 +68,20 @@ export function DataProvider({ children }) {
   }, [data, user, selectedBranch])
 
   useEffect(() => {
-    const currentUser = localStorage.getItem('currentUser')
-    if (currentUser) {
-      const parsedUser = JSON.parse(currentUser)
-      setUser(parsedUser)
-      // Set initial branch
-      if (parsedUser.branch) {
-        setSelectedBranch(parsedUser.branch)
+    if (user) {
+      if (user.role === 'admin') {
+        // Admin keeps their preference or defaults to IGH
+      } else if (user.branch) {
+        setSelectedBranch(user.branch)
+      }
+      setLoading(false)
+    } else {
+      // If no user but we are waiting, check if there's no user in storage to stop loading
+      if (!localStorage.getItem('currentUser')) {
+        setLoading(false)
       }
     }
-    setLoading(false)
-  }, [])
+  }, [user])
   
   // Fetch all data from Supabase on mount or when user changes
   useEffect(() => {
