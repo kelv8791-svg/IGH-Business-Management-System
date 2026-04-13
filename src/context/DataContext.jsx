@@ -532,7 +532,11 @@ export function DataProvider({ children }) {
       logAudit('CREATE', 'Inventory', `Added category: ${name}`)
       return newCat
     } catch (err) {
-      alert('Failed to save category! ' + err.message)
+      if (err.message?.includes("column") && err.message?.includes("branch")) {
+        alert('CRITICAL DATABASE ERROR: The "branch" column is missing in your "inventory_categories" table. \n\nPLEASE RUN the new SQL script in your Supabase SQL Editor: "supabase/fix_inventory_categories_branch.sql"')
+      } else {
+        alert('Failed to save category! ' + err.message)
+      }
       throw err
     }
   }
