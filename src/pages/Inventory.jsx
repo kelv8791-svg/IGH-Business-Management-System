@@ -20,7 +20,8 @@ export default function Inventory() {
     type: 'RESTOCK', // RESTOCK, VARIANCE, CORRECTION
     quantity: 0,
     reason: 'Restock',
-    notes: ''
+    notes: '',
+    date: new Date().toISOString().split('T')[0]
   })
 
   const [formData, setFormData] = useState({
@@ -61,7 +62,8 @@ export default function Inventory() {
       type: 'RESTOCK',
       quantity: 0,
       reason: 'Restock',
-      notes: ''
+      notes: '',
+      date: new Date().toISOString().split('T')[0]
     })
     setIsAdjustOpen(true)
   }
@@ -84,6 +86,7 @@ export default function Inventory() {
         transaction_type: adjustData.type,
         reason: adjustData.reason,
         notes: adjustData.notes,
+        date: adjustData.date,
         created_by: user?.username || 'unknown'
       })
       
@@ -390,7 +393,18 @@ export default function Inventory() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quantity to {adjustData.type === 'RESTOCK' ? 'Add' : 'Remove'}</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Transaction Date*</label>
+            <input
+              type="date"
+              value={adjustData.date}
+              onChange={(e) => setAdjustData({ ...adjustData, date: e.target.value })}
+              className="form-input"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quantity to {adjustData.type === 'RESTOCK' ? 'Add' : 'Remove'}*</label>
             <input
               type="number"
               min="1"

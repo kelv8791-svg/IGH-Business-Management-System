@@ -504,6 +504,19 @@ export function DataProvider({ children }) {
     updateLocalState('inventory', 'CREATE', newItem)
     try {
       await performAction('inventory', 'CREATE', newItem)
+      
+      // Log initial stock as a transaction for accountability
+      if (newItem.quantity > 0) {
+        await addStockTransaction({
+          item_id: newItem.id,
+          quantity_change: newItem.quantity,
+          transaction_type: 'INITIAL',
+          reason: 'Initial Stock',
+          date: new Date().toISOString().split('T')[0],
+          created_by: user?.username || 'system'
+        })
+      }
+
       logAudit('CREATE', 'Inventory', `Added inventory item: ${item.name}`)
       return newItem
     } catch (err) {
@@ -602,7 +615,11 @@ export function DataProvider({ children }) {
 
     const newQuantity = (item.quantity || 0) + transaction.quantity_change
 
-    const newTransaction = { ...transaction, branch: getPayloadBranch() }
+    const newTransaction = { 
+      ...transaction, 
+      branch: getPayloadBranch(),
+      date: transaction.date || new Date().toISOString().split('T')[0]
+    }
     
     try {
         const { error: transError } = await supabase.from('stock_transactions').insert(newTransaction)
