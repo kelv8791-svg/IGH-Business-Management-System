@@ -229,8 +229,10 @@ export function DataProvider({ children }) {
 
   // Sales operations
   const addSale = async (sale) => {
-    const newSale = { 
-      ...sale, 
+    const sanitizedSale = {
+      ...sale,
+      amount: Number(sale.amount) || 0,
+      designId: sale.designId === '' ? null : Number(sale.designId),
       id: Date.now(), 
       handed_over: sale.handedOver || false, 
       handed_over_date: sale.handedOverDate || null,
@@ -238,14 +240,14 @@ export function DataProvider({ children }) {
       branch: getPayloadBranch()
     }
     
-    delete newSale.handedOver
-    delete newSale.handedOverDate
+    delete sanitizedSale.handedOver
+    delete sanitizedSale.handedOverDate
 
-    updateLocalState('sales', 'CREATE', newSale)
+    updateLocalState('sales', 'CREATE', sanitizedSale)
     try {
-      await performAction('sales', 'CREATE', newSale)
-      logAudit('CREATE', 'Sales', `Added sale of KSh ${sale.amount} from ${sale.client}`)
-      return newSale
+      await performAction('sales', 'CREATE', sanitizedSale)
+      logAudit('CREATE', 'Sales', `Added sale of KSh ${sanitizedSale.amount} from ${sanitizedSale.client}`)
+      return sanitizedSale
     } catch (err) {
       alert('Failed to save sale to cloud! ' + err.message)
       window.location.reload()
@@ -256,7 +258,12 @@ export function DataProvider({ children }) {
   const updateSale = async (id, updates) => {
     const sale = data.sales.find(s => s.id === id)
     if (!sale) return;
-    const updatedSale = { ...sale, ...updates }
+    
+    const sanitizedUpdates = { ...updates }
+    if ('amount' in updates) sanitizedUpdates.amount = Number(updates.amount) || 0
+    if ('designId' in updates) sanitizedUpdates.designId = updates.designId === '' ? null : Number(updates.designId)
+
+    const updatedSale = { ...sale, ...sanitizedUpdates }
     
     if (updatedSale.handed_over && updatedSale.designId) {
       const design = data.designs.find(d => d.id === updatedSale.designId)
@@ -395,12 +402,17 @@ export function DataProvider({ children }) {
 
   // Expenses operations
   const addExpense = async (expense) => {
-    const newExpense = { ...expense, id: Date.now(), branch: getPayloadBranch() }
-    updateLocalState('expenses', 'CREATE', newExpense)
+    const sanitizedExpense = {
+      ...expense,
+      amount: Number(expense.amount) || 0,
+      id: Date.now(),
+      branch: getPayloadBranch()
+    }
+    updateLocalState('expenses', 'CREATE', sanitizedExpense)
     try {
-      await performAction('expenses', 'CREATE', newExpense)
-      logAudit('CREATE', 'Expenses', `Added expense of KSh ${expense.amount} in ${expense.cat}`)
-      return newExpense
+      await performAction('expenses', 'CREATE', sanitizedExpense)
+      logAudit('CREATE', 'Expenses', `Added expense of KSh ${sanitizedExpense.amount} in ${sanitizedExpense.cat}`)
+      return sanitizedExpense
     } catch (err) {
       alert('Failed to save expense! ' + err.message)
       window.location.reload()
@@ -411,8 +423,12 @@ export function DataProvider({ children }) {
   const updateExpense = async (id, updates) => {
     const expense = data.expenses.find(e => e.id === id)
     if (!expense) return;
-    updateLocalState('expenses', 'UPDATE', { ...expense, ...updates })
-    await performAction('expenses', 'UPDATE', { ...expense, ...updates })
+    const sanitizedUpdates = { ...updates }
+    if ('amount' in updates) sanitizedUpdates.amount = Number(updates.amount) || 0
+
+    const updatedExpense = { ...expense, ...sanitizedUpdates }
+    updateLocalState('expenses', 'UPDATE', updatedExpense)
+    await performAction('expenses', 'UPDATE', updatedExpense)
     logAudit('UPDATE', 'Expenses', `Updated expense ID ${id}`)
   }
 
@@ -464,12 +480,17 @@ export function DataProvider({ children }) {
 
   // Supplier Expenses operations
   const addSupplierExpense = async (expense) => {
-    const newExpense = { ...expense, id: Date.now(), branch: getPayloadBranch() }
-    updateLocalState('supplier_expenses', 'CREATE', newExpense)
+    const sanitizedExpense = {
+      ...expense,
+      amount: Number(expense.amount) || 0,
+      id: Date.now(),
+      branch: getPayloadBranch()
+    }
+    updateLocalState('supplier_expenses', 'CREATE', sanitizedExpense)
     try {
-      await performAction('supplier_expenses', 'CREATE', newExpense)
-      logAudit('CREATE', 'Supplier Expenses', `Added supplier expense of KSh ${expense.amount}`)
-      return newExpense
+      await performAction('supplier_expenses', 'CREATE', sanitizedExpense)
+      logAudit('CREATE', 'Supplier Expenses', `Added supplier expense of KSh ${sanitizedExpense.amount}`)
+      return sanitizedExpense
     } catch (err) {
       alert('Failed to save supplier expense! ' + err.message)
       window.location.reload()
@@ -480,8 +501,12 @@ export function DataProvider({ children }) {
   const updateSupplierExpense = async (id, updates) => {
     const expense = data.supplierExpenses.find(e => e.id === id)
     if (!expense) return;
-    updateLocalState('supplier_expenses', 'UPDATE', { ...expense, ...updates })
-    await performAction('supplier_expenses', 'UPDATE', { ...expense, ...updates })
+    const sanitizedUpdates = { ...updates }
+    if ('amount' in updates) sanitizedUpdates.amount = Number(updates.amount) || 0
+
+    const updatedExpense = { ...expense, ...sanitizedUpdates }
+    updateLocalState('supplier_expenses', 'UPDATE', updatedExpense)
+    await performAction('supplier_expenses', 'UPDATE', updatedExpense)
     logAudit('UPDATE', 'Supplier Expenses', `Updated supplier expense ID ${id}`)
   }
 
@@ -655,21 +680,20 @@ export function DataProvider({ children }) {
   }
 
   const addDesignMaterial = async (material) => {
+    const sanitizedMaterial = {
+      ...material,
+      quantity_used: Number(material.quantity_used) || 0,
+      branch: getPayloadBranch()
+    }
     try {
-      const { data: newMaterial, error: matError } = await supabase
-        .from('design_materials')
-        .insert(material)
-        .select()
-        .single()
-      
-      if (matError) throw matError
+      const newMaterial = await performAction('design_materials', 'CREATE', sanitizedMaterial)
 
       await addStockTransaction({
-        item_id: material.item_id,
-        quantity_change: -material.quantity_used,
+        item_id: sanitizedMaterial.item_id,
+        quantity_change: -sanitizedMaterial.quantity_used,
         transaction_type: 'PROJECT_USAGE',
-        reason: `Used for Design Project #${material.design_id}`,
-        created_by: material.assigned_by
+        reason: `Used for Design Project #${sanitizedMaterial.design_id}`,
+        created_by: sanitizedMaterial.assigned_by
       })
 
       return newMaterial
