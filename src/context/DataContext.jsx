@@ -493,7 +493,14 @@ export function DataProvider({ children }) {
 
   // Inventory operations
   const addInventoryItem = async (item) => {
-    const newItem = { ...item, id: Date.now(), branch: getPayloadBranch() }
+    const sanitizedItem = {
+      ...item,
+      quantity: Number(item.quantity) || 0,
+      reorderLevel: item.reorderLevel === '' ? null : Number(item.reorderLevel),
+      unitPrice: Number(item.unitPrice) || 0,
+      supplier: item.supplier === '' ? null : Number(item.supplier)
+    }
+    const newItem = { ...sanitizedItem, id: Date.now(), branch: getPayloadBranch() }
     updateLocalState('inventory', 'CREATE', newItem)
     try {
       await performAction('inventory', 'CREATE', newItem)
@@ -509,8 +516,16 @@ export function DataProvider({ children }) {
   const updateInventoryItem = async (id, updates) => {
     const item = data.inventory.find(i => i.id === id)
     if (!item) return;
-    updateLocalState('inventory', 'UPDATE', { ...item, ...updates })
-    await performAction('inventory', 'UPDATE', { ...item, ...updates })
+
+    const sanitizedUpdates = { ...updates }
+    if ('quantity' in updates) sanitizedUpdates.quantity = Number(updates.quantity) || 0
+    if ('reorderLevel' in updates) sanitizedUpdates.reorderLevel = updates.reorderLevel === '' ? null : Number(updates.reorderLevel)
+    if ('unitPrice' in updates) sanitizedUpdates.unitPrice = Number(updates.unitPrice) || 0
+    if ('supplier' in updates) sanitizedUpdates.supplier = updates.supplier === '' ? null : Number(updates.supplier)
+
+    const updatedItem = { ...item, ...sanitizedUpdates }
+    updateLocalState('inventory', 'UPDATE', updatedItem)
+    await performAction('inventory', 'UPDATE', updatedItem)
     logAudit('UPDATE', 'Inventory', `Updated inventory ID ${id}`)
   }
 
