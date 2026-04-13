@@ -424,7 +424,11 @@ export function DataProvider({ children }) {
 
   // Suppliers operations
   const addSupplier = async (supplier) => {
-    const newSupplier = { ...supplier, id: Date.now(), branch: getPayloadBranch() }
+    const sanitizedSupplier = { 
+      ...supplier, 
+      credit: supplier.credit === '' ? null : Number(supplier.credit)
+    }
+    const newSupplier = { ...sanitizedSupplier, id: Date.now(), branch: getPayloadBranch() }
     updateLocalState('suppliers', 'CREATE', newSupplier)
     try {
       await performAction('suppliers', 'CREATE', newSupplier)
@@ -440,8 +444,15 @@ export function DataProvider({ children }) {
   const updateSupplier = async (id, updates) => {
     const supplier = data.suppliers.find(s => s.id === id)
     if (!supplier) return;
-    updateLocalState('suppliers', 'UPDATE', { ...supplier, ...updates })
-    await performAction('suppliers', 'UPDATE', { ...supplier, ...updates })
+    
+    const sanitizedUpdates = { ...updates }
+    if ('credit' in updates) {
+      sanitizedUpdates.credit = updates.credit === '' ? null : Number(updates.credit)
+    }
+
+    const updatedSupplier = { ...supplier, ...sanitizedUpdates }
+    updateLocalState('suppliers', 'UPDATE', updatedSupplier)
+    await performAction('suppliers', 'UPDATE', updatedSupplier)
     logAudit('UPDATE', 'Suppliers', `Updated supplier ID ${id}`)
   }
 
