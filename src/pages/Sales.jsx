@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../context/AuthContext'
 import Modal from '../components/Modal'
-import { Plus, Edit2, Trash2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
 
 export default function Sales() {
   const { data, addSale, updateSale, deleteSale } = useData()
@@ -12,6 +12,7 @@ export default function Sales() {
   const [search, setSearch] = useState('')
   const [filterDept, setFilterDept] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [expandedMonths, setExpandedMonths] = useState({})
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -70,6 +71,13 @@ export default function Sales() {
     setIsOpen(false)
   }
 
+  const toggleMonth = (month) => {
+    setExpandedMonths(prev => ({
+      ...prev,
+      [month]: !prev[month]
+    }))
+  }
+
   // Sorting: Ascending order of date as requested
   const sortedSales = [...data.sales].sort((a, b) => new Date(a.date) - new Date(b.date))
 
@@ -125,65 +133,70 @@ export default function Sales() {
       </div>
 
       {/* Table with Monthly Grouping */}
-      <div className="space-y-8">
+      <div className="space-y-4">
         {Object.entries(groupedSales).length > 0 ? (
-          Object.entries(groupedSales).reverse().map(([month, group]) => (
-            <div key={month} className="space-y-4">
-              <div className="flex justify-between items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg border-l-4 border-primary-gold">
-                <h2 className="text-lg font-bold text-gray-800 dark:text-white">{month}</h2>
-                <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                  Monthly Total: <span className="text-green-600 ml-1">KSh {group.total.toLocaleString()}</span>
-                </span>
+          Object.entries(groupedSales).reverse().map(([month, group]) => {
+            const isExpanded = expandedMonths[month] !== false // Default to expanded
+            return (
+              <div key={month} className="space-y-2">
+                <button
+                  onClick={() => toggleMonth(month)}
+                  className="w-full flex justify-between items-center px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border-l-4 border-primary-gold shadow-sm hover:bg-gray-50 dark:hover:bg-gray-750 transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-gray-400 group-hover:text-primary-gold transition-colors">
+                      {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                    </div>
+                    <h2 className="text-lg font-bold text-gray-800 dark:text-white">{month}</h2>
+                    <span className="px-2 py-0.5 text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
+                      {group.sales.length} sales
+                    </span>
+                  </div>
+                  <span className="text-sm font-bold text-green-600">
+                    KSh {group.total.toLocaleString()}
+                  </span>
+                </button>
+                
+                {isExpanded && (
+                  <div className="card overflow-x-auto p-0 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Qty</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.sales.map((sale) => (
+                          <tr key={sale.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                            <td className="px-6 py-4 text-sm whitespace-nowrap">{sale.date}</td>
+                            <td className="px-6 py-4 text-sm font-medium">{sale.dept}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">{sale.desc}</td>
+                            <td className="px-6 py-4 text-sm">{sale.qty_sold || '-'}</td>
+                            <td className="px-6 py-4 text-sm font-bold text-green-600">KSh {Number(sale.amount).toLocaleString()}</td>
+                            <td className="px-6 py-4 text-sm text-right flex justify-end gap-2">
+                              <button onClick={() => handleOpenModal(sale)} className="text-blue-600 hover:text-blue-900 p-1">
+                                <Edit2 size={16} />
+                              </button>
+                              {user?.role === 'admin' && (
+                                <button onClick={() => deleteSale(sale.id)} className="text-red-600 hover:text-red-900 p-1">
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
-              <div className="card overflow-x-auto p-0">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Sale Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Qty</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Method</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {group.sales.map((sale, idx) => (
-                      <tr key={sale.id} className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors`}>
-                        <td className="px-6 py-4 text-sm whitespace-nowrap">{sale.date}</td>
-                        <td className="px-6 py-4 text-sm font-medium">{sale.dept}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">{sale.desc}</td>
-                        <td className="px-6 py-4 text-sm">{sale.qty_sold || '-'}</td>
-                        <td className="px-6 py-4 text-sm font-bold text-green-600">KSh {Number(sale.amount).toLocaleString()}</td>
-                        <td className="px-6 py-4 text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            sale.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' :
-                            sale.paymentStatus === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-blue-100 text-blue-800'
-                          }`}>
-                            {sale.paymentStatus}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">{sale.paymentMethod}</td>
-                        <td className="px-6 py-4 text-sm text-right flex justify-end gap-2">
-                          <button onClick={() => handleOpenModal(sale)} className="text-blue-600 hover:text-blue-900 p-1">
-                            <Edit2 size={16} />
-                          </button>
-                          {user?.role === 'admin' && (
-                            <button onClick={() => deleteSale(sale.id)} className="text-red-600 hover:text-red-900 p-1">
-                              <Trash2 size={16} />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ))
+            )
+          })
         ) : (
           <div className="card p-8 text-center text-gray-600 dark:text-gray-400">No sales records found</div>
         )}
