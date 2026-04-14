@@ -236,12 +236,14 @@ export function DataProvider({ children }) {
       id: Date.now(), 
       handed_over: sale.handedOver || false, 
       handed_over_date: sale.handedOverDate || null,
+      qty_sold: Number(sale.qtySold) || 0,
       source: sale.source || 'Direct Sale',
       branch: getPayloadBranch()
     }
     
     delete sanitizedSale.handedOver
     delete sanitizedSale.handedOverDate
+    delete sanitizedSale.qtySold
 
     updateLocalState('sales', 'CREATE', sanitizedSale)
     try {
@@ -262,6 +264,10 @@ export function DataProvider({ children }) {
     const sanitizedUpdates = { ...updates }
     if ('amount' in updates) sanitizedUpdates.amount = Number(updates.amount) || 0
     if ('designId' in updates) sanitizedUpdates.designId = updates.designId === '' ? null : Number(updates.designId)
+    if ('qtySold' in updates) {
+      sanitizedUpdates.qty_sold = Number(updates.qtySold) || 0
+      delete sanitizedUpdates.qtySold
+    }
 
     const updatedSale = { ...sale, ...sanitizedUpdates }
     

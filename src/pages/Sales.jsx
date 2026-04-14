@@ -18,13 +18,12 @@ export default function Sales() {
     client: '',
     dept: 'Reception',
     amount: '',
+    qtySold: '',
     desc: '',
     paymentMethod: 'Cash',
     paymentRef: '',
     paymentStatus: 'Pending',
-    source: 'Direct Sale',
-    handedOver: false,
-    handedOverDate: ''
+    source: 'Direct Sale'
   })
 
   const departments = ['Walk-in', 'Online', 'Referal', 'Client']
@@ -33,7 +32,10 @@ export default function Sales() {
 
   const handleOpenModal = (sale = null) => {
     if (sale) {
-      setFormData(sale)
+      setFormData({
+        ...sale,
+        qtySold: sale.qty_sold || ''
+      })
       setEditId(sale.id)
     } else {
       setFormData({
@@ -41,6 +43,7 @@ export default function Sales() {
         client: '',
         dept: 'Walk-in',
         amount: '',
+        qtySold: '',
         desc: '',
         paymentMethod: 'Cash',
         paymentRef: '',
@@ -58,32 +61,35 @@ export default function Sales() {
       alert('Please fill the amount')
       return
     }
-    // Confirmation when marking handed over
+    
     if (editId) {
-      const prev = data.sales.find(s => s.id === editId)
-      if (prev && !prev.handedOver && formData.handedOver) {
-        if (!window.confirm('Marking this sale as handed over will also mark the linked design as handed over. Continue?')) {
-          return
-        }
-      }
       updateSale(editId, formData)
     } else {
-      if (formData.handedOver) {
-        if (!window.confirm('Marking this new sale as handed over will mark the linked design as handed over (if linked). Continue?')) return
-      }
       addSale(formData)
     }
     setIsOpen(false)
   }
 
-  const filteredSales = data.sales.filter(s => {
+  // Sorting: Ascending order of date as requested
+  const sortedSales = [...data.sales].sort((a, b) => new Date(a.date) - new Date(b.date))
+
+  const filteredSales = sortedSales.filter(s => {
     const matchSearch = (s.desc || '').toLowerCase().includes(search.toLowerCase())
     const matchDept = !filterDept || s.dept === filterDept
     const matchStatus = !filterStatus || s.paymentStatus === filterStatus
     return matchSearch && matchDept && matchStatus
   })
 
-  const totalFiltered = filteredSales.reduce((sum, s) => sum + s.amount, 0)
+  // Grouping by Month
+  const groupedSales = filteredSales.reduce((acc, sale) => {
+    const month = new Date(sale.date).toLocaleString('default', { month: 'long', year: 'numeric' })
+    if (!acc[month]) acc[month] = { sales: [], total: 0 }
+    acc[month].sales.push(sale)
+    acc[month].total += Number(sale.amount)
+    return acc
+  }, {})
+
+  const totalFiltered = filteredSales.reduce((sum, s) => sum + Number(s.amount), 0)
 
   return (
     <div className="space-y-6">
@@ -118,76 +124,68 @@ export default function Sales() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="card overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700">
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Date</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Sale Type</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Description</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Amount</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Source</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Handed Over</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Payment Method</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredSales.map((sale, idx) => (
-              <tr key={sale.id} className={`border-b border-gray-200 dark:border-gray-700 ${idx % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : ''} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}>
-                <td className="px-6 py-3 text-sm">{sale.date}</td>
-                <td className="px-6 py-3 text-sm">{sale.dept}</td>
-                <td className="px-6 py-3 text-sm text-gray-600 dark:text-gray-400">{sale.desc}</td>
-                <td className="px-6 py-3 text-sm font-semibold text-green-600">KSh {sale.amount.toLocaleString()}</td>
-                <td className="px-6 py-3 text-sm">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    sale.source === 'Design Project' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                  }`}>
-                    {sale.source || 'Direct Sale'}
-                  </span>
-                </td>
-                <td className="px-6 py-3 text-sm">
-                  {sale.handedOver ? (
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">Handed</span>
-                  ) : (
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">Not handed</span>
-                  )}
-                </td>
-                <td className="px-6 py-3 text-sm">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    sale.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' :
-                    sale.paymentStatus === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-blue-100 text-blue-800'
-                  }`}>
-                    {sale.paymentStatus}
-                  </span>
-                </td>
-                <td className="px-6 py-3 text-sm" title={sale.paymentRef || ''}>
-                  {sale.paymentMethod}
-                  {sale.paymentRef && (
-                    <span className="ml-2 text-xs text-gray-500" title={`Ref: ${sale.paymentRef}`}>
-                      ⓘ
-                    </span>
-                  )}
-                </td>
-                <td className="px-6 py-3 text-sm flex gap-2">
-                  <button onClick={() => handleOpenModal(sale)} className="btn-secondary p-2">
-                    <Edit2 size={16} />
-                  </button>
-                  {user?.role === 'admin' && (
-                    <button onClick={() => deleteSale(sale.id)} className="btn-danger p-2">
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {filteredSales.length === 0 && (
-          <div className="p-8 text-center text-gray-600 dark:text-gray-400">No sales found</div>
+      {/* Table with Monthly Grouping */}
+      <div className="space-y-8">
+        {Object.entries(groupedSales).length > 0 ? (
+          Object.entries(groupedSales).reverse().map(([month, group]) => (
+            <div key={month} className="space-y-4">
+              <div className="flex justify-between items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg border-l-4 border-primary-gold">
+                <h2 className="text-lg font-bold text-gray-800 dark:text-white">{month}</h2>
+                <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                  Monthly Total: <span className="text-green-600 ml-1">KSh {group.total.toLocaleString()}</span>
+                </span>
+              </div>
+              <div className="card overflow-x-auto p-0">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Sale Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Qty</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Method</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {group.sales.map((sale, idx) => (
+                      <tr key={sale.id} className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors`}>
+                        <td className="px-6 py-4 text-sm whitespace-nowrap">{sale.date}</td>
+                        <td className="px-6 py-4 text-sm font-medium">{sale.dept}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">{sale.desc}</td>
+                        <td className="px-6 py-4 text-sm">{sale.qty_sold || '-'}</td>
+                        <td className="px-6 py-4 text-sm font-bold text-green-600">KSh {Number(sale.amount).toLocaleString()}</td>
+                        <td className="px-6 py-4 text-sm">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            sale.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' :
+                            sale.paymentStatus === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {sale.paymentStatus}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{sale.paymentMethod}</td>
+                        <td className="px-6 py-4 text-sm text-right flex justify-end gap-2">
+                          <button onClick={() => handleOpenModal(sale)} className="text-blue-600 hover:text-blue-900 p-1">
+                            <Edit2 size={16} />
+                          </button>
+                          {user?.role === 'admin' && (
+                            <button onClick={() => deleteSale(sale.id)} className="text-red-600 hover:text-red-900 p-1">
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="card p-8 text-center text-gray-600 dark:text-gray-400">No sales records found</div>
         )}
       </div>
 
@@ -196,7 +194,7 @@ export default function Sales() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date*</label>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Date*</label>
               <input
                 type="date"
                 value={formData.date}
@@ -207,7 +205,7 @@ export default function Sales() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sale Type</label>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Sale Type</label>
               <select
                 value={formData.dept}
                 onChange={(e) => setFormData({ ...formData, dept: e.target.value })}
@@ -217,17 +215,27 @@ export default function Sales() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amount (KSh)*</label>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Amount (KSh)*</label>
               <input
                 type="number"
                 value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 className="form-input"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Payment Method</label>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Quantity Sold</label>
+              <input
+                type="number"
+                value={formData.qtySold}
+                onChange={(e) => setFormData({ ...formData, qtySold: e.target.value })}
+                className="form-input"
+                placeholder="e.g. 5"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Payment Method</label>
               <select
                 value={formData.paymentMethod}
                 onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
@@ -237,7 +245,7 @@ export default function Sales() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Payment Status</label>
+              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Payment Status</label>
               <select
                 value={formData.paymentStatus}
                 onChange={(e) => setFormData({ ...formData, paymentStatus: e.target.value })}
@@ -248,26 +256,27 @@ export default function Sales() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+            <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Description</label>
             <textarea
               value={formData.desc}
               onChange={(e) => setFormData({ ...formData, desc: e.target.value })}
               className="form-input"
-              rows="3"
+              rows="2"
+              placeholder="Sale details..."
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Payment Reference</label>
+            <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Payment Reference</label>
             <input
               type="text"
               value={formData.paymentRef}
               onChange={(e) => setFormData({ ...formData, paymentRef: e.target.value })}
               className="form-input"
-              placeholder="e.g., Cheque #, M-Pesa code"
+              placeholder="e.g., M-Pesa code"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Source</label>
+            <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Source</label>
             <select
               value={formData.source || 'Direct Sale'}
               onChange={(e) => setFormData({ ...formData, source: e.target.value })}
@@ -277,16 +286,9 @@ export default function Sales() {
               <option value="Design Project">Design Project</option>
             </select>
           </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Handed Over</label>
-              <div className="flex gap-2 items-center">
-                <input type="checkbox" checked={!!formData.handedOver} onChange={(e) => setFormData({ ...formData, handedOver: e.target.checked })} />
-                <input type="date" value={formData.handedOverDate || ''} onChange={(e) => setFormData({ ...formData, handedOverDate: e.target.value })} className="form-input" />
-              </div>
-            </div>
           <div className="flex gap-3 pt-4">
-            <button type="submit" className="btn-success flex-1">Save Sale</button>
-            <button type="button" onClick={() => setIsOpen(false)} className="btn-secondary flex-1">Cancel</button>
+            <button type="submit" className="btn-success flex-1 py-3 font-bold uppercase tracking-wider">Save Sale</button>
+            <button type="button" onClick={() => setIsOpen(false)} className="btn-secondary flex-1 py-3 font-bold uppercase tracking-wider">Cancel</button>
           </div>
         </form>
       </Modal>
