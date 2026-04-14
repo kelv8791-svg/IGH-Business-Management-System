@@ -5,7 +5,7 @@ import Modal from '../components/Modal'
 import { Plus, Edit2, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
 
 export default function Sales() {
-  const { data, addSale, updateSale, deleteSale } = useData()
+  const { data, addSale, updateSale, deleteSale, selectedBranch } = useData()
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [editId, setEditId] = useState(null)
@@ -13,6 +13,9 @@ export default function Sales() {
   const [filterDept, setFilterDept] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [expandedMonths, setExpandedMonths] = useState({})
+
+  const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
+  const isIGH = activeBranch === 'IGH'
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -24,7 +27,9 @@ export default function Sales() {
     paymentMethod: 'Cash',
     paymentRef: '',
     paymentStatus: 'Pending',
-    source: 'Direct Sale'
+    source: 'Direct Sale',
+    handedOver: false,
+    handedOverDate: ''
   })
 
   const departments = ['Walk-in', 'Online', 'Referal', 'Client']
@@ -35,7 +40,9 @@ export default function Sales() {
     if (sale) {
       setFormData({
         ...sale,
-        qtySold: sale.qty_sold || ''
+        qtySold: sale.qty_sold || '',
+        handedOver: !!sale.handed_over,
+        handedOverDate: sale.handed_over_date || ''
       })
       setEditId(sale.id)
     } else {
@@ -49,7 +56,9 @@ export default function Sales() {
         paymentMethod: 'Cash',
         paymentRef: '',
         paymentStatus: 'Pending',
-        source: 'Direct Sale'
+        source: 'Direct Sale',
+        handedOver: false,
+        handedOverDate: ''
       })
       setEditId(null)
     }
@@ -61,6 +70,20 @@ export default function Sales() {
     if (!formData.amount) {
       alert('Please fill the amount')
       return
+    }
+
+    if (isIGH) {
+      // Restore IGH specific Handed Over confirmation logic
+      if (editId) {
+        const prev = data.sales.find(s => s.id === editId)
+        if (prev && !prev.handed_over && formData.handedOver) {
+          if (!window.confirm('Marking this sale as handed over will also mark the linked design as handed over. Continue?')) {
+            return
+          }
+        }
+      } else if (formData.handedOver) {
+        if (!window.confirm('Marking this new sale as handed over will mark the linked design as handed over (if linked). Continue?')) return
+      }
     }
     
     if (editId) {
@@ -165,7 +188,11 @@ export default function Sales() {
                           <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
                           <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
                           <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Qty</th>
+                          {isIGH ? (
+                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Handed Over</th>
+                          ) : (
+                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Qty</th>
+                          )}
                           <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
                           <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                         </tr>
@@ -176,7 +203,17 @@ export default function Sales() {
                             <td className="px-6 py-4 text-sm whitespace-nowrap">{sale.date}</td>
                             <td className="px-6 py-4 text-sm font-medium">{sale.dept}</td>
                             <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">{sale.desc}</td>
-                            <td className="px-6 py-4 text-sm">{sale.qty_sold || '-'}</td>
+                            <td className="px-6 py-4 text-sm">
+                              {isIGH ? (
+                                sale.handed_over ? (
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Handed</span>
+                                ) : (
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">No</span>
+                                )
+                              ) : (
+                                sale.qty_sold || '-'
+                              )}
+                            </td>
                             <td className="px-6 py-4 text-sm font-bold text-green-600">KSh {Number(sale.amount).toLocaleString()}</td>
                             <td className="px-6 py-4 text-sm text-right flex justify-end gap-2">
                               <button onClick={() => handleOpenModal(sale)} className="text-blue-600 hover:text-blue-900 p-1">
@@ -237,16 +274,37 @@ export default function Sales() {
                 required
               />
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Quantity Sold</label>
-              <input
-                type="number"
-                value={formData.qtySold}
-                onChange={(e) => setFormData({ ...formData, qtySold: e.target.value })}
-                className="form-input"
-                placeholder="e.g. 5"
-              />
-            </div>
+
+            {isIGH ? (
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Handed Over</label>
+                <div className="flex gap-2 items-center">
+                  <input 
+                    type="checkbox" 
+                    checked={!!formData.handedOver} 
+                    onChange={(e) => setFormData({ ...formData, handedOver: e.target.checked })} 
+                  />
+                  <input 
+                    type="date" 
+                    value={formData.handedOverDate || ''} 
+                    onChange={(e) => setFormData({ ...formData, handedOverDate: e.target.value })} 
+                    className="form-input" 
+                  />
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Quantity Sold</label>
+                <input
+                  type="number"
+                  value={formData.qtySold}
+                  onChange={(e) => setFormData({ ...formData, qtySold: e.target.value })}
+                  className="form-input"
+                  placeholder="e.g. 5"
+                />
+              </div>
+            )}
+
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Payment Method</label>
               <select
