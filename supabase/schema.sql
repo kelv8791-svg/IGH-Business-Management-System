@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT,
   password TEXT,
   role TEXT,
+  branch TEXT DEFAULT 'IGH',
   pref_compact BOOLEAN DEFAULT FALSE
 );
 
@@ -18,7 +19,8 @@ CREATE TABLE IF NOT EXISTS clients (
   email TEXT,
   address TEXT,
   notes TEXT,
-  location TEXT
+  location TEXT,
+  branch TEXT DEFAULT 'IGH'
 );
 
 CREATE TABLE IF NOT EXISTS suppliers (
@@ -28,7 +30,8 @@ CREATE TABLE IF NOT EXISTS suppliers (
   phone TEXT,
   email TEXT,
   kra TEXT,
-  credit NUMERIC
+  credit NUMERIC,
+  branch TEXT DEFAULT 'IGH'
 );
 
 CREATE TABLE IF NOT EXISTS supplier_expenses (
@@ -37,7 +40,8 @@ CREATE TABLE IF NOT EXISTS supplier_expenses (
   supplier BIGINT REFERENCES suppliers(id) ON DELETE SET NULL,
   type TEXT,
   amount NUMERIC,
-  remarks TEXT
+  remarks TEXT,
+  branch TEXT DEFAULT 'IGH'
 );
 
 CREATE TABLE IF NOT EXISTS expenses (
@@ -45,7 +49,8 @@ CREATE TABLE IF NOT EXISTS expenses (
   date DATE,
   cat TEXT,
   amount NUMERIC,
-  "desc" TEXT
+  "desc" TEXT,
+  branch TEXT DEFAULT 'IGH'
 );
 
 CREATE TABLE IF NOT EXISTS inventory (
@@ -56,7 +61,14 @@ CREATE TABLE IF NOT EXISTS inventory (
   quantity INT,
   "reorderLevel" INT,
   "unitPrice" NUMERIC,
-  supplier BIGINT REFERENCES suppliers(id) ON DELETE SET NULL
+  supplier BIGINT REFERENCES suppliers(id) ON DELETE SET NULL,
+  branch TEXT DEFAULT 'IGH'
+);
+
+CREATE TABLE IF NOT EXISTS inventory_categories (
+  id BIGSERIAL PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  branch TEXT DEFAULT 'IGH'
 );
 
 CREATE TABLE IF NOT EXISTS designs (
@@ -74,7 +86,8 @@ CREATE TABLE IF NOT EXISTS designs (
   amount NUMERIC,
   completion DATE,
   date DATE,
-  source TEXT
+  source TEXT,
+  branch TEXT DEFAULT 'IGH'
 );
 
 CREATE TABLE IF NOT EXISTS sales (
@@ -90,7 +103,22 @@ CREATE TABLE IF NOT EXISTS sales (
   source TEXT,
   "designId" BIGINT REFERENCES designs(id) ON DELETE SET NULL,
   handed_over BOOLEAN DEFAULT FALSE,
-  handed_over_date DATE
+  handed_over_date DATE,
+  qty_sold NUMERIC DEFAULT 0,
+  branch TEXT DEFAULT 'IGH'
+);
+
+CREATE TABLE IF NOT EXISTS stock_transactions (
+  id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  item_id BIGINT REFERENCES inventory(id) ON DELETE CASCADE,
+  quantity_change INT NOT NULL,
+  transaction_type TEXT NOT NULL,
+  reason TEXT,
+  notes TEXT,
+  date DATE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  created_by TEXT,
+  branch TEXT DEFAULT 'IGH'
 );
 
 CREATE TABLE IF NOT EXISTS audit (
@@ -109,8 +137,10 @@ ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE supplier_expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE inventory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE inventory_categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE designs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sales ENABLE ROW LEVEL SECURITY;
+ALTER TABLE stock_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit ENABLE ROW LEVEL SECURITY;
 
 -- Public Access Policies
@@ -120,6 +150,8 @@ CREATE POLICY "Public Access" ON suppliers FOR ALL USING (true) WITH CHECK (true
 CREATE POLICY "Public Access" ON supplier_expenses FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public Access" ON expenses FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public Access" ON inventory FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public Access" ON inventory_categories FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public Access" ON designs FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public Access" ON sales FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public Access" ON stock_transactions FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public Access" ON audit FOR ALL USING (true) WITH CHECK (true);

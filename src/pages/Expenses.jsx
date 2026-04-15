@@ -14,12 +14,12 @@ export default function Expenses() {
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
-    cat: 'Office',
+    cat: 'Internet',
     amount: '',
     desc: ''
   })
 
-  const categories = ['Office', 'Utilities', 'Salaries', 'Marketing', 'Rent', 'Other']
+  const categories = ['Internet', 'Petty Cash', 'Salaries', 'Marketing', 'Rent', 'Other']
 
   const handleOpenModal = (expense = null) => {
     if (expense) {
@@ -28,7 +28,7 @@ export default function Expenses() {
     } else {
       setFormData({
         date: new Date().toISOString().split('T')[0],
-        cat: 'Office',
+        cat: 'Internet',
         amount: '',
         desc: ''
       })
