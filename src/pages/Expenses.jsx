@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../context/AuthContext'
 import Modal from '../components/Modal'
-import { Plus, Edit2, Trash2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
 
 export default function Expenses() {
   const { data, addExpense, updateExpense, deleteExpense } = useData()
@@ -11,6 +11,7 @@ export default function Expenses() {
   const [editId, setEditId] = useState(null)
   const [search, setSearch] = useState('')
   const [filterCat, setFilterCat] = useState('')
+  const [expandedMonths, setExpandedMonths] = useState({})
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -52,16 +53,35 @@ export default function Expenses() {
     setIsOpen(false)
   }
 
-  const filteredExpenses = data.expenses.filter(e => {
-    const matchSearch = e.desc.toLowerCase().includes(search.toLowerCase())
+  const toggleMonth = (month) => {
+    setExpandedMonths(prev => ({
+      ...prev,
+      [month]: !prev[month]
+    }))
+  }
+
+  // Sorting: Chronological order (oldest first as per user's preference for 'asc' in Sales)
+  const sortedExpenses = [...data.expenses].sort((a, b) => new Date(a.date) - new Date(b.date))
+
+  const filteredExpenses = sortedExpenses.filter(e => {
+    const matchSearch = (e.desc || '').toLowerCase().includes(search.toLowerCase())
     const matchCat = !filterCat || e.cat === filterCat
     return matchSearch && matchCat
   })
 
-  const totalFiltered = filteredExpenses.reduce((sum, e) => sum + e.amount, 0)
+  // Grouping by Month
+  const groupedExpenses = filteredExpenses.reduce((acc, expense) => {
+    const month = new Date(expense.date).toLocaleString('default', { month: 'long', year: 'numeric' })
+    if (!acc[month]) acc[month] = { expenses: [], total: 0 }
+    acc[month].expenses.push(expense)
+    acc[month].total += Number(expense.amount)
+    return acc
+  }, {})
+
+  const totalFiltered = filteredExpenses.reduce((sum, e) => sum + Number(e.amount), 0)
   const categoryTotals = {}
   data.expenses.forEach(e => {
-    categoryTotals[e.cat] = (categoryTotals[e.cat] || 0) + e.amount
+    categoryTotals[e.cat] = (categoryTotals[e.cat] || 0) + Number(e.amount)
   })
 
   return (
@@ -103,41 +123,71 @@ export default function Expenses() {
         ))}
       </div>
 
-      {/* Table */}
-      <div className="card overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700">
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Date</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Category</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Description</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Amount</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredExpenses.map((expense, idx) => (
-              <tr key={expense.id} className={`border-b border-gray-200 dark:border-gray-700 ${idx % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : ''} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}>
-                <td className="px-6 py-3 text-sm">{expense.date}</td>
-                <td className="px-6 py-3 text-sm font-medium">{expense.cat}</td>
-                <td className="px-6 py-3 text-sm text-gray-600 dark:text-gray-400">{expense.desc}</td>
-                <td className="px-6 py-3 text-sm font-semibold text-red-600">KSh {expense.amount.toLocaleString()}</td>
-                <td className="px-6 py-3 text-sm flex gap-2">
-                  <button onClick={() => handleOpenModal(expense)} className="btn-secondary p-2">
-                    <Edit2 size={16} />
-                  </button>
-                  {user?.role === 'admin' && (
-                    <button onClick={() => deleteExpense(expense.id)} className="btn-danger p-2">
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {filteredExpenses.length === 0 && (
-          <div className="p-8 text-center text-gray-600 dark:text-gray-400">No expenses found</div>
+      {/* Table with Monthly Grouping */}
+      <div className="space-y-4">
+        {Object.entries(groupedExpenses).length > 0 ? (
+          Object.entries(groupedExpenses).reverse().map(([month, group]) => {
+            const isExpanded = expandedMonths[month] !== false // Default to expanded
+            return (
+              <div key={month} className="space-y-2">
+                <button
+                  onClick={() => toggleMonth(month)}
+                  className="w-full flex justify-between items-center px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border-l-4 border-red-500 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-750 transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-gray-400 group-hover:text-red-500 transition-colors">
+                      {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                    </div>
+                    <h2 className="text-lg font-bold text-gray-800 dark:text-white">{month}</h2>
+                    <span className="px-2 py-0.5 text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
+                      {group.expenses.length} expenses
+                    </span>
+                  </div>
+                  <span className="text-sm font-bold text-red-600">
+                    KSh {group.total.toLocaleString()}
+                  </span>
+                </button>
+                
+                {isExpanded && (
+                  <div className="card overflow-x-auto p-0 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.expenses.map((expense) => (
+                          <tr key={expense.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                            <td className="px-6 py-4 text-sm whitespace-nowrap">{expense.date}</td>
+                            <td className="px-6 py-4 text-sm font-medium">{expense.cat}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">{expense.desc}</td>
+                            <td className="px-6 py-4 text-sm font-bold text-red-600">KSh {Number(expense.amount).toLocaleString()}</td>
+                            <td className="px-6 py-4 text-sm text-right flex justify-end gap-2">
+                              <button onClick={() => handleOpenModal(expense)} className="text-blue-600 hover:text-blue-900 p-1">
+                                <Edit2 size={16} />
+                              </button>
+                              {user?.role === 'admin' && (
+                                <button onClick={() => deleteExpense(expense.id)} className="text-red-600 hover:text-red-900 p-1">
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )
+          })
+        ) : (
+          <div className="card p-8 text-center text-gray-600 dark:text-gray-400">No expense records found</div>
         )}
       </div>
 

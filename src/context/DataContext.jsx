@@ -19,6 +19,7 @@ const initialData = {
   expenses: [],
   suppliers: [],
   supplierExpenses: [],
+  supplierPayments: [],
   inventory: [],
   stockTransactions: [],
   audit: [],
@@ -60,6 +61,7 @@ export function DataProvider({ children }) {
       expenses: filterByBranch(data.expenses),
       suppliers: filterByBranch(data.suppliers), 
       supplierExpenses: filterByBranch(data.supplierExpenses),
+      supplierPayments: filterByBranch(data.supplierPayments),
       inventory: filterByBranch(data.inventory),
       inventoryCategories: filterByBranch(data.inventoryCategories),
       stockTransactions: filterByBranch(data.stockTransactions),
@@ -104,6 +106,7 @@ export function DataProvider({ children }) {
           { data: expenses, error: expensesErr },
           { data: suppliers, error: suppliersErr },
           { data: supplierExpenses, error: supplierExpensesErr },
+          { data: supplierPayments, error: supplierPaymentsErr },
           { data: inventory, error: inventoryErr },
           { data: inventoryCategories, error: invCatErr },
           { data: stockTransactions, error: stockTransErr },
@@ -116,6 +119,7 @@ export function DataProvider({ children }) {
           user ? buildQuery('expenses').order('date', { ascending: false }) : Promise.resolve({ data: [] }),
           user ? buildQuery('suppliers').order('name') : Promise.resolve({ data: [] }),
           user ? buildQuery('supplier_expenses').order('date', { ascending: false }) : Promise.resolve({ data: [] }),
+          user ? buildQuery('supplier_payments').order('date', { ascending: false }) : Promise.resolve({ data: [] }),
           user ? buildQuery('inventory').order('name') : Promise.resolve({ data: [] }),
           supabase.from('inventory_categories').select('*').order('name'),
           user ? buildQuery('stock_transactions').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
@@ -132,6 +136,7 @@ export function DataProvider({ children }) {
           expenses: expenses || [],
           suppliers: suppliers || [],
           supplierExpenses: supplierExpenses || [],
+          supplierPayments: supplierPayments || [],
           inventory: inventory || [],
           inventoryCategories: inventoryCategories || [],
           stockTransactions: stockTransactions || [],
@@ -150,10 +155,10 @@ export function DataProvider({ children }) {
 
   // Real-time subscriptions
   useEffect(() => {
-    const tables = ['sales', 'clients', 'designs', 'expenses', 'suppliers', 'supplier_expenses', 'inventory', 'inventory_categories', 'stock_transactions', 'audit', 'users']
+    const tables = ['sales', 'clients', 'designs', 'expenses', 'suppliers', 'supplier_expenses', 'supplier_payments', 'inventory', 'inventory_categories', 'stock_transactions', 'audit', 'users']
     
     const channels = tables.map(table => {
-      const keyMap = { supplier_expenses: 'supplierExpenses', stock_transactions: 'stockTransactions', inventory_categories: 'inventoryCategories' }
+      const keyMap = { supplier_expenses: 'supplierExpenses', supplier_payments: 'supplierPayments', stock_transactions: 'stockTransactions', inventory_categories: 'inventoryCategories' }
       const dataKey = keyMap[table] || table
 
       return supabase.channel(`public:${table}`)
@@ -186,7 +191,7 @@ export function DataProvider({ children }) {
 
   // Helper for optimistic updates
   const updateLocalState = (table, action, record, idField = 'id') => {
-    const keyMap = { supplier_expenses: 'supplierExpenses', inventory_categories: 'inventoryCategories' }
+    const keyMap = { supplier_expenses: 'supplierExpenses', supplier_payments: 'supplierPayments', inventory_categories: 'inventoryCategories' }
     const dataKey = keyMap[table] || table
 
     setData(prev => {
@@ -490,11 +495,36 @@ export function DataProvider({ children }) {
       ...expense,
       amount: Number(expense.amount) || 0,
       id: Date.now(),
-      branch: getPayloadBranch()
+      branch: getPayloadBranch(),
+      inventory_item_id: expense.inventory_item_id || null,
+      payment_status: expense.payment_status || 'Paid',
+      quantity: Number(expense.quantity) || null
     }
+
+    // Remove UI-only fields if they exist
+    const dbPayload = { ...sanitizedExpense }
+    
     updateLocalState('supplier_expenses', 'CREATE', sanitizedExpense)
     try {
-      await performAction('supplier_expenses', 'CREATE', sanitizedExpense)
+      await performAction('supplier_expenses', 'CREATE', dbPayload)
+
+      // Automatically Restock Inventory if linked
+      if (sanitizedExpense.inventory_item_id && sanitizedExpense.quantity > 0) {
+        await addStockTransaction({
+          item_id: sanitizedExpense.inventory_item_id,
+          quantity_change: sanitizedExpense.quantity,
+          transaction_type: 'PURCHASE',
+          reason: `Stock Purchase via Supplier Expense #${sanitizedExpense.id}`,
+          date: sanitizedExpense.date,
+          created_by: user?.username || 'system'
+        })
+
+        // Also update unitPrice in inventory as per user's brilliant request
+        const costPerUnit = sanitizedExpense.amount / sanitizedExpense.quantity
+        await updateInventoryItem(sanitizedExpense.inventory_item_id, { unitPrice: costPerUnit })
+        logAudit('UPDATE', 'Inventory', `Auto-updated unitPrice for item ID ${sanitizedExpense.inventory_item_id} based on purchase cost.`)
+      }
+
       logAudit('CREATE', 'Supplier Expenses', `Added supplier expense of KSh ${sanitizedExpense.amount}`)
       return sanitizedExpense
     } catch (err) {
@@ -509,6 +539,7 @@ export function DataProvider({ children }) {
     if (!expense) return;
     const sanitizedUpdates = { ...updates }
     if ('amount' in updates) sanitizedUpdates.amount = Number(updates.amount) || 0
+    if ('quantity' in updates) sanitizedUpdates.quantity = Number(updates.quantity) || null
 
     const updatedExpense = { ...expense, ...sanitizedUpdates }
     updateLocalState('supplier_expenses', 'UPDATE', updatedExpense)
@@ -520,6 +551,44 @@ export function DataProvider({ children }) {
     updateLocalState('supplier_expenses', 'DELETE', { id })
     await performAction('supplier_expenses', 'DELETE', { id })
     logAudit('DELETE', 'Supplier Expenses', `Deleted supplier expense ID ${id}`)
+  }
+
+  // Supplier Payments operations
+  const addSupplierPayment = async (payment) => {
+    const newPayment = {
+      ...payment,
+      id: Date.now(),
+      amount: Number(payment.amount) || 0,
+      branch: getPayloadBranch()
+    }
+    updateLocalState('supplier_payments', 'CREATE', newPayment)
+    try {
+      await performAction('supplier_payments', 'CREATE', newPayment)
+      logAudit('CREATE', 'Suppliers', `Recorded payment of KSh ${newPayment.amount} to supplier ID ${newPayment.supplier_id}`)
+      return newPayment
+    } catch (err) {
+      alert('Failed to save payment! ' + err.message)
+      window.location.reload()
+      throw err
+    }
+  }
+
+  const updateSupplierPayment = async (id, updates) => {
+    const payment = data.supplierPayments.find(p => p.id === id)
+    if (!payment) return;
+    const sanitizedUpdates = { ...updates }
+    if ('amount' in updates) sanitizedUpdates.amount = Number(updates.amount) || 0
+
+    const updatedPayment = { ...payment, ...sanitizedUpdates }
+    updateLocalState('supplier_payments', 'UPDATE', updatedPayment)
+    await performAction('supplier_payments', 'UPDATE', updatedPayment)
+    logAudit('UPDATE', 'Suppliers', `Updated payment ID ${id}`)
+  }
+
+  const deleteSupplierPayment = async (id) => {
+    updateLocalState('supplier_payments', 'DELETE', { id })
+    await performAction('supplier_payments', 'DELETE', { id })
+    logAudit('DELETE', 'Suppliers', `Deleted payment ID ${id}`)
   }
 
   // Inventory operations
@@ -820,6 +889,7 @@ export function DataProvider({ children }) {
     addExpense, updateExpense, deleteExpense,
     addSupplier, updateSupplier, deleteSupplier,
     addSupplierExpense, updateSupplierExpense, deleteSupplierExpense,
+    addSupplierPayment, updateSupplierPayment, deleteSupplierPayment,
     addInventoryItem, updateInventoryItem, deleteInventoryItem, addStockTransaction,
     addInventoryCategory,
     addDesignMaterial, getDesignMaterials, deleteDesignMaterial,
