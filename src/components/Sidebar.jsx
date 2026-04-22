@@ -28,7 +28,7 @@ export default function Sidebar({ open }) {
     if (item.path === '/design-projects' && activeBranch === 'iGift') {
       return false
     }
-    if (item.path === '/reports' && user?.role !== 'admin') {
+    if (item.path === '/reports' && user?.role !== 'admin' && user?.branch !== 'iGift') {
       return false
     }
     return true

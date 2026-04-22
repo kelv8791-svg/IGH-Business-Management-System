@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../context/AuthContext'
 import Modal from '../components/Modal'
-import { Plus, Edit2, Trash2, AlertTriangle, AlertCircle, CheckCircle, ArrowUpDown } from 'lucide-react'
+import { Plus, Edit2, Trash2, AlertTriangle, AlertCircle, CheckCircle, ArrowUpDown, FileText } from 'lucide-react'
 
 export default function Inventory() {
   const { data, addInventoryItem, updateInventoryItem, deleteInventoryItem, getInventoryStatus, addStockTransaction, addInventoryCategory } = useData()
@@ -15,7 +15,9 @@ export default function Inventory() {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [isAdjustOpen, setIsAdjustOpen] = useState(false)
+  const [isMovementOpen, setIsMovementOpen] = useState(false)
   const [adjustItem, setAdjustItem] = useState(null)
+  const [movementItem, setMovementItem] = useState(null)
   const [adjustData, setAdjustData] = useState({
     type: 'RESTOCK', // RESTOCK, VARIANCE, CORRECTION
     quantity: 0,
@@ -66,6 +68,11 @@ export default function Inventory() {
       date: new Date().toISOString().split('T')[0]
     })
     setIsAdjustOpen(true)
+  }
+
+  const handleOpenMovement = (item) => {
+    setMovementItem(item)
+    setIsMovementOpen(true)
   }
 
   const handleAdjustSubmit = async (e) => {
@@ -255,6 +262,9 @@ export default function Inventory() {
                     </button>
                     <button onClick={() => handleOpenAdjust(item)} className="btn-secondary p-2 text-blue-600 bg-blue-50 hover:bg-blue-100" title="Adjust Stock">
                       <ArrowUpDown size={16} />
+                    </button>
+                    <button onClick={() => handleOpenMovement(item)} className="btn-secondary p-2 text-purple-600 bg-purple-50 hover:bg-purple-100" title="Stock Movement">
+                      <FileText size={16} />
                     </button>
                     {user?.role === 'admin' && (
                       <button onClick={() => deleteInventoryItem(item.id)} className="btn-danger p-2">
@@ -459,6 +469,44 @@ export default function Inventory() {
             <button type="button" onClick={() => setIsAdjustOpen(false)} className="btn-secondary flex-1">Cancel</button>
           </div>
         </form>
+      </Modal>
+
+      {/* Stock Movement Modal */}
+      <Modal isOpen={isMovementOpen} onClose={() => setIsMovementOpen(false)} title={`Stock Movement: ${movementItem?.name || ''}`}>
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+          {data.stockTransactions
+            .filter(t => t.item_id === movementItem?.id)
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .map(trans => (
+              <div key={trans.id} className="p-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
+                <div className="flex justify-between items-start mb-1">
+                  <div>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                      trans.transaction_type === 'RESTOCK' ? 'bg-green-100 text-green-700' :
+                      trans.transaction_type === 'SALE' ? 'bg-blue-100 text-blue-700' :
+                      trans.transaction_type === 'VARIANCE' ? 'bg-red-100 text-red-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {trans.transaction_type}
+                    </span>
+                    <span className="text-xs text-gray-500 ml-2">{new Date(trans.created_at).toLocaleString()}</span>
+                  </div>
+                  <span className={`font-bold ${trans.quantity_change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {trans.quantity_change > 0 ? '+' : ''}{trans.quantity_change}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-700 dark:text-gray-300">{trans.reason}</p>
+                {trans.notes && <p className="text-xs text-gray-500 italic mt-1">{trans.notes}</p>}
+                <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-tighter">By: {trans.created_by}</p>
+              </div>
+            ))}
+          {data.stockTransactions.filter(t => t.item_id === movementItem?.id).length === 0 && (
+            <p className="text-center text-gray-500 py-4">No movement history recorded yet.</p>
+          )}
+        </div>
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+           <button onClick={() => setIsMovementOpen(false)} className="btn-secondary w-full">Close</button>
+        </div>
       </Modal>
 
       {/* Add Category Modal */}

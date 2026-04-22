@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useData } from '../context/DataContext'
+import { useAuth } from '../context/AuthContext'
 import { Download, Eye, FileText } from 'lucide-react'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
@@ -8,11 +9,7 @@ export default function Reports() {
   const { data, selectedBranch } = useData()
   const { user } = useAuth()
   const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
-  const [reportType, setReportType] = useState('sales')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [filterDesigner, setFilterDesigner] = useState('')
-
+  
   const reportTypes = [
     { value: 'sales', label: 'Sales Report' },
     { value: 'expenses', label: 'Expense Report' },
@@ -24,9 +21,15 @@ export default function Reports() {
     { value: 'stockMovement', label: 'Stock Movement Log' },
     { value: 'full', label: 'Full System Report' },
   ].filter(r => {
+    if (user?.role !== 'admin' && r.value !== 'inventory') return false
     if (r.value === 'designs' && activeBranch === 'iGift') return false
     return true
   })
+
+  const [reportType, setReportType] = useState(user?.role === 'admin' ? 'sales' : 'inventory')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [filterDesigner, setFilterDesigner] = useState('')
 
   const getFilteredData = () => {
     const dateFilter = (record) => {
@@ -536,6 +539,7 @@ export default function Reports() {
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
               className="form-input"
+              disabled={reportTypes.length <= 1}
             >
               {reportTypes.map(rt => (
                 <option key={rt.value} value={rt.value}>{rt.label}</option>
