@@ -11,7 +11,7 @@ export default function Expenses() {
   const [editId, setEditId] = useState(null)
   const [search, setSearch] = useState('')
   const [filterCat, setFilterCat] = useState('')
-  const [expandedMonths, setExpandedMonths] = useState({})
+  const [expandedMonth, setExpandedMonth] = useState(null)
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -54,10 +54,7 @@ export default function Expenses() {
   }
 
   const toggleMonth = (month) => {
-    setExpandedMonths(prev => ({
-      ...prev,
-      [month]: !prev[month]
-    }))
+    setExpandedMonth(prev => prev === month ? null : month)
   }
 
   // Sorting: Chronological order (oldest first as per user's preference for 'asc' in Sales)
@@ -127,7 +124,7 @@ export default function Expenses() {
       <div className="space-y-4">
         {Object.entries(groupedExpenses).length > 0 ? (
           Object.entries(groupedExpenses).reverse().map(([month, group]) => {
-            const isExpanded = expandedMonths[month] !== false // Default to expanded
+            const isExpanded = expandedMonth === month
             return (
               <div key={month} className="space-y-2">
                 <button

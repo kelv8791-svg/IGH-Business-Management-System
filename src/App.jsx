@@ -12,8 +12,50 @@ import Reports from './pages/Reports'
 import Settings from './pages/Settings'
 import Layout from './components/Layout'
 import ErrorBoundary from './components/ErrorBoundary'
-import { DataProvider } from './context/DataContext'
-import AuthContext from './context/AuthContext'
+import { DataProvider, useData } from './context/DataContext'
+import AuthContext, { useAuth } from './context/AuthContext'
+
+function AppRoutes() {
+  const { user } = useAuth()
+  const { selectedBranch } = useData()
+  const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
+
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/*"
+        element={
+          user ? (
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/sales" element={<Sales />} />
+                <Route path="/clients" element={<Clients />} />
+                <Route 
+                  path="/design-projects" 
+                  element={
+                    activeBranch !== 'iGift' 
+                    ? <DesignProjects /> 
+                    : <Navigate to="/" />
+                  } 
+                />
+                <Route path="/expenses" element={<Expenses />} />
+                <Route path="/suppliers" element={<Suppliers />} />
+                <Route path="/inventory" element={<Inventory />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </Layout>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+    </Routes>
+  )
+}
 
 function App() {
   const [user, setUser] = useState(null)
@@ -59,35 +101,10 @@ function App() {
       <AuthContext.Provider value={{ user, setUser, login, logout, darkMode, setDarkMode, compactMode, setCompactMode }}>
         <DataProvider>
           <Router>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route
-              path="/*"
-              element={
-                user ? (
-                  <Layout>
-                    <Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/sales" element={<Sales />} />
-                      <Route path="/clients" element={<Clients />} />
-                      <Route path="/design-projects" element={<DesignProjects />} />
-                      <Route path="/expenses" element={<Expenses />} />
-                      <Route path="/suppliers" element={<Suppliers />} />
-                      <Route path="/inventory" element={<Inventory />} />
-                      <Route path="/reports" element={<Reports />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="*" element={<Navigate to="/" />} />
-                    </Routes>
-                  </Layout>
-                ) : (
-                  <Navigate to="/login" />
-                )
-              }
-            />
-          </Routes>
-        </Router>
-      </DataProvider>
-    </AuthContext.Provider>
+            <AppRoutes />
+          </Router>
+        </DataProvider>
+      </AuthContext.Provider>
     </ErrorBoundary>
   )
 }

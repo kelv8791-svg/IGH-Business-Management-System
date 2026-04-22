@@ -238,6 +238,7 @@ export function DataProvider({ children }) {
       ...sale,
       amount: Number(sale.amount) || 0,
       designId: sale.designId === '' ? null : Number(sale.designId),
+      inventory_item_id: sale.inventory_item_id || null,
       id: Date.now(), 
       handed_over: sale.handedOver || false, 
       handed_over_date: sale.handedOverDate || null,
@@ -253,6 +254,19 @@ export function DataProvider({ children }) {
     updateLocalState('sales', 'CREATE', sanitizedSale)
     try {
       await performAction('sales', 'CREATE', sanitizedSale)
+
+      // Deduct from inventory if linked
+      if (sanitizedSale.inventory_item_id && sanitizedSale.qty_sold > 0) {
+        await addStockTransaction({
+          item_id: sanitizedSale.inventory_item_id,
+          quantity_change: -sanitizedSale.qty_sold,
+          transaction_type: 'SALE',
+          reason: `Sale recorded: ${sanitizedSale.id}`,
+          date: sanitizedSale.date,
+          created_by: user?.username || 'system'
+        })
+      }
+
       logAudit('CREATE', 'Sales', `Added sale of KSh ${sanitizedSale.amount} from ${sanitizedSale.client}`)
       return sanitizedSale
     } catch (err) {
@@ -269,6 +283,7 @@ export function DataProvider({ children }) {
     const sanitizedUpdates = { ...updates }
     if ('amount' in updates) sanitizedUpdates.amount = Number(updates.amount) || 0
     if ('designId' in updates) sanitizedUpdates.designId = updates.designId === '' ? null : Number(updates.designId)
+    if ('inventory_item_id' in updates) sanitizedUpdates.inventory_item_id = updates.inventory_item_id || null
     if ('qtySold' in updates) {
       sanitizedUpdates.qty_sold = Number(updates.qtySold) || 0
       delete sanitizedUpdates.qtySold
@@ -276,6 +291,48 @@ export function DataProvider({ children }) {
 
     const updatedSale = { ...sale, ...sanitizedUpdates }
     
+    // Handle Inventory Adjustments
+    const oldItemId = sale.inventory_item_id
+    const newItemId = updatedSale.inventory_item_id
+    const oldQty = Number(sale.qty_sold) || 0
+    const newQty = Number(updatedSale.qty_sold) || 0
+
+    if (oldItemId !== newItemId) {
+      // Return old stock
+      if (oldItemId && oldQty > 0) {
+        await addStockTransaction({
+          item_id: oldItemId,
+          quantity_change: oldQty,
+          transaction_type: 'CORRECTION',
+          reason: `Sale ${id} updated: Item changed. Returning old stock.`,
+          date: updatedSale.date,
+          created_by: user?.username || 'system'
+        })
+      }
+      // Deduct new stock
+      if (newItemId && newQty > 0) {
+        await addStockTransaction({
+          item_id: newItemId,
+          quantity_change: -newQty,
+          transaction_type: 'SALE',
+          reason: `Sale ${id} updated: Item changed. Deducting new stock.`,
+          date: updatedSale.date,
+          created_by: user?.username || 'system'
+        })
+      }
+    } else if (oldItemId && oldQty !== newQty) {
+      // Same item, but quantity changed
+      const diff = newQty - oldQty
+      await addStockTransaction({
+        item_id: oldItemId,
+        quantity_change: -diff,
+        transaction_type: 'SALE',
+        reason: `Sale ${id} updated: Quantity changed from ${oldQty} to ${newQty}.`,
+        date: updatedSale.date,
+        created_by: user?.username || 'system'
+      })
+    }
+
     if (updatedSale.handed_over && updatedSale.designId) {
       const design = data.designs.find(d => d.id === updatedSale.designId)
       if (design && !design.handed_over) {
@@ -290,9 +347,28 @@ export function DataProvider({ children }) {
   }
 
   const deleteSale = async (id) => {
+    const sale = data.sales.find(s => s.id === id)
     updateLocalState('sales', 'DELETE', { id })
-    await performAction('sales', 'DELETE', { id })
-    logAudit('DELETE', 'Sales', `Deleted sale ID ${id}`)
+    try {
+      await performAction('sales', 'DELETE', { id })
+      
+      // Return stock to inventory if linked
+      if (sale && sale.inventory_item_id && (Number(sale.qty_sold) || 0) > 0) {
+        await addStockTransaction({
+          item_id: sale.inventory_item_id,
+          quantity_change: Number(sale.qty_sold),
+          transaction_type: 'CORRECTION',
+          reason: `Sale ${id} deleted. Returning stock to inventory.`,
+          date: new Date().toISOString().split('T')[0],
+          created_by: user?.username || 'system'
+        })
+      }
+
+      logAudit('DELETE', 'Sales', `Deleted sale ID ${id}`)
+    } catch (err) {
+      console.error('Delete sale failed:', err)
+      throw err
+    }
   }
 
   // Clients operations

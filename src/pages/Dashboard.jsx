@@ -29,8 +29,9 @@ ChartJS.register(
 )
 
 export default function Dashboard() {
-  const { data } = useData()
   const { user } = useAuth()
+  const { data, selectedBranch } = useData()
+  const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
   const [period, setPeriod] = useState('monthly')
   // Removed local selectedBranch state
 
@@ -339,12 +340,14 @@ export default function Dashboard() {
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Clients</p>
               <p className="text-2xl font-bold text-blue-600">{data.clients.length}</p>
             </div>
-            <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <p className="text-sm text-gray-600 dark:text-gray-400">Active Projects</p>
-              <p className="text-2xl font-bold text-purple-600">
-                {(Array.isArray(data.designs) ? data.designs : []).filter(d => d.status === 'In Progress').length}
-              </p>
-            </div>
+            {activeBranch !== 'iGift' && (
+              <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Active Projects</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {(Array.isArray(data.designs) ? data.designs : []).filter(d => d.status === 'In Progress').length}
+                </p>
+              </div>
+            )}
             <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Suppliers</p>
               <p className="text-2xl font-bold text-orange-600">{data.suppliers.length}</p>

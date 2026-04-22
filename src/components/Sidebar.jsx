@@ -25,6 +25,9 @@ export default function Sidebar({ open }) {
     if (item.path === '/inventory' && activeBranch === 'IGH') {
       return false
     }
+    if (item.path === '/design-projects' && activeBranch === 'iGift') {
+      return false
+    }
     if (item.path === '/reports' && user?.role !== 'admin') {
       return false
     }

@@ -5,7 +5,9 @@ import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 
 export default function Reports() {
-  const { data } = useData()
+  const { data, selectedBranch } = useData()
+  const { user } = useAuth()
+  const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
   const [reportType, setReportType] = useState('sales')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -21,7 +23,10 @@ export default function Reports() {
     { value: 'inventory', label: 'Inventory Valuation' },
     { value: 'stockMovement', label: 'Stock Movement Log' },
     { value: 'full', label: 'Full System Report' },
-  ]
+  ].filter(r => {
+    if (r.value === 'designs' && activeBranch === 'iGift') return false
+    return true
+  })
 
   const getFilteredData = () => {
     const dateFilter = (record) => {

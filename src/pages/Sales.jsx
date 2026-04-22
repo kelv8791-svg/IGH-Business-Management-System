@@ -12,7 +12,7 @@ export default function Sales() {
   const [search, setSearch] = useState('')
   const [filterDept, setFilterDept] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
-  const [expandedMonths, setExpandedMonths] = useState({})
+  const [expandedMonth, setExpandedMonth] = useState(null)
 
   const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
   const isIGH = activeBranch === 'IGH'
@@ -29,7 +29,8 @@ export default function Sales() {
     paymentStatus: 'Pending',
     source: 'Direct Sale',
     handedOver: false,
-    handedOverDate: ''
+    handedOverDate: '',
+    inventory_item_id: ''
   })
 
   const departments = ['Walk-in', 'Online', 'Referal', 'Client']
@@ -42,7 +43,8 @@ export default function Sales() {
         ...sale,
         qtySold: sale.qty_sold || '',
         handedOver: !!sale.handed_over,
-        handedOverDate: sale.handed_over_date || ''
+        handedOverDate: sale.handed_over_date || '',
+        inventory_item_id: sale.inventory_item_id || ''
       })
       setEditId(sale.id)
     } else {
@@ -58,7 +60,8 @@ export default function Sales() {
         paymentStatus: 'Pending',
         source: 'Direct Sale',
         handedOver: false,
-        handedOverDate: ''
+        handedOverDate: '',
+        inventory_item_id: ''
       })
       setEditId(null)
     }
@@ -95,10 +98,7 @@ export default function Sales() {
   }
 
   const toggleMonth = (month) => {
-    setExpandedMonths(prev => ({
-      ...prev,
-      [month]: !prev[month]
-    }))
+    setExpandedMonth(prev => prev === month ? null : month)
   }
 
   // Sorting: Ascending order of date as requested
@@ -159,7 +159,7 @@ export default function Sales() {
       <div className="space-y-4">
         {Object.entries(groupedSales).length > 0 ? (
           Object.entries(groupedSales).reverse().map(([month, group]) => {
-            const isExpanded = expandedMonths[month] !== false // Default to expanded
+            const isExpanded = expandedMonth === month
             return (
               <div key={month} className="space-y-2">
                 <button
@@ -274,6 +274,23 @@ export default function Sales() {
                 required
               />
             </div>
+            {!isIGH && (
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Link to Inventory Item</label>
+                <select
+                  value={formData.inventory_item_id}
+                  onChange={(e) => setFormData({ ...formData, inventory_item_id: e.target.value })}
+                  className="form-input text-blue-600 font-medium"
+                >
+                  <option value="">Not linked</option>
+                  {data.inventory.map(item => (
+                    <option key={item.id} value={item.id}>
+                      {item.name} (Stock: {item.quantity})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {isIGH ? (
               <div>
