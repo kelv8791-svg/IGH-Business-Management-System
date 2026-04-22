@@ -668,10 +668,10 @@ export function DataProvider({ children }) {
   }
 
   // Inventory operations
-  const addInventoryItem = async (item) => {
+    const initialQty = Number(item.quantity) || 0
     const sanitizedItem = {
       ...item,
-      quantity: Number(item.quantity) || 0,
+      quantity: 0, // Start at 0 so the first transaction correctly sets the initial stock
       reorderLevel: item.reorderLevel === '' ? null : Number(item.reorderLevel),
       unitPrice: Number(item.unitPrice) || 0,
       supplier: item.supplier === '' ? null : Number(item.supplier)
@@ -679,13 +679,14 @@ export function DataProvider({ children }) {
     const newItem = { ...sanitizedItem, id: Date.now(), branch: getPayloadBranch() }
     updateLocalState('inventory', 'CREATE', newItem)
     try {
-      await performAction('inventory', 'CREATE', newItem)
+      const savedItem = await performAction('inventory', 'CREATE', newItem)
       
       // Log initial stock as a transaction for accountability
-      if (newItem.quantity > 0) {
+      if (initialQty > 0) {
         await addStockTransaction({
-          item_id: newItem.id,
-          quantity_change: newItem.quantity,
+          item_id: savedItem.id,
+          item: savedItem, // Pass the saved item directly to avoid "Item not found" before state sync
+          quantity_change: initialQty,
           transaction_type: 'INITIAL',
           reason: 'Initial Stock',
           date: new Date().toISOString().split('T')[0],
@@ -786,7 +787,7 @@ export function DataProvider({ children }) {
   // Stock Transaction operations
   const addStockTransaction = async (transaction) => {
     const inventoryList = Array.isArray(data.inventory) ? data.inventory : []
-    const item = inventoryList.find(i => Number(i.id) === Number(transaction.item_id))
+    const item = transaction.item || inventoryList.find(i => Number(i.id) === Number(transaction.item_id))
     if (!item) throw new Error('Item not found')
 
     const newQuantity = (item.quantity || 0) + transaction.quantity_change
