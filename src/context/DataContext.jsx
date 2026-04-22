@@ -668,6 +668,7 @@ export function DataProvider({ children }) {
   }
 
   // Inventory operations
+  const addInventoryItem = async (item) => {
     const initialQty = Number(item.quantity) || 0
     const sanitizedItem = {
       ...item,
