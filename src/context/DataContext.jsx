@@ -124,10 +124,11 @@ export function DataProvider({ children }) {
           supabase.from('inventory_categories').select('*').order('name'),
           user ? buildQuery('stock_transactions').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
           supabase.from('audit').select('*').order('timestamp', { ascending: false }),
-          supabase.from('users').select('*') // Always fetch users
+          supabase.from('users').select('username, email, role, branch, phone, name, pref_compact') // SECURE: Don't fetch passwords
         ])
 
         if (usersErr) console.error('Error fetching users:', usersErr)
+        if (salesErr) console.error('Error fetching sales:', salesErr)
 
         setData({
           sales: sales || [],
@@ -239,7 +240,7 @@ export function DataProvider({ children }) {
       amount: Number(sale.amount) || 0,
       designId: sale.designId === '' ? null : Number(sale.designId),
       inventory_item_id: sale.inventory_item_id || null,
-      id: Date.now(), 
+      id: Date.now() + Math.floor(Math.random() * 1000), 
       handed_over: sale.handedOver || false, 
       handed_over_date: sale.handedOverDate || null,
       qty_sold: Number(sale.qtySold) || 0,
@@ -373,7 +374,7 @@ export function DataProvider({ children }) {
 
   // Clients operations
   const addClient = async (client) => {
-    const newClient = { ...client, id: Date.now(), branch: getPayloadBranch() }
+    const newClient = { ...client, id: Date.now() + Math.floor(Math.random() * 1000), branch: getPayloadBranch() }
     updateLocalState('clients', 'CREATE', newClient)
     try {
       await performAction('clients', 'CREATE', newClient)
@@ -404,7 +405,7 @@ export function DataProvider({ children }) {
   const addDesign = async (design) => {
     const newDesign = {
       ...design, 
-      id: Date.now(),
+      id: Date.now() + Math.floor(Math.random() * 1000),
       amount: Number(design.amount) || 0,
       paymentAmount: Number(design.paymentAmount) || 0,
       completion: design.completion || null,
@@ -451,7 +452,7 @@ export function DataProvider({ children }) {
       
       if (!saleAlreadyExists) {
         const newSale = {
-          id: Date.now() + 1,
+          id: Date.now() + Math.floor(Math.random() * 1000),
           date: updates.paymentDate || designBeforeUpdate.paymentDate || new Date().toISOString().split('T')[0],
           client: designBeforeUpdate.client,
           dept: designBeforeUpdate.title || 'Design',
@@ -492,7 +493,7 @@ export function DataProvider({ children }) {
     const sanitizedExpense = {
       ...expense,
       amount: Number(expense.amount) || 0,
-      id: Date.now(),
+      id: Date.now() + Math.floor(Math.random() * 1000),
       branch: getPayloadBranch()
     }
     updateLocalState('expenses', 'CREATE', sanitizedExpense)
@@ -531,7 +532,7 @@ export function DataProvider({ children }) {
       ...supplier, 
       credit: supplier.credit === '' ? null : Number(supplier.credit)
     }
-    const newSupplier = { ...sanitizedSupplier, id: Date.now(), branch: getPayloadBranch() }
+    const newSupplier = { ...sanitizedSupplier, id: crypto.randomUUID(), branch: getPayloadBranch() }
     updateLocalState('suppliers', 'CREATE', newSupplier)
     try {
       await performAction('suppliers', 'CREATE', newSupplier)
@@ -570,7 +571,7 @@ export function DataProvider({ children }) {
     const sanitizedExpense = {
       ...expense,
       amount: Number(expense.amount) || 0,
-      id: Date.now(),
+      id: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, '0')),
       branch: getPayloadBranch(),
       inventory_item_id: expense.inventory_item_id || null,
       payment_status: expense.payment_status || 'Paid',
@@ -633,7 +634,7 @@ export function DataProvider({ children }) {
   const addSupplierPayment = async (payment) => {
     const newPayment = {
       ...payment,
-      id: Date.now(),
+      id: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, '0')),
       amount: Number(payment.amount) || 0,
       branch: getPayloadBranch()
     }
@@ -677,7 +678,7 @@ export function DataProvider({ children }) {
       unitPrice: Number(item.unitPrice) || 0,
       supplier: item.supplier === '' ? null : Number(item.supplier)
     }
-    const newItem = { ...sanitizedItem, id: Date.now(), branch: getPayloadBranch() }
+    const newItem = { ...sanitizedItem, id: crypto.randomUUID(), branch: getPayloadBranch() }
     updateLocalState('inventory', 'CREATE', newItem)
     try {
       const savedItem = await performAction('inventory', 'CREATE', newItem)
@@ -728,7 +729,7 @@ export function DataProvider({ children }) {
 
   const addInventoryCategory = async (name) => {
     const newCat = { 
-      id: Date.now(), 
+      id: Date.now() + Math.floor(Math.random() * 1000), 
       name,
       branch: getPayloadBranch()
     }

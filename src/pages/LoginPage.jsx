@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useData } from '../context/DataContext'
+import supabase from '../lib/supabaseClient'
 import Modal from '../components/Modal'
 import { Lock, Key, User, Save } from 'lucide-react'
 
@@ -29,25 +30,32 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
 
-    const user = data.users.find(u => u.username === username.toLowerCase() && u.password === password)
-    if (user) {
+    try {
+      // SECURE: Query Supabase directly for the matching user
+      const { data: user, error: loginErr } = await supabase
+        .from('users')
+        .select('username, email, role, branch, phone, name, pref_compact')
+        .eq('username', username.toLowerCase())
+        .eq('password', password)
+        .single()
+
+      if (loginErr || !user) {
+        setError('Invalid username or password')
+        return
+      }
+
       // Generate unique session token
       const sessionToken = Date.now().toString(36) + Math.random().toString(36).substr(2)
       
-      // Update user in DB with new token and await it to prevent race condition with SessionManager
-      try {
-        await updateUser(user.username, { session_token: sessionToken })
-      } catch (err) {
-        console.error('Failed to set session token', err)
-        // Continue anyway, otherwise login is blocked by network issues? 
-        // Ideally should block if session strictly required, but for now we proceed.
-      }
+      // Update user in DB with new token
+      await updateUser(user.username, { session_token: sessionToken })
 
       // Login with the new token included in user object
       login({ ...user, session_token: sessionToken })
       navigate('/')
-    } else {
-      setError('Invalid username or password')
+    } catch (err) {
+      console.error('Login failed:', err)
+      setError('System error during login. Please try again.')
     }
   }
 
@@ -56,7 +64,7 @@ export default function LoginPage() {
     setChangePassError('')
     setChangePassSuccess('')
 
-    const { username, currentPassword, newPassword, confirmPassword } = changePassData
+    const { username: userToChange, currentPassword, newPassword, confirmPassword } = changePassData
 
     if (newPassword !== confirmPassword) {
       setChangePassError('New passwords do not match')
@@ -68,14 +76,20 @@ export default function LoginPage() {
       return
     }
 
-    const user = data.users.find(u => u.username === username.toLowerCase() && u.password === currentPassword)
-    
-    if (!user) {
-      setChangePassError('Invalid username or current password')
-      return
-    }
-
     try {
+      // SECURE: Verify current password directly with Supabase
+      const { data: user, error: verifyErr } = await supabase
+        .from('users')
+        .select('username')
+        .eq('username', userToChange.toLowerCase())
+        .eq('password', currentPassword)
+        .single()
+      
+      if (verifyErr || !user) {
+        setChangePassError('Invalid username or current password')
+        return
+      }
+
       await updateUser(user.username, { password: newPassword })
       setChangePassSuccess('Password updated successfully! You can now login.')
       setChangePassData({
