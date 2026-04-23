@@ -124,7 +124,7 @@ export function DataProvider({ children }) {
           supabase.from('inventory_categories').select('*').order('name'),
           user ? buildQuery('stock_transactions').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
           supabase.from('audit').select('*').order('timestamp', { ascending: false }),
-          supabase.from('users').select('username, email, role, branch, phone, name, pref_compact') // SECURE: Don't fetch passwords
+          supabase.from('users').select('username, email, role, branch, pref_compact') // SECURE: Don't fetch passwords
         ])
 
         if (usersErr) console.error('Error fetching users:', usersErr)

@@ -34,7 +34,7 @@ export default function LoginPage() {
       // SECURE: Query Supabase directly for the matching user
       const { data: user, error: loginErr } = await supabase
         .from('users')
-        .select('username, email, role, branch, phone, name, pref_compact')
+        .select('username, email, role, branch, pref_compact')
         .eq('username', username.toLowerCase())
         .eq('password', password)
         .single()
