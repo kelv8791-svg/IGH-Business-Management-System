@@ -1,9 +1,24 @@
 import { useState } from 'react'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../context/AuthContext'
-import { Download, Eye, FileText } from 'lucide-react'
+import { 
+  Download, 
+  Eye, 
+  FileText, 
+  TrendingUp, 
+  TrendingDown, 
+  Users, 
+  Truck, 
+  ShoppingCart, 
+  Package, 
+  History, 
+  BarChart3,
+  ArrowLeft,
+  Search,
+  Calendar
+} from 'lucide-react'
 import jsPDF from 'jspdf'
-import 'jspdf-autotable'
+import autoTable from 'jspdf-autotable'
 
 export default function Reports() {
   const { data, selectedBranch } = useData()
@@ -11,22 +26,84 @@ export default function Reports() {
   const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
   
   const reportTypes = [
-    { value: 'sales', label: 'Sales Report' },
-    { value: 'expenses', label: 'Expense Report' },
-    { value: 'clients', label: 'Client Report' },
-    { value: 'designs', label: 'Design Project Report' },
-    { value: 'suppliers', label: 'Supplier Report' },
-    { value: 'supplierExpenses', label: 'Supplier Expense Report' },
-    { value: 'inventory', label: 'Inventory Valuation' },
-    { value: 'stockMovement', label: 'Stock Movement Log' },
-    { value: 'full', label: 'Full System Report' },
+    { 
+      value: 'sales', 
+      label: 'Sales Report', 
+      desc: 'Overview of all sales transactions and revenue.',
+      icon: <TrendingUp className="text-green-500" size={24} />,
+      color: 'border-green-500'
+    },
+    { 
+      value: 'expenses', 
+      label: 'Expense Report', 
+      desc: 'Track operational costs and categorical spending.',
+      icon: <TrendingDown className="text-red-500" size={24} />,
+      color: 'border-red-500'
+    },
+    { 
+      value: 'clients', 
+      label: 'Client Report', 
+      desc: 'Analysis of client relationships and lifetime value.',
+      icon: <Users className="text-blue-500" size={24} />,
+      color: 'border-blue-500'
+    },
+    { 
+      value: 'suppliers', 
+      label: 'Supplier Report', 
+      desc: 'Summary of supplier interactions and credit limits.',
+      icon: <Truck className="text-amber-500" size={24} />,
+      color: 'border-amber-500'
+    },
+    { 
+      value: 'supplierExpenses', 
+      label: 'Supplier Expenses', 
+      desc: 'Detailed log of purchases and supplier costs.',
+      icon: <ShoppingCart className="text-purple-500" size={24} />,
+      color: 'border-purple-500'
+    },
+    { 
+      value: 'inventory', 
+      label: 'Inventory Report', 
+      desc: 'Current stock levels, valuation, and reorder alerts.',
+      icon: <Package className="text-orange-500" size={24} />,
+      color: 'border-orange-500'
+    },
+    { 
+      value: 'stockMovement', 
+      label: 'Stock Movement', 
+      desc: 'Log of all stock additions, sales, and adjustments.',
+      icon: <History className="text-indigo-500" size={24} />,
+      color: 'border-indigo-500'
+    },
+    { 
+      value: 'full', 
+      label: 'Full System Report', 
+      desc: 'Comprehensive business overview across all modules.',
+      icon: <BarChart3 className="text-slate-500" size={24} />,
+      color: 'border-slate-500'
+    },
   ].filter(r => {
     if (user?.role !== 'admin' && r.value !== 'inventory') return false
-    if (r.value === 'designs' && activeBranch === 'iGift') return false
+    // Designs is hidden for iGift but I'll add it back if user wants, 
+    // user didn't mention it but it was in the original list.
+    // I'll keep the ones user explicitly mentioned.
     return true
   })
 
-  const [reportType, setReportType] = useState(user?.role === 'admin' ? 'sales' : 'inventory')
+  // Add designs back if needed, but keeping it focused for now.
+  // Original had designs: { value: 'designs', label: 'Design Project Report' }
+  const hasDesigns = data.designs && data.designs.length > 0 && activeBranch !== 'iGift'
+  if (hasDesigns) {
+    reportTypes.splice(3, 0, {
+      value: 'designs',
+      label: 'Design Projects',
+      desc: 'Track project progress, designers, and project revenue.',
+      icon: <FileText className="text-cyan-500" size={24} />,
+      color: 'border-cyan-500'
+    })
+  }
+
+  const [reportType, setReportType] = useState(user?.role === 'admin' ? null : 'inventory')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [filterDesigner, setFilterDesigner] = useState('')
@@ -34,7 +111,9 @@ export default function Reports() {
   const getFilteredData = () => {
     const dateFilter = (record) => {
       if (!startDate || !endDate) return true
-      return record.date >= startDate && record.date <= endDate
+      const rDate = record.date || (record.created_at ? record.created_at.split('T')[0] : null)
+      if (!rDate) return true
+      return rDate >= startDate && rDate <= endDate
     }
 
     switch (reportType) {
@@ -61,7 +140,7 @@ export default function Reports() {
       case 'supplierExpenses':
         return data.supplierExpenses.filter(dateFilter)
       case 'inventory':
-        return data.inventory // Snapshot, no date filter usually, or maybe added items?
+        return data.inventory // Snapshot, usually no date filter for current levels
       case 'stockMovement':
         return data.stockTransactions.filter(t => {
             if (!startDate || !endDate) return true
@@ -154,70 +233,98 @@ export default function Reports() {
   }
 
   const generatePDF = () => {
-    const filteredData = getFilteredData()
-    const doc = new jsPDF('landscape') // wider space
-    const timestamp = new Date().toLocaleDateString()
-    
-    doc.setFontSize(18)
-    doc.text(`IGH BMS - ${reportTypes.find(r => r.value === reportType)?.label}`, 14, 22)
-    doc.setFontSize(11)
-    doc.text(`Generated on: ${timestamp}`, 14, 30)
+    try {
+      const filteredData = getFilteredData()
+      const doc = new jsPDF('landscape')
+      const timestamp = new Date().toLocaleDateString()
+      const label = reportTypes.find(r => r.value === reportType)?.label || 'System Report'
+      
+      doc.setFontSize(22)
+      doc.setTextColor(40, 40, 40)
+      doc.text(`IGH BMS - ${label}`, 14, 20)
+      
+      doc.setFontSize(10)
+      doc.setTextColor(100, 100, 100)
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28)
+      doc.text(`Branch: ${activeBranch}`, 14, 33)
+      if (startDate && endDate) {
+        doc.text(`Period: ${startDate} to ${endDate}`, 14, 38)
+      }
 
-    let head = []
-    let body = []
+      let head = []
+      let body = []
 
-    if (reportType === 'sales') {
-      head = [['Date', 'Client', 'Department', 'Amount', 'Status']]
-      filteredData.forEach(s => body.push([s.date, s.client, s.dept, `KSh ${s.amount.toLocaleString()}`, s.paymentStatus]))
-    } else if (reportType === 'expenses') {
-      head = [['Date', 'Category', 'Description', 'Amount']]
-      filteredData.forEach(e => body.push([e.date, e.cat, e.desc, `KSh ${e.amount.toLocaleString()}`]))
-    } else if (reportType === 'clients') {
-      head = [['Name', 'Phone', 'Location', 'Total Sales']]
-      filteredData.forEach(c => body.push([c.name, c.phone, c.location, `KSh ${c.totalSales.toLocaleString()}`]))
-    } else if (reportType === 'designs') {
-      head = [['Date', 'Type', 'Client', 'Designer', 'Amount', 'Status']]
-      filteredData.forEach(d => body.push([d.date, d.type, d.client, d.assignedTo, `KSh ${d.amount?.toLocaleString() || '0'}`, d.status]))
-    } else if (reportType === 'suppliers') {
-      head = [['Name', 'Contact', 'Phone', 'Total Spent']]
-      filteredData.forEach(s => body.push([s.name, s.contact, s.phone, `KSh ${s.totalSpent.toLocaleString()}`]))
-    } else if (reportType === 'supplierExpenses') {
-      head = [['Date', 'Supplier', 'Type', 'Amount', 'Remarks']]
-      filteredData.forEach(e => {
-        const supName = data.suppliers.find(s => s.id === e.supplier)?.name || 'Unknown'
-        body.push([e.date, supName, e.type, `KSh ${e.amount.toLocaleString()}`, e.remarks || ''])
-      })
-    } else if (reportType === 'inventory') {
-      head = [['Item', 'Category', 'Quantity', 'Price', 'Value']]
-      filteredData.forEach(i => {
-        const val = (i.quantity || 0) * (i.unitPrice || 0)
-        body.push([i.name, i.category, String(i.quantity), `KSh ${i.unitPrice?.toLocaleString() || '0'}`, `KSh ${val.toLocaleString()}`])
-      })
-    } else if (reportType === 'stockMovement') {
-      head = [['Date', 'Item', 'Type', 'Change', 'Reason', 'User']]
-      filteredData.forEach(t => {
-        const itemName = data.inventory.find(i => i.id === t.item_id)?.name || 'Unknown Item'
-        let reason = t.reason
-        const pMatch = reason.match(/Project #(\d+)/)
-        if (pMatch) {
-            const des = data.designs.find(d => d.id == pMatch[1])
-            if (des) reason = `${reason} - ${des.client}`
-        }
-        body.push([new Date(t.created_at).toLocaleDateString(), itemName, t.transaction_type, String(t.quantity_change), reason, t.created_by])
-      })
-    } else if (reportType === 'full') {
-      doc.text('A full system export is best generated via CSV due to multiple data shapes.', 14, 40)
-      doc.save(`system_report_${timestamp}.pdf`)
-      return
+      if (reportType === 'sales') {
+        head = [['Date', 'Client', 'Department', 'Amount', 'Status', 'Method']]
+        filteredData.forEach(s => body.push([s.date, s.client, s.dept, `KSh ${s.amount.toLocaleString()}`, s.paymentStatus, s.paymentMethod]))
+        const total = filteredData.reduce((sum, s) => sum + s.amount, 0)
+        body.push([{ content: `Total Revenue: KSh ${total.toLocaleString()}`, colSpan: 6, styles: { halign: 'right', fontStyle: 'bold' } }])
+      } else if (reportType === 'expenses') {
+        head = [['Date', 'Category', 'Description', 'Amount']]
+        filteredData.forEach(e => body.push([e.date, e.cat, e.desc, `KSh ${e.amount.toLocaleString()}`]))
+        const total = filteredData.reduce((sum, e) => sum + e.amount, 0)
+        body.push([{ content: `Total Expenses: KSh ${total.toLocaleString()}`, colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } }])
+      } else if (reportType === 'clients') {
+        head = [['Name', 'Phone', 'Location', 'Total Sales']]
+        filteredData.forEach(c => body.push([c.name, c.phone, c.location, `KSh ${c.totalSales.toLocaleString()}`]))
+      } else if (reportType === 'designs') {
+        head = [['Date', 'Type', 'Client', 'Designer', 'Amount', 'Status']]
+        filteredData.forEach(d => body.push([d.date, d.type, d.client, d.assignedTo, `KSh ${d.amount?.toLocaleString() || '0'}`, d.status]))
+      } else if (reportType === 'suppliers') {
+        head = [['Name', 'Contact', 'Phone', 'Total Spent']]
+        filteredData.forEach(s => body.push([s.name, s.contact, s.phone, `KSh ${s.totalSpent.toLocaleString()}`]))
+      } else if (reportType === 'supplierExpenses') {
+        head = [['Date', 'Supplier', 'Type', 'Amount', 'Remarks']]
+        filteredData.forEach(e => {
+          const supName = data.suppliers.find(s => s.id === e.supplier)?.name || 'Unknown'
+          body.push([e.date, supName, e.type, `KSh ${e.amount.toLocaleString()}`, e.remarks || ''])
+        })
+        const total = filteredData.reduce((sum, e) => sum + e.amount, 0)
+        body.push([{ content: `Total: KSh ${total.toLocaleString()}`, colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } }])
+      } else if (reportType === 'inventory') {
+        head = [['Item', 'Category', 'Quantity', 'Price', 'Value']]
+        filteredData.forEach(i => {
+          const val = (i.quantity || 0) * (i.unitPrice || 0)
+          body.push([i.name, i.category, String(i.quantity), `KSh ${i.unitPrice?.toLocaleString() || '0'}`, `KSh ${val.toLocaleString()}`])
+        })
+        const total = filteredData.reduce((sum, i) => sum + ((i.quantity || 0) * (i.unitPrice || 0)), 0)
+        body.push([{ content: `Total Inventory Value: KSh ${total.toLocaleString()}`, colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } }])
+      } else if (reportType === 'stockMovement') {
+        head = [['Date', 'Item', 'Type', 'Change', 'Reason', 'User']]
+        filteredData.forEach(t => {
+          const itemName = data.inventory.find(i => i.id === t.item_id)?.name || 'Unknown Item'
+          let reason = t.reason
+          const pMatch = reason.match(/Project #(\d+)/)
+          if (pMatch) {
+              const des = data.designs.find(d => d.id == pMatch[1])
+              if (des) reason = `${reason} - ${des.client}`
+          }
+          body.push([new Date(t.created_at).toLocaleDateString(), itemName, t.transaction_type, String(t.quantity_change), reason, t.created_by])
+        })
+      } else if (reportType === 'full') {
+        doc.text('A full system export is best generated via CSV due to multiple data shapes.', 14, 50)
+        doc.save(`system_report_${timestamp}.pdf`)
+        return
+      }
+
+      if (body.length > 0) {
+        autoTable(doc, { 
+          startY: 45, 
+          head, 
+          body,
+          theme: 'striped',
+          headStyles: { fillStyle: [41, 128, 185], textColor: 255 },
+          alternateRowStyles: { fillColor: [245, 245, 245] }
+        })
+      } else {
+        doc.text('No matching data for given filters.', 14, 50)
+      }
+
+      doc.save(`${reportType}_report_${timestamp}.pdf`)
+    } catch (error) {
+      console.error('PDF Generation failed:', error)
+      alert('Failed to generate PDF. Check console for details.')
     }
-
-    if (body.length > 0) {
-      doc.autoTable({ startY: 35, head, body })
-    } else {
-      doc.text('No matching data for given filters.', 14, 40)
-    }
-
-    doc.save(`${reportType}_report_${timestamp}.pdf`)
   }
 
   const renderReportPreview = () => {
@@ -505,36 +612,148 @@ export default function Reports() {
     if (reportType === 'full') {
       return (
         <div className="space-y-6">
-          <div>
-            <h3 className="font-bold mb-2">Sales Summary</h3>
-            <p>Total Sales: KSh {filteredData.sales.reduce((sum, s) => sum + s.amount, 0).toLocaleString()}</p>
-            <p>Total Transactions: {filteredData.sales.length}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-100 dark:border-green-800">
+              <h3 className="font-bold text-green-800 dark:text-green-300 mb-2 flex items-center gap-2">
+                <TrendingUp size={18} /> Sales Summary
+              </h3>
+              <p className="text-2xl font-bold">KSh {filteredData.sales.reduce((sum, s) => sum + s.amount, 0).toLocaleString()}</p>
+              <p className="text-sm text-gray-500">{filteredData.sales.length} Transactions</p>
+            </div>
+            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-800">
+              <h3 className="font-bold text-red-800 dark:text-red-300 mb-2 flex items-center gap-2">
+                <TrendingDown size={18} /> Expenses Summary
+              </h3>
+              <p className="text-2xl font-bold">KSh {filteredData.expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</p>
+              <p className="text-sm text-gray-500">{filteredData.expenses.length} Transactions</p>
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
+              <h3 className="font-bold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
+                <Users size={18} /> Clients & Projects
+              </h3>
+              <p className="text-2xl font-bold">{filteredData.clients.length} Clients</p>
+              <p className="text-sm text-gray-500">{filteredData.designs.length} Total Projects</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold mb-2">Expenses Summary</h3>
-            <p>Total Expenses: KSh {filteredData.expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</p>
-            <p>Total Transactions: {filteredData.expenses.length}</p>
-          </div>
-          <div>
-            <h3 className="font-bold mb-2">Business Overview</h3>
-            <p>Total Clients: {filteredData.clients.length}</p>
-            <p>Active Projects: {filteredData.designs.filter(d => d.status === 'In Progress').length}</p>
-            <p>Total Suppliers: {filteredData.suppliers.length}</p>
+          
+          <div className="mt-8">
+            <h3 className="font-bold text-lg mb-4">Detailed Breakdown</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              The full system report provides a birds-eye view of your business health. 
+              For a granular row-by-row analysis, please use the CSV Export which combines all data points into a single spreadsheet.
+            </p>
           </div>
         </div>
       )
     }
   }
 
+  if (user?.role === 'admin' && !reportType) {
+    return (
+      <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Reports Dashboard</h1>
+            <p className="text-gray-500 dark:text-gray-400">Select a report category to view detailed data and exports.</p>
+          </div>
+          <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+             <Calendar className="text-primary-gold" size={20} />
+             <div className="flex items-center gap-2">
+                <input 
+                  type="date" 
+                  value={startDate} 
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="bg-transparent border-none text-sm focus:ring-0 cursor-pointer"
+                  placeholder="Start Date"
+                />
+                <span className="text-gray-400">to</span>
+                <input 
+                  type="date" 
+                  value={endDate} 
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="bg-transparent border-none text-sm focus:ring-0 cursor-pointer"
+                  placeholder="End Date"
+                />
+             </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {reportTypes.map((report) => (
+            <button
+              key={report.value}
+              onClick={() => setReportType(report.value)}
+              className={`group flex flex-col p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border-l-4 ${report.color} hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left`}
+            >
+              <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl group-hover:scale-110 transition-transform duration-300 w-fit">
+                {report.icon}
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">{report.label}</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{report.desc}</p>
+              <div className="mt-auto pt-4 flex items-center text-primary-gold font-semibold text-sm">
+                View Report <Eye size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Global Summary Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+           <div className="card text-center py-6">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Total Sales</p>
+              <p className="text-2xl font-extrabold text-green-600">KSh {data.sales.reduce((sum, s) => sum + s.amount, 0).toLocaleString()}</p>
+           </div>
+           <div className="card text-center py-6">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Total Expenses</p>
+              <p className="text-2xl font-extrabold text-red-600">KSh {data.expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</p>
+           </div>
+           <div className="card text-center py-6">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Stock Value</p>
+              <p className="text-2xl font-extrabold text-blue-600">KSh {data.inventory.reduce((sum, i) => sum + ((i.quantity || 0) * (i.unitPrice || 0)), 0).toLocaleString()}</p>
+           </div>
+           <div className="card text-center py-6">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Active Branch</p>
+              <p className="text-2xl font-extrabold text-primary-gold">{activeBranch}</p>
+           </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Reports & Analytics</h1>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          {user?.role === 'admin' && (
+            <button 
+              onClick={() => setReportType(null)}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+              title="Back to Dashboard"
+            >
+              <ArrowLeft size={24} className="text-gray-600 dark:text-gray-300" />
+            </button>
+          )}
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            {reportTypes.find(r => r.value === reportType)?.label || 'Report'}
+          </h1>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button onClick={generateCSV} className="btn-secondary flex items-center gap-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+            <Download size={18} className="text-blue-600" />
+            <span className="hidden sm:inline">Export CSV</span>
+          </button>
+          <button onClick={generatePDF} className="btn-secondary flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800 text-red-600">
+            <FileText size={18} />
+            <span className="hidden sm:inline">Export PDF</span>
+          </button>
+        </div>
+      </div>
 
       {/* Report Controls */}
-      <div className="card space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="card grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Report Type</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Report Type</label>
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
@@ -547,57 +766,60 @@ export default function Reports() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="form-input"
-            />
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Start Date</label>
+            <div className="relative">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="form-input pl-10"
+              />
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">End Date</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="form-input"
-            />
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">End Date</label>
+            <div className="relative">
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="form-input pl-10"
+              />
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            </div>
           </div>
           {reportType === 'designs' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Designer</label>
-              <select
-                value={filterDesigner}
-                onChange={(e) => setFilterDesigner(e.target.value)}
-                className="form-input"
-              >
-                <option value="">All Designers</option>
-                {[...new Set(data.designs.map(d => d.assignedTo))].map(designer => (
-                  <option key={designer} value={designer}>{designer}</option>
-                ))}
-              </select>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Designer</label>
+              <div className="relative">
+                <select
+                  value={filterDesigner}
+                  onChange={(e) => setFilterDesigner(e.target.value)}
+                  className="form-input pl-10"
+                >
+                  <option value="">All Designers</option>
+                  {[...new Set(data.designs.map(d => d.assignedTo))].map(designer => (
+                    <option key={designer} value={designer}>{designer}</option>
+                  ))}
+                </select>
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              </div>
             </div>
           )}
-        </div>
-
-        <div className="flex gap-3 mt-4">
-          <button onClick={generateCSV} className="btn-primary flex items-center gap-2">
-            <Download size={20} />
-            Export to CSV
-          </button>
-          <button onClick={generatePDF} className="btn-secondary flex items-center gap-2 text-red-600 border-red-200 bg-red-50 hover:bg-red-100">
-            <FileText size={20} />
-            Export to PDF
-          </button>
-        </div>
+          {reportType !== 'designs' && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-500">
+               <Search size={16} />
+               <span>Filtering for {activeBranch}</span>
+            </div>
+          )}
       </div>
 
       {/* Report Preview */}
-      <div className="card">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-          <Eye size={20} />
-          Report Preview
+      <div className="card min-h-[400px]">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
+          <Eye size={20} className="text-primary-gold" />
+          Live Preview
         </h2>
         {renderReportPreview()}
       </div>
