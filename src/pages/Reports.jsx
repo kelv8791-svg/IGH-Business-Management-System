@@ -656,23 +656,24 @@ export default function Reports() {
             <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Reports Dashboard</h1>
             <p className="text-gray-500 dark:text-gray-400">Select a report category to view detailed data and exports.</p>
           </div>
-          <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-             <Calendar className="text-primary-gold" size={20} />
+          <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-gray-800 p-2.5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+             <div className="flex items-center gap-2 px-3 py-1 bg-primary-gold/10 text-primary-gold rounded-lg">
+                <Calendar size={18} />
+                <span className="text-xs font-bold uppercase tracking-wider">Period</span>
+             </div>
              <div className="flex items-center gap-2">
                 <input 
                   type="date" 
                   value={startDate} 
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-transparent border-none text-sm focus:ring-0 cursor-pointer"
-                  placeholder="Start Date"
+                  className="bg-gray-50 dark:bg-gray-700/50 border-none rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-primary-gold/50 cursor-pointer min-w-[130px]"
                 />
-                <span className="text-gray-400">to</span>
+                <span className="text-gray-400 font-bold">to</span>
                 <input 
                   type="date" 
                   value={endDate} 
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-transparent border-none text-sm focus:ring-0 cursor-pointer"
-                  placeholder="End Date"
+                  className="bg-gray-50 dark:bg-gray-700/50 border-none rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-primary-gold/50 cursor-pointer min-w-[130px]"
                 />
              </div>
           </div>
@@ -767,27 +768,21 @@ export default function Reports() {
           </div>
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Start Date</label>
-            <div className="relative">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="form-input pl-10"
-              />
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            </div>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="form-input cursor-pointer"
+            />
           </div>
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase mb-2">End Date</label>
-            <div className="relative">
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="form-input pl-10"
-              />
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            </div>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="form-input cursor-pointer"
+            />
           </div>
           {reportType === 'designs' && (
             <div>
