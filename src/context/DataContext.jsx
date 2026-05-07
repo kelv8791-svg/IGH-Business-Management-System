@@ -532,7 +532,7 @@ export function DataProvider({ children }) {
       ...supplier, 
       credit: supplier.credit === '' ? null : Number(supplier.credit)
     }
-    const newSupplier = { ...sanitizedSupplier, id: crypto.randomUUID(), branch: getPayloadBranch() }
+    const newSupplier = { ...sanitizedSupplier, id: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, '0')), branch: getPayloadBranch() }
     updateLocalState('suppliers', 'CREATE', newSupplier)
     try {
       await performAction('suppliers', 'CREATE', newSupplier)
@@ -678,7 +678,7 @@ export function DataProvider({ children }) {
       unitPrice: Number(item.unitPrice) || 0,
       supplier: item.supplier === '' ? null : Number(item.supplier)
     }
-    const newItem = { ...sanitizedItem, id: crypto.randomUUID(), branch: getPayloadBranch() }
+    const newItem = { ...sanitizedItem, id: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, '0')), branch: getPayloadBranch() }
     updateLocalState('inventory', 'CREATE', newItem)
     try {
       const savedItem = await performAction('inventory', 'CREATE', newItem)
