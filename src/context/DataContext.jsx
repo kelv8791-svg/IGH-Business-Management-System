@@ -42,9 +42,12 @@ export function DataProvider({ children }) {
     const filterByBranch = (list) => {
       if (!Array.isArray(list)) return []
       if (user.role === 'admin' && activeBranchFilter === 'All') return list
+      const targetBranch = (activeBranchFilter || 'IGH').toLowerCase()
       return list.filter(item => {
-        const itemBranch = item?.branch || 'IGH'
-        return itemBranch.toLowerCase() === (activeBranchFilter || 'IGH').toLowerCase()
+        // Records with no branch value are treated as belonging to IGH
+        const itemBranch = (item?.branch || 'IGH').toLowerCase()
+        // Exact match: item branch must equal the active filter branch
+        return itemBranch === targetBranch
       })
     }
 
