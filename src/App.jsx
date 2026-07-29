@@ -35,15 +35,29 @@ function AppRoutes() {
                 <Route 
                   path="/design-projects" 
                   element={
-                    activeBranch !== 'iGift' 
+                    (user?.role === 'admin' || activeBranch === 'IGH') 
                     ? <DesignProjects /> 
                     : <Navigate to="/" />
                   } 
                 />
                 <Route path="/expenses" element={<Expenses />} />
                 <Route path="/suppliers" element={<Suppliers />} />
-                <Route path="/inventory" element={<Inventory />} />
-                <Route path="/reports" element={<Reports />} />
+                <Route 
+                  path="/inventory" 
+                  element={
+                    (user?.role === 'admin' || activeBranch === 'iGift') 
+                    ? <Inventory /> 
+                    : <Navigate to="/" />
+                  } 
+                />
+                <Route 
+                  path="/reports" 
+                  element={
+                    (user?.role === 'admin' || activeBranch === 'iGift' || activeBranch === 'IGH')
+                    ? <Reports /> 
+                    : <Navigate to="/" />
+                  } 
+                />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>

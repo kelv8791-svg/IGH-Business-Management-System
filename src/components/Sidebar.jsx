@@ -21,14 +21,12 @@ export default function Sidebar({ open }) {
     { path: '/inventory', label: 'Inventory', icon: Package },
     { path: '/reports', label: 'Reports', icon: BarChart3 },
   ].filter(item => {
-    const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
-    if (item.path === '/inventory' && activeBranch === 'IGH') {
+    if (user?.role === 'admin') return true
+    const branch = user?.branch || 'IGH'
+    if (item.path === '/inventory' && branch === 'IGH') {
       return false
     }
-    if (item.path === '/design-projects' && activeBranch === 'iGift') {
-      return false
-    }
-    if (item.path === '/reports' && user?.role !== 'admin' && user?.branch !== 'iGift') {
+    if (item.path === '/design-projects' && branch === 'iGift') {
       return false
     }
     return true

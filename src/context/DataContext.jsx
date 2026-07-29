@@ -21,6 +21,7 @@ const initialData = {
   supplierExpenses: [],
   supplierPayments: [],
   inventory: [],
+  inventoryCategories: [],
   stockTransactions: [],
   audit: [],
   users: []
@@ -32,25 +33,18 @@ export function DataProvider({ children }) {
   const [selectedBranch, setSelectedBranch] = useState('IGH')
   const { user, setUser } = useAuth()
 
-  // Derived filtered data based on branch selection (for Admins)
+  // Derived filtered data based on branch selection (for Admins & Branch Staff)
   const filteredData = useMemo(() => {
     if (!user) return data;
     
-    if (user.role !== 'admin') {
-      return {
-        ...data,
-        users: data.users.filter(u => !u.branch || u.branch === user.branch || u.role === 'admin')
-      }
-    }
-    
-    // For admins, filter everything by selectedBranch
+    const activeBranchFilter = user.role === 'admin' ? selectedBranch : user.branch;
+
     const filterByBranch = (list) => {
       if (!Array.isArray(list)) return []
-      if (selectedBranch === 'All') return list
+      if (user.role === 'admin' && activeBranchFilter === 'All') return list
       return list.filter(item => {
-        // Strict separation: missing branch defaults to 'IGH' as per user request
         const itemBranch = item?.branch || 'IGH'
-        return itemBranch === selectedBranch
+        return itemBranch.toLowerCase() === (activeBranchFilter || 'IGH').toLowerCase()
       })
     }
 
@@ -66,7 +60,9 @@ export function DataProvider({ children }) {
       inventoryCategories: filterByBranch(data.inventoryCategories),
       stockTransactions: filterByBranch(data.stockTransactions),
       audit: filterByBranch(data.audit),
-      users: data.users // Users listing for admin remains global for management
+      users: user.role === 'admin' 
+        ? data.users 
+        : data.users.filter(u => !u.branch || u.branch === user.branch || u.role === 'admin')
     }
   }, [data, user, selectedBranch])
 
@@ -121,10 +117,10 @@ export function DataProvider({ children }) {
           user ? buildQuery('supplier_expenses').order('date', { ascending: false }) : Promise.resolve({ data: [] }),
           user ? buildQuery('supplier_payments').order('date', { ascending: false }) : Promise.resolve({ data: [] }),
           user ? buildQuery('inventory').order('name') : Promise.resolve({ data: [] }),
-          supabase.from('inventory_categories').select('*').order('name'),
+          user ? buildQuery('inventory_categories').order('name') : Promise.resolve({ data: [] }),
           user ? buildQuery('stock_transactions').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
           supabase.from('audit').select('*').order('timestamp', { ascending: false }),
-          supabase.from('users').select('username, email, role, branch, pref_compact') // SECURE: Don't fetch passwords
+          supabase.from('users').select('username, email, password, role, branch, pref_compact')
         ])
 
         if (usersErr) console.error('Error fetching users:', usersErr)
@@ -227,8 +223,9 @@ export function DataProvider({ children }) {
     return result.data?.[0] || record
   }
 
-  // Calculate strict payload branch (fixes admin ghost-data entries)
-  const getPayloadBranch = () => {
+  // Calculate strict payload branch (supports explicit modal branch selection for Admins)
+  const getPayloadBranch = (overrideBranch) => {
+    if (overrideBranch && overrideBranch !== '' && overrideBranch !== 'All') return overrideBranch;
     if (user?.role === 'admin' && selectedBranch !== 'All') return selectedBranch;
     return user?.branch || 'IGH';
   }
@@ -245,7 +242,7 @@ export function DataProvider({ children }) {
       handed_over_date: sale.handedOverDate || null,
       qty_sold: Number(sale.qtySold) || 0,
       source: sale.source || 'Direct Sale',
-      branch: getPayloadBranch()
+      branch: getPayloadBranch(sale.branch)
     }
     
     delete sanitizedSale.handedOver
@@ -374,7 +371,7 @@ export function DataProvider({ children }) {
 
   // Clients operations
   const addClient = async (client) => {
-    const newClient = { ...client, id: Date.now() + Math.floor(Math.random() * 1000), branch: getPayloadBranch() }
+    const newClient = { ...client, id: Date.now() + Math.floor(Math.random() * 1000), branch: getPayloadBranch(client.branch) }
     updateLocalState('clients', 'CREATE', newClient)
     try {
       await performAction('clients', 'CREATE', newClient)
@@ -412,7 +409,7 @@ export function DataProvider({ children }) {
       paymentDate: design.paymentDate || null,
       handed_over: design.handedOver || false, 
       handed_over_date: design.handedOverDate || null,
-      branch: getPayloadBranch()
+      branch: getPayloadBranch(design.branch)
     }
 
     delete newDesign.handedOver
@@ -463,7 +460,8 @@ export function DataProvider({ children }) {
           paymentMethod: updates.paymentMethod || 'Cash',
           paymentStatus: 'Paid',
           handed_over: updates.handed_over || designBeforeUpdate.handed_over || false,
-          handed_over_date: updates.handed_over_date || designBeforeUpdate.handed_over_date || null
+          handed_over_date: updates.handed_over_date || designBeforeUpdate.handed_over_date || null,
+          branch: designBeforeUpdate.branch || getPayloadBranch()
         }
         await performAction('sales', 'CREATE', newSale)
         logAudit('CREATE', 'Sales', `Auto-created sale from Design Project: KSh ${newSale.amount}`)
@@ -494,7 +492,7 @@ export function DataProvider({ children }) {
       ...expense,
       amount: Number(expense.amount) || 0,
       id: Date.now() + Math.floor(Math.random() * 1000),
-      branch: getPayloadBranch()
+      branch: getPayloadBranch(expense.branch)
     }
     updateLocalState('expenses', 'CREATE', sanitizedExpense)
     try {
@@ -532,7 +530,7 @@ export function DataProvider({ children }) {
       ...supplier, 
       credit: supplier.credit === '' ? null : Number(supplier.credit)
     }
-    const newSupplier = { ...sanitizedSupplier, id: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, '0')), branch: getPayloadBranch() }
+    const newSupplier = { ...sanitizedSupplier, id: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, '0')), branch: getPayloadBranch(supplier.branch) }
     updateLocalState('suppliers', 'CREATE', newSupplier)
     try {
       await performAction('suppliers', 'CREATE', newSupplier)
@@ -572,7 +570,7 @@ export function DataProvider({ children }) {
       ...expense,
       amount: Number(expense.amount) || 0,
       id: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, '0')),
-      branch: getPayloadBranch(),
+      branch: getPayloadBranch(expense.branch),
       inventory_item_id: expense.inventory_item_id || null,
       payment_status: expense.payment_status || 'Paid',
       quantity: Number(expense.quantity) || null
@@ -586,20 +584,22 @@ export function DataProvider({ children }) {
       await performAction('supplier_expenses', 'CREATE', dbPayload)
 
       // Automatically Restock Inventory if linked
-      if (sanitizedExpense.inventory_item_id && sanitizedExpense.quantity > 0) {
+      if (sanitizedExpense.inventory_item_id && (Number(sanitizedExpense.quantity) || 0) > 0) {
         await addStockTransaction({
           item_id: sanitizedExpense.inventory_item_id,
-          quantity_change: sanitizedExpense.quantity,
+          quantity_change: Number(sanitizedExpense.quantity),
           transaction_type: 'PURCHASE',
           reason: `Stock Purchase via Supplier Expense #${sanitizedExpense.id}`,
           date: sanitizedExpense.date,
           created_by: user?.username || 'system'
         })
 
-        // Also update unitPrice in inventory as per user's brilliant request
-        const costPerUnit = sanitizedExpense.amount / sanitizedExpense.quantity
-        await updateInventoryItem(sanitizedExpense.inventory_item_id, { unitPrice: costPerUnit })
-        logAudit('UPDATE', 'Inventory', `Auto-updated unitPrice for item ID ${sanitizedExpense.inventory_item_id} based on purchase cost.`)
+        // Also update unitPrice in inventory as per user's request safely
+        if (sanitizedExpense.amount > 0) {
+          const costPerUnit = Math.round((sanitizedExpense.amount / Number(sanitizedExpense.quantity)) * 100) / 100
+          await updateInventoryItem(sanitizedExpense.inventory_item_id, { unitPrice: costPerUnit })
+          logAudit('UPDATE', 'Inventory', `Auto-updated unitPrice for item ID ${sanitizedExpense.inventory_item_id} based on purchase cost.`)
+        }
       }
 
       logAudit('CREATE', 'Supplier Expenses', `Added supplier expense of KSh ${sanitizedExpense.amount}`)
@@ -636,7 +636,7 @@ export function DataProvider({ children }) {
       ...payment,
       id: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, '0')),
       amount: Number(payment.amount) || 0,
-      branch: getPayloadBranch()
+      branch: getPayloadBranch(payment.branch)
     }
     updateLocalState('supplier_payments', 'CREATE', newPayment)
     try {
@@ -678,7 +678,7 @@ export function DataProvider({ children }) {
       unitPrice: Number(item.unitPrice) || 0,
       supplier: item.supplier === '' ? null : Number(item.supplier)
     }
-    const newItem = { ...sanitizedItem, id: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, '0')), branch: getPayloadBranch() }
+    const newItem = { ...sanitizedItem, id: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, '0')), branch: getPayloadBranch(item.branch) }
     updateLocalState('inventory', 'CREATE', newItem)
     try {
       const savedItem = await performAction('inventory', 'CREATE', newItem)
@@ -727,11 +727,13 @@ export function DataProvider({ children }) {
     logAudit('DELETE', 'Inventory', `Deleted inventory ID ${id}`)
   }
 
-  const addInventoryCategory = async (name) => {
+  const addInventoryCategory = async (catData) => {
+    const catName = typeof catData === 'object' ? catData.name : catData;
+    const catBranch = typeof catData === 'object' ? catData.branch : null;
     const newCat = { 
       id: Date.now() + Math.floor(Math.random() * 1000), 
-      name,
-      branch: getPayloadBranch()
+      name: catName,
+      branch: getPayloadBranch(catBranch)
     }
     updateLocalState('inventory_categories', 'CREATE', newCat)
     try {
@@ -905,7 +907,7 @@ export function DataProvider({ children }) {
   }
 
   const getTotalSales = (startDate = null, endDate = null) => {
-    let sales = Array.isArray(data.sales) ? data.sales : []
+    let sales = Array.isArray(filteredData.sales) ? filteredData.sales : []
     if (startDate && endDate) {
       sales = sales.filter(s => s.date >= startDate && s.date <= endDate)
     }
@@ -913,7 +915,7 @@ export function DataProvider({ children }) {
   }
 
   const getTotalExpenses = (startDate = null, endDate = null) => {
-    let expenses = Array.isArray(data.expenses) ? data.expenses : []
+    let expenses = Array.isArray(filteredData.expenses) ? filteredData.expenses : []
     if (startDate && endDate) {
       expenses = expenses.filter(e => e.date >= startDate && e.date <= endDate)
     }
@@ -925,7 +927,7 @@ export function DataProvider({ children }) {
   }
 
   const getSalesByDepartment = (startDate = null, endDate = null) => {
-    let sales = Array.isArray(data.sales) ? data.sales : []
+    let sales = Array.isArray(filteredData.sales) ? filteredData.sales : []
     if (startDate && endDate) {
       sales = sales.filter(s => s.date >= startDate && s.date <= endDate)
     }
@@ -937,7 +939,7 @@ export function DataProvider({ children }) {
   }
 
   const getInventoryStatus = (id) => {
-    const inventoryList = Array.isArray(data.inventory) ? data.inventory : []
+    const inventoryList = Array.isArray(filteredData.inventory) ? filteredData.inventory : []
     const item = inventoryList.find(i => Number(i.id) === Number(id))
     if (!item) return 'Unknown'
     if (item.quantity === 0) return 'Out of Stock'

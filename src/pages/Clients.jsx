@@ -46,11 +46,13 @@ export default function Clients() {
     setIsOpen(false)
   }
 
-  const filteredClients = data.clients.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.phone.includes(search) ||
-    c.location.toLowerCase().includes(search.toLowerCase())
-  )
+  const filteredClients = data.clients.filter(c => {
+    const query = search.toLowerCase()
+    return (c.name || '').toLowerCase().includes(query) ||
+           (c.phone || '').toLowerCase().includes(query) ||
+           (c.location || '').toLowerCase().includes(query) ||
+           (c.address || '').toLowerCase().includes(query)
+  })
 
   const getClientTotalSales = (clientName) => {
     return data.sales

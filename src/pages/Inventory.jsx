@@ -137,8 +137,10 @@ export default function Inventory() {
   }
 
   const filteredItems = data.inventory.filter(item => {
-    const matchSearch = item.name.toLowerCase().includes(search.toLowerCase()) ||
-                       item.sku.toLowerCase().includes(search.toLowerCase())
+    const query = search.toLowerCase()
+    const matchSearch = (item.name || '').toLowerCase().includes(query) ||
+                       (item.sku || '').toLowerCase().includes(query) ||
+                       (item.category || '').toLowerCase().includes(query)
     const matchCat = !filterCat || item.category === filterCat
     const itemStatus = getInventoryStatus(item.id)
     const matchStatus = !filterStatus || itemStatus === filterStatus
@@ -146,7 +148,7 @@ export default function Inventory() {
   })
 
   const getSupplierName = (id) => {
-    return data.suppliers.find(s => s.id === id)?.name || 'Not assigned'
+    return data.suppliers.find(s => Number(s.id) === Number(id))?.name || 'Not assigned'
   }
 
   const getStatusIcon = (id) => {

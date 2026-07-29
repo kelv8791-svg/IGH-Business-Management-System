@@ -76,11 +76,13 @@ export default function Suppliers() {
     setIsOpen(false)
   }
 
-  const filteredSuppliers = data.suppliers.filter(s =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.phone.includes(search) ||
-    s.email.toLowerCase().includes(search.toLowerCase())
-  )
+  const filteredSuppliers = data.suppliers.filter(s => {
+    const query = search.toLowerCase()
+    return (s.name || '').toLowerCase().includes(query) ||
+           (s.phone || '').toLowerCase().includes(query) ||
+           (s.email || '').toLowerCase().includes(query) ||
+           (s.contact || '').toLowerCase().includes(query)
+  })
 
   const getSupplierTotalExpenses = (supplierId) => {
     return data.supplierExpenses

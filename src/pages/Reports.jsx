@@ -83,15 +83,13 @@ export default function Reports() {
       color: 'border-slate-500'
     },
   ].filter(r => {
-    if (user?.role !== 'admin' && r.value !== 'inventory') return false
-    // Designs is hidden for iGift but I'll add it back if user wants, 
-    // user didn't mention it but it was in the original list.
-    // I'll keep the ones user explicitly mentioned.
+    if (user?.role !== 'admin') {
+      if (activeBranch === 'IGH' && r.value === 'inventory') return false
+      if (activeBranch === 'iGift' && r.value === 'designs') return false
+    }
     return true
   })
 
-  // Add designs back if needed, but keeping it focused for now.
-  // Original had designs: { value: 'designs', label: 'Design Project Report' }
   const hasDesigns = data.designs && data.designs.length > 0 && activeBranch !== 'iGift'
   if (hasDesigns) {
     reportTypes.splice(3, 0, {
@@ -103,7 +101,7 @@ export default function Reports() {
     })
   }
 
-  const [reportType, setReportType] = useState(user?.role === 'admin' ? null : 'inventory')
+  const [reportType, setReportType] = useState(null)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [filterDesigner, setFilterDesigner] = useState('')
@@ -124,7 +122,7 @@ export default function Reports() {
       case 'clients':
         return data.clients.map(c => ({
           ...c,
-          totalSales: data.sales.filter(s => s.client === c.name).reduce((sum, s) => sum + s.amount, 0)
+          totalSales: data.sales.filter(s => s.client === c.name).reduce((sum, s) => sum + (Number(s.amount) || 0), 0)
         }))
       case 'designs':
         return data.designs.filter(record => {
@@ -135,7 +133,7 @@ export default function Reports() {
       case 'suppliers':
         return data.suppliers.map(s => ({
           ...s,
-          totalSpent: data.supplierExpenses.filter(e => e.supplier === s.id).reduce((sum, e) => sum + e.amount, 0)
+          totalSpent: data.supplierExpenses.filter(e => Number(e.supplier) === Number(s.id)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0)
         }))
       case 'supplierExpenses':
         return data.supplierExpenses.filter(dateFilter)

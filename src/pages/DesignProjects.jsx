@@ -38,7 +38,11 @@ export default function DesignProjects() {
 
   const handleOpenModal = (design = null) => {
     if (design) {
-      setFormData(design)
+      setFormData({
+        ...design,
+        handedOver: !!(design.handed_over || design.handedOver),
+        handedOverDate: design.handed_over_date || design.handedOverDate || ''
+      })
       setEditId(design.id)
     } else {
       setFormData({
@@ -67,18 +71,21 @@ export default function DesignProjects() {
       alert('Please fill all required fields')
       return
     }
+
+    const isHanded = !!(formData.handedOver || formData.handed_over)
     // Confirmation when marking handed over
     if (editId) {
       const prev = data.designs.find(d => d.id === editId)
-      if (prev && !prev.handedOver && formData.handedOver) {
+      const prevHanded = prev ? !!(prev.handed_over || prev.handedOver) : false
+      if (!prevHanded && isHanded) {
         if (!window.confirm('Marking this design as handed over will update linked sale(s). Continue?')) return
       }
-      updateDesign(editId, formData)
+      updateDesign(editId, { ...formData, handed_over: isHanded })
     } else {
-      if (formData.handedOver) {
+      if (isHanded) {
         if (!window.confirm('Marking a new design as handed over will update linked sale(s) when created. Continue?')) return
       }
-      addDesign(formData)
+      addDesign({ ...formData, handed_over: isHanded })
     }
     setIsOpen(false)
   }
@@ -86,8 +93,10 @@ export default function DesignProjects() {
   const designersList = data.users.filter(u => u.role === 'designer')
 
   const filteredDesigns = data.designs.filter(d => {
-    const matchSearch = d.type.toLowerCase().includes(search.toLowerCase()) ||
-                       d.client.toLowerCase().includes(search.toLowerCase())
+    const query = search.toLowerCase()
+    const matchSearch = (d.type || '').toLowerCase().includes(query) ||
+                       (d.client || '').toLowerCase().includes(query) ||
+                       (d.assignedTo || '').toLowerCase().includes(query)
     const matchStatus = !filterStatus || d.status === filterStatus
     return matchSearch && matchStatus
   })

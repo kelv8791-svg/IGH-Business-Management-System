@@ -91,9 +91,9 @@ export default function Settings() {
     // Verify current password against data
     // Note: In a real app, strict backend verification is better, but here we check against loaded data
     // equivalent to how authentication checks are done in this app context.
-    const currentUserRecord = data.users.find(u => u.username === user.username)
+    const currentUserRecord = (allData?.users || data.users || []).find(u => u.username === user.username)
     
-    if (!currentUserRecord || currentUserRecord.password !== currentPassword) {
+    if (!currentUserRecord || (currentUserRecord.password && currentUserRecord.password !== currentPassword)) {
       setPasswordMsg({ type: 'error', text: 'Incorrect current password' })
       return
     }

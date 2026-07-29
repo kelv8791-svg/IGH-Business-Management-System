@@ -105,7 +105,11 @@ export default function Sales() {
   const sortedSales = [...data.sales].sort((a, b) => new Date(a.date) - new Date(b.date))
 
   const filteredSales = sortedSales.filter(s => {
-    const matchSearch = (s.desc || '').toLowerCase().includes(search.toLowerCase())
+    const query = search.toLowerCase()
+    const matchSearch = (s.desc || '').toLowerCase().includes(query) ||
+                       (s.client || '').toLowerCase().includes(query) ||
+                       (s.paymentRef || '').toLowerCase().includes(query) ||
+                       (s.dept || '').toLowerCase().includes(query)
     const matchDept = !filterDept || s.dept === filterDept
     const matchStatus = !filterStatus || s.paymentStatus === filterStatus
     return matchSearch && matchDept && matchStatus

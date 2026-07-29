@@ -61,7 +61,9 @@ export default function Expenses() {
   const sortedExpenses = [...data.expenses].sort((a, b) => new Date(a.date) - new Date(b.date))
 
   const filteredExpenses = sortedExpenses.filter(e => {
-    const matchSearch = (e.desc || '').toLowerCase().includes(search.toLowerCase())
+    const query = search.toLowerCase()
+    const matchSearch = (e.desc || '').toLowerCase().includes(query) ||
+                       (e.cat || '').toLowerCase().includes(query)
     const matchCat = !filterCat || e.cat === filterCat
     return matchSearch && matchCat
   })
