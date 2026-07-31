@@ -14,7 +14,19 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js'
-import { TrendingUp, TrendingDown, DollarSign, AlertCircle, Info, PackageOpen } from 'lucide-react'
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  DollarSign, 
+  AlertCircle, 
+  Info, 
+  PackageOpen, 
+  Sparkles,
+  Users,
+  Truck,
+  Boxes,
+  Briefcase
+} from 'lucide-react'
 
 ChartJS.register(
   CategoryScale,
@@ -28,16 +40,11 @@ ChartJS.register(
   ArcElement
 )
 
-// Timezone-safe date comparison: compare YYYY-MM-DD strings directly
-// This avoids the UTC-midnight parse issue where new Date("2026-07-29")
-// becomes 2026-07-28T21:00:00 in EAT (UTC+3), making today's records fail
 const toDateStr = (dateInput) => {
   if (!dateInput) return ''
-  // If it's already a YYYY-MM-DD string, return as-is
   if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
     return dateInput
   }
-  // Otherwise parse and format
   const d = new Date(dateInput)
   if (isNaN(d.getTime())) return ''
   const yyyy = d.getFullYear()
@@ -85,15 +92,12 @@ export default function Dashboard() {
   const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
   const [period, setPeriod] = useState('all')
 
-  // Reset period to 'all' whenever the active branch changes
-  // so switching from IGH to iGift always shows all available data
   useEffect(() => {
     setPeriod('all')
   }, [activeBranch])
 
   const dateRange = useMemo(() => getDateRange(period), [period])
 
-  // Timezone-safe date filtering: compare YYYY-MM-DD strings
   const filteredSales = useMemo(() => {
     const list = Array.isArray(data.sales) ? data.sales : []
     if (period === 'all') return list
@@ -116,13 +120,13 @@ export default function Dashboard() {
     const totalSales = filteredSales.reduce((sum, s) => sum + (Number(s.amount) || 0), 0)
     const totalExpenses = filteredExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0)
     const netBalance = totalSales - totalExpenses
-    const profitMargin = totalSales > 0 ? ((netBalance / totalSales) * 100).toFixed(2) : 0
+    const profitMargin = totalSales > 0 ? ((netBalance / totalSales) * 100).toFixed(1) : 0
     return { totalSales, totalExpenses, netBalance, profitMargin }
   }, [filteredSales, filteredExpenses])
 
   const hasData = filteredSales.length > 0 || filteredExpenses.length > 0
 
-  // Chart data
+  // Chart dataset helpers
   const salesByDate = useMemo(() => {
     const grouped = {}
     filteredSales.forEach(s => {
@@ -134,17 +138,16 @@ export default function Dashboard() {
       labels,
       datasets: [
         {
-          label: 'Sales Trend',
+          label: 'Revenue Trend',
           data: labels.map(d => grouped[d]),
-          borderColor: '#a855f7',
-          backgroundColor: 'rgba(168, 85, 247, 0.1)',
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.12)',
           fill: true,
           tension: 0.4,
-          pointRadius: 5,
-          pointBackgroundColor: '#a855f7',
+          pointRadius: 4,
+          pointBackgroundColor: '#10b981',
           pointBorderColor: '#fff',
           pointBorderWidth: 2,
-          pointHoverRadius: 7,
         }
       ]
     }
@@ -159,13 +162,10 @@ export default function Dashboard() {
     return {
       labels: Object.keys(grouped),
       datasets: [{
-        label: 'Sales by Department',
+        label: 'Sales Revenue',
         data: Object.values(grouped),
-        backgroundColor: [
-          '#a855f7', '#9333ea', '#7e22ce', '#6b21a8', '#581c87'
-        ],
+        backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899'],
         borderRadius: 8,
-        borderSkipped: false,
       }]
     }
   }, [filteredSales])
@@ -179,11 +179,9 @@ export default function Dashboard() {
     return {
       labels: Object.keys(grouped),
       datasets: [{
-        label: 'Expenses by Category',
+        label: 'Expense Allocation',
         data: Object.values(grouped),
-        backgroundColor: [
-          '#3b82f6', '#1e40af', '#1e3a8a', '#0c4a6e', '#082f49'
-        ],
+        backgroundColor: ['#ef4444', '#f97316', '#eab308', '#06b6d4', '#6366f1'],
         borderRadius: 8,
       }]
     }
@@ -192,29 +190,24 @@ export default function Dashboard() {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: true,
-    animation: {
-      duration: 600,
-      easing: 'easeInOutQuart',
-    },
+    animation: { duration: 500 },
     plugins: {
       legend: {
         display: true,
         position: 'bottom',
         labels: {
-          padding: 20,
-          font: { size: 12, weight: 500 },
+          padding: 16,
+          font: { size: 11, weight: 600 },
           usePointStyle: true,
-          pointStyle: 'circle',
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
         padding: 12,
-        titleFont: { size: 14, weight: 'bold' },
-        bodyFont: { size: 13 },
-        borderColor: 'rgba(255, 255, 255, 0.3)',
+        titleFont: { size: 13, weight: 'bold' },
+        bodyFont: { size: 12 },
+        borderColor: 'rgba(255, 255, 255, 0.1)',
         borderWidth: 1,
-        displayColors: true,
         callbacks: {
           label: function(context) {
             let label = context.dataset.label || ''
@@ -240,96 +233,104 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center flex-wrap gap-4">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6 rounded-2xl text-white shadow-xl">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            {activeBranch ? `${activeBranch} Shop Overview` : 'IGH Business Management System'}
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Executive Dashboard</h1>
+            <span className="px-3 py-1 text-xs font-semibold bg-primary-gold/20 text-primary-gold border border-primary-gold/30 rounded-full">
+              {activeBranch} Branch
+            </span>
+          </div>
+          <p className="text-sm text-gray-300 mt-1">
+            Real-time shop metrics, financial performance analysis, and recent activity logs.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 bg-white/10 p-2 rounded-xl backdrop-blur-sm">
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
-            className="form-input w-44"
+            className="bg-transparent border-none text-xs sm:text-sm font-bold text-white focus:ring-0 cursor-pointer p-1"
           >
-            <option value="all">All Time</option>
-            <option value="daily">Last 24 Hours</option>
-            <option value="weekly">Last 7 Days</option>
-            <option value="monthly">Last Month</option>
-            <option value="yearly">Last Year</option>
+            <option value="all" className="text-gray-900">All Time Overview</option>
+            <option value="daily" className="text-gray-900">Last 24 Hours</option>
+            <option value="weekly" className="text-gray-900">Last 7 Days</option>
+            <option value="monthly" className="text-gray-900">Last Month</option>
+            <option value="yearly" className="text-gray-900">Last Year</option>
           </select>
-          <span
-            title={
-              'Periods:\nAll Time — show all entries ever recorded.\nLast 24 Hours — show entries from the previous 24 hours.\nLast 7 Days — show entries from the previous 7 days.\nLast Month — show entries from the previous month.\nLast Year — show entries from the previous year.'
-            }
-            className="mt-1"
-          >
-            <Info size={16} className="opacity-60" />
-          </span>
-        </div>
-        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1 w-full sm:w-auto">
-          Showing: <span className="font-medium">{periodLabel}</span>
-          {period !== 'all' && (
-            <span className="ml-1 text-xs opacity-70">
-              ({dateRange.start} — {dateRange.end})
-            </span>
-          )}
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Sales"
-          value={`KSh ${stats.totalSales.toLocaleString()}`}
-          icon={DollarSign}
-          color="blue"
-          count={filteredSales.length}
-          countLabel="transactions"
-        />
-        <StatCard
-          title="Total Expenses"
-          value={`KSh ${stats.totalExpenses.toLocaleString()}`}
-          icon={TrendingDown}
-          color="red"
-          count={filteredExpenses.length}
-          countLabel="entries"
-        />
-        <StatCard
-          title="Net Balance"
-          value={`KSh ${stats.netBalance.toLocaleString()}`}
-          icon={DollarSign}
-          color={stats.netBalance >= 0 ? 'green' : 'red'}
-          positive={stats.netBalance >= 0}
-        />
-        <StatCard
-          title="Profit Margin"
-          value={`${stats.profitMargin}%`}
-          icon={TrendingUp}
-          color="gold"
-          positive={Number(stats.profitMargin) >= 0}
-        />
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Sales Revenue</p>
+            <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">KSh {stats.totalSales.toLocaleString()}</h3>
+            <p className="text-xs text-gray-500 mt-1">{filteredSales.length} total transactions</p>
+          </div>
+          <div className="p-3 bg-green-50 dark:bg-green-900/30 text-green-600 rounded-xl">
+            <TrendingUp size={24} />
+          </div>
+        </div>
+
+        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Expenses</p>
+            <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mt-1">KSh {stats.totalExpenses.toLocaleString()}</h3>
+            <p className="text-xs text-gray-500 mt-1">{filteredExpenses.length} expense vouchers</p>
+          </div>
+          <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 rounded-xl">
+            <TrendingDown size={24} />
+          </div>
+        </div>
+
+        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Net Cash Balance</p>
+            <h3 className={`text-xl font-bold mt-1 ${stats.netBalance >= 0 ? 'text-gray-800 dark:text-white' : 'text-red-600'}`}>
+              KSh {stats.netBalance.toLocaleString()}
+            </h3>
+            <p className="text-xs text-gray-500 mt-1">{stats.netBalance >= 0 ? 'Positive Cashflow' : 'Deficit Cashflow'}</p>
+          </div>
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl">
+            <DollarSign size={24} />
+          </div>
+        </div>
+
+        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Net Profit Margin</p>
+            <h3 className="text-xl font-bold text-primary-gold mt-1">{stats.profitMargin}%</h3>
+            <p className="text-xs text-gray-500 mt-1">Revenue efficiency margin</p>
+          </div>
+          <div className="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 rounded-xl">
+            <Sparkles size={24} />
+          </div>
+        </div>
       </div>
 
-      {/* Empty State */}
+      {/* Fresh Clean Slate Banner for iGift when sales are reset */}
       {!hasData && (
-        <div className="card flex flex-col items-center justify-center py-16 text-center">
-          <PackageOpen size={64} className="text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
-            No data found for {activeBranch || 'this branch'}
-          </h3>
-          <p className="text-gray-500 dark:text-gray-500 max-w-md">
-            {period !== 'all'
-              ? `No sales or expenses recorded in the selected period (${periodLabel}). Try switching to "All Time" to see all records.`
-              : 'No sales or expenses have been recorded yet for this branch. Start by adding sales or expense entries.'}
-          </p>
+        <div className="card p-12 text-center bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 space-y-4">
+          <div className="w-16 h-16 bg-primary-gold/10 text-primary-gold rounded-full flex items-center justify-center mx-auto shadow-inner">
+            <Sparkles size={32} />
+          </div>
+          <div className="max-w-md mx-auto space-y-2">
+            <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+              {activeBranch === 'iGift' ? 'iGift Shop Ready For Fresh Sales Data' : 'No Dashboard Data Recorded'}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {activeBranch === 'iGift'
+                ? 'All previous invalid sales records have been cleared. As you feed fresh, verified sales entries into the Sales module, your dashboard charts will automatically populate in real-time.'
+                : 'There are no sales or expense records found for the selected period.'}
+            </p>
+          </div>
           {period !== 'all' && (
             <button
               onClick={() => setPeriod('all')}
-              className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+              className="btn-primary inline-flex items-center gap-2 py-2.5 px-5 text-xs font-bold shadow-lg"
             >
               View All Time Data
             </button>
@@ -337,87 +338,107 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Charts Grid — only render when there's data */}
+      {/* Charts Grid */}
       {hasData && (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="card">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Sales Trend</h3>
+            <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-4">Revenue Trend Over Time</h3>
               {filteredSales.length > 0
                 ? <Line data={salesByDate} options={chartOptions} />
-                : <EmptyChart label="No sales in this period" />}
+                : <EmptyChart label="No sales recorded in this period" />}
             </div>
-            <div className="card">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Sales by Department</h3>
+            <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-4">Sales Breakdown by Channel</h3>
               {filteredSales.length > 0
                 ? <Bar data={departmentSales} options={chartOptions} />
-                : <EmptyChart label="No sales in this period" />}
+                : <EmptyChart label="No sales recorded in this period" />}
             </div>
-            <div className="card">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Department Breakdown</h3>
+            <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-4">Department Distribution</h3>
               {filteredSales.length > 0
                 ? <Pie data={departmentSales} options={chartOptions} />
-                : <EmptyChart label="No sales in this period" />}
+                : <EmptyChart label="No sales recorded in this period" />}
             </div>
-            <div className="card">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Expense Categories</h3>
+            <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-4">Expense Categories Breakdown</h3>
               {filteredExpenses.length > 0
                 ? <Doughnut data={expenseCategories} options={chartOptions} />
-                : <EmptyChart label="No expenses in this period" />}
+                : <EmptyChart label="No expenses recorded in this period" />}
             </div>
           </div>
 
-          {/* Recent Activity */}
+          {/* Activity Feed & Quick Module Overview */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 card">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Recent Transactions</h3>
-              <div className="space-y-3">
+            <div className="lg:col-span-2 card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-4">Recent Financial Transactions</h3>
+              <div className="space-y-2.5">
                 {[...filteredSales, ...filteredExpenses]
                   .sort((a, b) => (toDateStr(b.date) > toDateStr(a.date) ? 1 : -1))
-                  .slice(0, 8)
+                  .slice(0, 7)
                   .map((item, idx) => (
-                    <div key={`${item.id || idx}-${item.date}`} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div key={`${item.id || idx}-${item.date}`} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-750 rounded-xl hover:bg-gray-100 transition-colors">
                       <div>
-                        <p className="font-medium text-gray-800 dark:text-white">
-                          {item.dept || item.cat || 'Entry'}
+                        <p className="font-bold text-sm text-gray-800 dark:text-white">
+                          {item.desc || item.dept || item.cat || 'Transaction'}
                         </p>
-                        <p className="text-sm text-gray-500">{toDateStr(item.date)}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{toDateStr(item.date)} • {item.dept ? `Sale (${item.dept})` : `Expense (${item.cat})`}</p>
                       </div>
-                      <div className={`font-semibold ${item.dept ? 'text-green-600' : 'text-red-600'}`}>
+                      <div className={`font-extrabold text-sm ${item.dept ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {item.dept ? '+' : '-'}KSh {(Number(item.amount) || 0).toLocaleString()}
                       </div>
                     </div>
                   ))}
-                {filteredSales.length === 0 && filteredExpenses.length === 0 && (
-                  <p className="text-gray-400 text-sm text-center py-4">No recent transactions</p>
-                )}
               </div>
             </div>
 
-            <div className="card">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Quick Stats</h3>
-              <div className="space-y-4">
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Clients</p>
-                  <p className="text-2xl font-bold text-blue-600">{(data.clients || []).length}</p>
+            <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-4">Module Highlights</h3>
+              <div className="space-y-3">
+                <div className="p-3.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Users size={20} className="text-blue-600" />
+                    <div>
+                      <p className="text-xs text-gray-500 font-semibold">Registered Clients</p>
+                      <p className="text-lg font-bold text-blue-600">{(data.clients || []).length}</p>
+                    </div>
+                  </div>
                 </div>
+
                 {activeBranch !== 'iGift' && (
-                  <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Active Projects</p>
-                    <p className="text-2xl font-bold text-purple-600">
-                      {(Array.isArray(data.designs) ? data.designs : []).filter(d => d.status === 'In Progress').length}
-                    </p>
+                  <div className="p-3.5 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Briefcase size={20} className="text-purple-600" />
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold">Active Projects</p>
+                        <p className="text-lg font-bold text-purple-600">
+                          {(Array.isArray(data.designs) ? data.designs : []).filter(d => d.status === 'In Progress').length}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
-                <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Suppliers</p>
-                  <p className="text-2xl font-bold text-orange-600">{(data.suppliers || []).length}</p>
+
+                <div className="p-3.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Truck size={20} className="text-amber-600" />
+                    <div>
+                      <p className="text-xs text-gray-500 font-semibold">Active Suppliers</p>
+                      <p className="text-lg font-bold text-amber-600">{(data.suppliers || []).length}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Low Stock Items</p>
-                  <p className="text-2xl font-bold text-red-600">
-                    {(Array.isArray(data.inventory) ? data.inventory : []).filter(i => i.quantity <= i.reorderLevel).length}
-                  </p>
+
+                <div className="p-3.5 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Boxes size={20} className="text-red-600" />
+                    <div>
+                      <p className="text-xs text-gray-500 font-semibold">Low Stock Inventory Items</p>
+                      <p className="text-lg font-bold text-red-600">
+                        {(Array.isArray(data.inventory) ? data.inventory : []).filter(i => (Number(i.quantity) || 0) <= (Number(i.reorderLevel) || 0)).length}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -430,40 +451,8 @@ export default function Dashboard() {
 
 function EmptyChart({ label }) {
   return (
-    <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
+    <div className="flex items-center justify-center h-40 text-gray-400 text-xs font-semibold italic">
       {label}
-    </div>
-  )
-}
-
-function StatCard({ title, value, icon: Icon, color, count, countLabel, positive }) {
-  const colorClasses = {
-    blue: 'bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400',
-    red: 'bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-400',
-    green: 'bg-green-50 dark:bg-green-900/40 text-green-600 dark:text-green-400',
-    gold: 'bg-yellow-50 dark:bg-yellow-900/40 text-yellow-600 dark:text-yellow-400',
-  }
-
-  return (
-    <div className={`card ${colorClasses[color] || colorClasses.blue}`}>
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{value}</p>
-        </div>
-        <Icon size={32} className="opacity-50" />
-      </div>
-      <div className="mt-4">
-        {count !== undefined ? (
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            {count} {countLabel}
-          </span>
-        ) : positive !== undefined ? (
-          positive
-            ? <span className="text-xs font-semibold text-green-600">↑ Positive balance</span>
-            : <span className="text-xs font-semibold text-red-600">↓ Negative balance</span>
-        ) : null}
-      </div>
     </div>
   )
 }

@@ -1,11 +1,28 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useData } from '../context/DataContext'
 import { useAuth } from '../context/AuthContext'
 import Modal from '../components/Modal'
-import { Plus, Edit2, Trash2, AlertTriangle, AlertCircle, CheckCircle, ArrowUpDown, FileText } from 'lucide-react'
+import { 
+  Plus, 
+  Edit2, 
+  Trash2, 
+  AlertTriangle, 
+  AlertCircle, 
+  CheckCircle, 
+  ArrowUpDown, 
+  FileText,
+  Search,
+  Package,
+  Boxes,
+  DollarSign,
+  TrendingDown,
+  RotateCcw,
+  Sparkles,
+  Tag
+} from 'lucide-react'
 
 export default function Inventory() {
-  const { data, addInventoryItem, updateInventoryItem, deleteInventoryItem, getInventoryStatus, addStockTransaction, addInventoryCategory } = useData()
+  const { data, addInventoryItem, updateInventoryItem, deleteInventoryItem, getInventoryStatus, addStockTransaction, addInventoryCategory, selectedBranch } = useData()
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [editId, setEditId] = useState(null)
@@ -18,8 +35,11 @@ export default function Inventory() {
   const [isMovementOpen, setIsMovementOpen] = useState(false)
   const [adjustItem, setAdjustItem] = useState(null)
   const [movementItem, setMovementItem] = useState(null)
+  
+  const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
+
   const [adjustData, setAdjustData] = useState({
-    type: 'RESTOCK', // RESTOCK, VARIANCE, CORRECTION
+    type: 'RESTOCK',
     quantity: 0,
     reason: 'Restock',
     notes: '',
@@ -36,7 +56,7 @@ export default function Inventory() {
     supplier: ''
   })
 
-  // Dynamic categories from Datacontext
+  // Dynamic categories from DataContext
   const categoriesList = (data.inventoryCategories || []).map(c => c.name)
 
   const handleOpenModal = (item = null) => {
@@ -99,7 +119,7 @@ export default function Inventory() {
       
       setIsAdjustOpen(false)
     } catch (err) {
-      // Error is handled in context
+      console.error('Error adjusting stock:', err)
     }
   }
 
@@ -120,159 +140,255 @@ export default function Inventory() {
 
   const handleAddCategory = async (e) => {
     e.preventDefault()
-    if(!newCategoryName.trim()) return
+    if (!newCategoryName.trim()) return
     try {
       await addInventoryCategory(newCategoryName.trim())
       setNewCategoryName('')
       setIsCategoryModalOpen(false)
-      // The current form data category might need updating to new if they are adding one
       if (isOpen) setFormData(prev => ({ ...prev, category: newCategoryName.trim() }))
     } catch (err) {
-      if (err.code !== '23505') { // 23505 is usually unqiue violation
-         // just fail silently or specific error handled in context already 
-      } else {
+      if (err.code === '23505') {
         alert("Category already exists!")
       }
     }
   }
 
-  const filteredItems = data.inventory.filter(item => {
-    const query = search.toLowerCase()
-    const matchSearch = (item.name || '').toLowerCase().includes(query) ||
-                       (item.sku || '').toLowerCase().includes(query) ||
-                       (item.category || '').toLowerCase().includes(query)
-    const matchCat = !filterCat || item.category === filterCat
-    const itemStatus = getInventoryStatus(item.id)
-    const matchStatus = !filterStatus || itemStatus === filterStatus
-    return matchSearch && matchCat && matchStatus
-  })
+  const filteredItems = useMemo(() => {
+    return (data.inventory || []).filter(item => {
+      const query = search.toLowerCase()
+      const matchSearch = !query ||
+        (item.name || '').toLowerCase().includes(query) ||
+        (item.sku || '').toLowerCase().includes(query) ||
+        (item.category || '').toLowerCase().includes(query)
+      const matchCat = !filterCat || item.category === filterCat
+      const itemStatus = getInventoryStatus(item.id)
+      const matchStatus = !filterStatus || itemStatus === filterStatus
+      return matchSearch && matchCat && matchStatus
+    })
+  }, [data.inventory, search, filterCat, filterStatus, getInventoryStatus])
 
   const getSupplierName = (id) => {
-    return data.suppliers.find(s => Number(s.id) === Number(id))?.name || 'Not assigned'
+    return (data.suppliers || []).find(s => Number(s.id) === Number(id))?.name || 'Not assigned'
   }
 
-  const getStatusIcon = (id) => {
+  const getStatusBadge = (id) => {
     const status = getInventoryStatus(id)
-    if (status === 'In Stock') return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-100' }
-    if (status === 'Low Stock') return { icon: AlertCircle, color: 'text-yellow-600', bg: 'bg-yellow-100' }
-    return { icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-100' }
+    if (status === 'In Stock') {
+      return { label: 'In Stock', icon: CheckCircle, cls: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 border-green-200' }
+    }
+    if (status === 'Low Stock') {
+      return { label: 'Low Stock', icon: AlertCircle, cls: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200' }
+    }
+    return { label: 'Out of Stock', icon: AlertTriangle, cls: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 border-red-200' }
   }
 
-  const stats = {
-    inStock: data.inventory.filter(i => getInventoryStatus(i.id) === 'In Stock').length,
-    lowStock: data.inventory.filter(i => getInventoryStatus(i.id) === 'Low Stock').length,
-    outOfStock: data.inventory.filter(i => getInventoryStatus(i.id) === 'Out of Stock').length,
+  // Summary Metrics
+  const metrics = useMemo(() => {
+    const totalValuation = (data.inventory || []).reduce((sum, item) => sum + (Number(item.quantity || 0) * Number(item.unitPrice || 0)), 0)
+    const inStock = (data.inventory || []).filter(i => getInventoryStatus(i.id) === 'In Stock').length
+    const lowStock = (data.inventory || []).filter(i => getInventoryStatus(i.id) === 'Low Stock').length
+    const outOfStock = (data.inventory || []).filter(i => getInventoryStatus(i.id) === 'Out of Stock').length
+
+    return {
+      totalValuation,
+      inStock,
+      lowStock,
+      outOfStock,
+      totalCount: (data.inventory || []).length
+    }
+  }, [data.inventory, getInventoryStatus])
+
+  const resetFilters = () => {
+    setSearch('')
+    setFilterCat('')
+    setFilterStatus('')
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Inventory Management</h1>
-        <div className="flex gap-3">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6 rounded-2xl text-white shadow-xl">
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Inventory Management</h1>
+            <span className="px-3 py-1 text-xs font-semibold bg-primary-gold/20 text-primary-gold border border-primary-gold/30 rounded-full">
+              {activeBranch} Branch
+            </span>
+          </div>
+          <p className="text-sm text-gray-300 mt-1">
+            Monitor stock levels, manage reorder thresholds, and track stock movements.
+          </p>
+        </div>
+        <div className="flex gap-3 flex-wrap">
           {(user?.branch === 'iGift' || user?.role === 'admin') && (
-            <button onClick={() => setIsCategoryModalOpen(true)} className="btn-secondary flex items-center gap-2">
-              <Plus size={20} />
+            <button onClick={() => setIsCategoryModalOpen(true)} className="btn-secondary flex items-center gap-2 py-3 px-4 text-sm font-bold shadow">
+              <Plus size={18} />
               Add Category
             </button>
           )}
-          <button onClick={() => handleOpenModal()} className="btn-primary flex items-center gap-2">
-            <Plus size={20} />
+          <button onClick={() => handleOpenModal()} className="btn-primary flex items-center gap-2 py-3 px-5 text-sm font-bold shadow-lg hover:shadow-primary-gold/20 transition-all">
+            <Plus size={18} />
             Add Item
           </button>
         </div>
       </div>
 
-      {/* Status Summary */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="card bg-green-50 dark:bg-green-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">In Stock</p>
-          <p className="text-2xl font-bold text-green-600">{stats.inStock}</p>
+      {/* Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Stock Valuation</p>
+            <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-1">KSh {metrics.totalValuation.toLocaleString()}</h3>
+            <p className="text-xs text-gray-500 mt-1">{metrics.totalCount} active items</p>
+          </div>
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl">
+            <Boxes size={24} />
+          </div>
         </div>
-        <div className="card bg-yellow-50 dark:bg-yellow-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Low Stock</p>
-          <p className="text-2xl font-bold text-yellow-600">{stats.lowStock}</p>
+
+        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">In Stock SKUs</p>
+            <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">{metrics.inStock}</h3>
+            <p className="text-xs text-gray-500 mt-1">Sufficient inventory levels</p>
+          </div>
+          <div className="p-3 bg-green-50 dark:bg-green-900/30 text-green-600 rounded-xl">
+            <CheckCircle size={24} />
+          </div>
         </div>
-        <div className="card bg-red-50 dark:bg-red-900/20">
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Out of Stock</p>
-          <p className="text-2xl font-bold text-red-600">{stats.outOfStock}</p>
+
+        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Low Stock Alerts</p>
+            <h3 className="text-xl font-bold text-amber-600 dark:text-amber-400 mt-1">{metrics.lowStock}</h3>
+            <p className="text-xs text-gray-500 mt-1">At or below reorder level</p>
+          </div>
+          <div className="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 rounded-xl">
+            <AlertCircle size={24} />
+          </div>
+        </div>
+
+        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Out of Stock</p>
+            <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mt-1">{metrics.outOfStock}</h3>
+            <p className="text-xs text-gray-500 mt-1">Needs urgent restock</p>
+          </div>
+          <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 rounded-xl">
+            <AlertTriangle size={24} />
+          </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="card grid grid-cols-1 md:grid-cols-4 gap-4">
-        <input
-          type="text"
-          placeholder="Search by item name or SKU..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="form-input"
-        />
-        <select value={filterCat} onChange={(e) => setFilterCat(e.target.value)} className="form-input">
-          <option value="">All Categories</option>
-          {categoriesList.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="form-input">
-          <option value="">All Statuses</option>
-          <option value="In Stock">In Stock</option>
-          <option value="Low Stock">Low Stock</option>
-          <option value="Out of Stock">Out of Stock</option>
-        </select>
-        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Total Items:</span>
-          <span className="font-bold text-blue-600">{filteredItems.length}</span>
+      {/* Filter Toolbar */}
+      <div className="card p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 text-gray-400" size={16} />
+            <input
+              type="text"
+              placeholder="Search item name or SKU..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="form-input pl-9"
+            />
+          </div>
+          <select value={filterCat} onChange={(e) => setFilterCat(e.target.value)} className="form-input">
+            <option value="">All Categories</option>
+            {categoriesList.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="form-input">
+            <option value="">All Stock Statuses</option>
+            <option value="In Stock">In Stock</option>
+            <option value="Low Stock">Low Stock</option>
+            <option value="Out of Stock">Out of Stock</option>
+          </select>
+          <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-750 rounded-lg">
+            <span className="text-xs font-semibold text-gray-500 uppercase">Filtered Items:</span>
+            <span className="font-extrabold text-primary-gold">{filteredItems.length}</span>
+          </div>
         </div>
+
+        {(search || filterCat || filterStatus) && (
+          <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-500">
+            <span>Showing filtered results</span>
+            <button onClick={resetFilters} className="text-primary-gold hover:underline flex items-center gap-1 font-semibold">
+              <RotateCcw size={12} />
+              Reset Filters
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Table */}
-      <div className="card overflow-x-auto">
-        <table className="w-full">
+      {/* Inventory Table */}
+      <div className="card overflow-x-auto p-0 rounded-xl border border-gray-200 dark:border-gray-700">
+        <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700">
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Item Name</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">SKU</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Category</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Quantity</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Reorder Level</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Unit Price</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Supplier</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
+            <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-800/80">
+              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Item Details</th>
+              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Category</th>
+              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Quantity</th>
+              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Reorder Level</th>
+              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Unit Price</th>
+              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Stock Valuation</th>
+              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {filteredItems.map((item, idx) => {
-              const statusInfo = getStatusIcon(item.id)
-              const StatusIcon = statusInfo.icon
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            {filteredItems.map((item) => {
+              const badge = getStatusBadge(item.id)
+              const StatusIcon = badge.icon
+              const itemValue = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)
+
               return (
-                <tr key={item.id} className={`border-b border-gray-200 dark:border-gray-700 ${idx % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : ''} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}>
-                  <td className="px-6 py-3 text-sm font-medium">{item.name}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600 dark:text-gray-400">{item.sku}</td>
-                  <td className="px-6 py-3 text-sm">{item.category}</td>
-                  <td className="px-6 py-3 text-sm font-semibold">{item.quantity}</td>
-                  <td className="px-6 py-3 text-sm text-gray-600 dark:text-gray-400">{item.reorderLevel}</td>
-                  <td className="px-6 py-3 text-sm">KSh {item.unitPrice?.toLocaleString() || '0'}</td>
-                  <td className="px-6 py-3 text-sm">{getSupplierName(item.supplier)}</td>
-                  <td className="px-6 py-3 text-sm">
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.bg} ${statusInfo.color} w-fit`}>
-                      <StatusIcon size={14} />
-                      {getInventoryStatus(item.id)}
-                    </div>
+                <tr key={item.id} className="hover:bg-gray-50/70 dark:hover:bg-gray-700/50 transition-colors">
+                  <td className="px-6 py-4 text-sm">
+                    <div className="font-bold text-gray-800 dark:text-white">{item.name}</div>
+                    {item.sku && <div className="text-xs font-mono text-gray-400">SKU: {item.sku}</div>}
+                    <div className="text-xs text-gray-400 mt-0.5">Supplier: {getSupplierName(item.supplier)}</div>
                   </td>
-                  <td className="px-6 py-3 text-sm flex gap-2">
-                    <button onClick={() => handleOpenModal(item)} className="btn-secondary p-2" title="Edit Item">
-                      <Edit2 size={16} />
-                    </button>
-                    <button onClick={() => handleOpenAdjust(item)} className="btn-secondary p-2 text-blue-600 bg-blue-50 hover:bg-blue-100" title="Adjust Stock">
-                      <ArrowUpDown size={16} />
-                    </button>
-                    <button onClick={() => handleOpenMovement(item)} className="btn-secondary p-2 text-purple-600 bg-purple-50 hover:bg-purple-100" title="Stock Movement">
-                      <FileText size={16} />
-                    </button>
-                    {user?.role === 'admin' && (
-                      <button onClick={() => deleteInventoryItem(item.id)} className="btn-danger p-2">
-                        <Trash2 size={16} />
+                  <td className="px-6 py-4 text-sm">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                      <Tag size={12} className="text-gray-400" />
+                      {item.category || 'General'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-extrabold text-gray-800 dark:text-gray-200">
+                    {item.quantity} units
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    {item.reorderLevel ? `${item.reorderLevel} units` : '-'}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-semibold text-gray-800 dark:text-gray-200">
+                    KSh {Number(item.unitPrice || 0).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-bold text-blue-600 dark:text-blue-400">
+                    KSh {itemValue.toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${badge.cls}`}>
+                      <StatusIcon size={13} />
+                      {badge.label}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
+                    <div className="flex justify-end gap-1.5">
+                      <button onClick={() => handleOpenModal(item)} title="Edit Item" className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
+                        <Edit2 size={16} />
                       </button>
-                    )}
+                      <button onClick={() => handleOpenAdjust(item)} title="Adjust Stock" className="p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors">
+                        <ArrowUpDown size={16} />
+                      </button>
+                      <button onClick={() => handleOpenMovement(item)} title="Stock Movement Log" className="p-1.5 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors">
+                        <FileText size={16} />
+                      </button>
+                      {user?.role === 'admin' && (
+                        <button onClick={() => deleteInventoryItem(item.id)} title="Delete Item" className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors">
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )
@@ -280,38 +396,52 @@ export default function Inventory() {
           </tbody>
         </table>
         {filteredItems.length === 0 && (
-          <div className="p-8 text-center text-gray-600 dark:text-gray-400">No inventory items found</div>
+          <div className="p-10 text-center bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 space-y-4">
+            <div className="w-14 h-14 bg-primary-gold/10 text-primary-gold rounded-full flex items-center justify-center mx-auto">
+              <Sparkles size={28} />
+            </div>
+            <div className="max-w-md mx-auto space-y-1">
+              <h3 className="text-lg font-bold text-gray-800 dark:text-white">No Inventory Items Found</h3>
+              <p className="text-xs text-gray-500">There are no inventory items matching your current filters.</p>
+            </div>
+            <button onClick={() => handleOpenModal()} className="btn-primary inline-flex items-center gap-2 py-2.5 px-5 text-xs font-bold shadow-lg">
+              <Plus size={16} />
+              Add Inventory Item
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Modal */}
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editId ? 'Edit Item' : 'Add New Item'}>
+      {/* Add / Edit Item Modal */}
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editId ? 'Edit Inventory Item' : 'Add Inventory Item'}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Item Name*</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Item Name *</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="form-input"
+                placeholder="e.g. A4 Glossy Photo Paper"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SKU/Code</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">SKU / Code</label>
               <input
                 type="text"
                 value={formData.sku}
                 onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                 className="form-input"
-                placeholder="Stock keeping unit"
+                placeholder="Stock keeping unit..."
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -325,110 +455,117 @@ export default function Inventory() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supplier</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Supplier</label>
               <select
                 value={formData.supplier}
                 onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
                 className="form-input"
               >
                 <option value="">Not assigned</option>
-                {data.suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                {(data.suppliers || []).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quantity*</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Quantity *</label>
               <input
                 type="number"
                 value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || '' })}
                 className="form-input"
+                placeholder="e.g. 50"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reorder Level</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Reorder Level</label>
               <input
                 type="number"
                 value={formData.reorderLevel}
-                onChange={(e) => setFormData({ ...formData, reorderLevel: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, reorderLevel: parseInt(e.target.value) || '' })}
                 className="form-input"
+                placeholder="e.g. 10"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Unit Price (KSh)*</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Unit Price (KSh) *</label>
               <input
                 type="number"
                 value={formData.unitPrice}
-                onChange={(e) => setFormData({ ...formData, unitPrice: parseFloat(e.target.value) })}
-                className="form-input"
+                onChange={(e) => setFormData({ ...formData, unitPrice: parseFloat(e.target.value) || '' })}
+                className="form-input font-bold text-green-600"
+                placeholder="e.g. 1200"
                 required
               />
             </div>
           </div>
-          <div className="flex gap-3 pt-4">
-            <button type="submit" className="btn-success flex-1">Save Item</button>
-            <button type="button" onClick={() => setIsOpen(false)} className="btn-secondary flex-1">Cancel</button>
+
+          <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <button type="submit" className="btn-success flex-1 py-3 font-bold uppercase tracking-wider shadow-md">Save Item</button>
+            <button type="button" onClick={() => setIsOpen(false)} className="btn-secondary flex-1 py-3 font-bold uppercase tracking-wider">Cancel</button>
           </div>
         </form>
       </Modal>
 
       {/* Stock Adjustment Modal */}
-      <Modal isOpen={isAdjustOpen} onClose={() => setIsAdjustOpen(false)} title={`Adjust Stock: ${adjustItem?.name || ''}`}>
+      <Modal isOpen={isAdjustOpen} onClose={() => setIsAdjustOpen(false)} title={`Stock Adjustment: ${adjustItem?.name || ''}`}>
         <form onSubmit={handleAdjustSubmit} className="space-y-4">
-          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg mb-4">
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Current Stock</span>
-                <span className="text-xl font-bold">{adjustItem?.quantity || 0}</span>
+                <span className="text-xs font-bold text-gray-500 uppercase">Current Inventory Level</span>
+                <span className="text-xl font-extrabold text-blue-600">{adjustItem?.quantity || 0} units</span>
              </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Action Type</label>
-            <div className="grid grid-cols-2 gap-2">
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Adjustment Direction</label>
+            <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                className={`p-2 rounded-lg border text-sm font-medium transition-colors ${adjustData.type === 'RESTOCK' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                className={`py-2.5 px-4 rounded-xl border text-xs font-bold transition-all ${adjustData.type === 'RESTOCK' ? 'bg-green-500 text-white border-green-500 shadow-md' : 'bg-white dark:bg-gray-800 border-gray-200 text-gray-700 dark:text-gray-300 hover:bg-gray-50'}`}
                 onClick={() => setAdjustData({ ...adjustData, type: 'RESTOCK', reason: 'Restock' })}
               >
-                Add Stock (+)
+                + Add Stock (Restock)
               </button>
               <button
                 type="button"
-                className={`p-2 rounded-lg border text-sm font-medium transition-colors ${adjustData.type === 'VARIANCE' ? 'bg-red-50 border-red-500 text-red-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                className={`py-2.5 px-4 rounded-xl border text-xs font-bold transition-all ${adjustData.type === 'VARIANCE' ? 'bg-red-500 text-white border-red-500 shadow-md' : 'bg-white dark:bg-gray-800 border-gray-200 text-gray-700 dark:text-gray-300 hover:bg-gray-50'}`}
                 onClick={() => setAdjustData({ ...adjustData, type: 'VARIANCE', reason: 'Damaged' })}
               >
-                Remove Stock (-)
+                - Remove Stock (Variance)
               </button>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Transaction Date*</label>
-            <input
-              type="date"
-              value={adjustData.date}
-              onChange={(e) => setAdjustData({ ...adjustData, date: e.target.value })}
-              className="form-input"
-              required
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Date *</label>
+              <input
+                type="date"
+                value={adjustData.date}
+                onChange={(e) => setAdjustData({ ...adjustData, date: e.target.value })}
+                className="form-input"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Quantity *</label>
+              <input
+                type="number"
+                min="1"
+                value={adjustData.quantity}
+                onChange={(e) => setAdjustData({ ...adjustData, quantity: parseInt(e.target.value) || 0 })}
+                className="form-input font-bold"
+                required
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quantity to {adjustData.type === 'RESTOCK' ? 'Add' : 'Remove'}*</label>
-            <input
-              type="number"
-              min="1"
-              value={adjustData.quantity}
-              onChange={(e) => setAdjustData({ ...adjustData, quantity: parseInt(e.target.value) })}
-              className="form-input"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Reason</label>
             <select
               value={adjustData.reason}
               onChange={(e) => setAdjustData({ ...adjustData, reason: e.target.value })}
@@ -438,7 +575,7 @@ export default function Inventory() {
                 <>
                   <option value="Restock">New Purchase / Restock</option>
                   <option value="Return">Customer Return</option>
-                  <option value="Correction">Inventory Correction (+) </option>
+                  <option value="Correction">Inventory Correction (+)</option>
                   <option value="Other">Other</option>
                 </>
               ) : (
@@ -456,34 +593,34 @@ export default function Inventory() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notes</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Notes</label>
             <textarea
               value={adjustData.notes}
               onChange={(e) => setAdjustData({ ...adjustData, notes: e.target.value })}
               className="form-input"
-              placeholder="Optional details..."
+              placeholder="Optional transaction details..."
               rows={2}
             />
           </div>
 
-          <div className="flex gap-3 pt-4">
-            <button type="submit" className="btn-success flex-1">Confirm Adjustment</button>
-            <button type="button" onClick={() => setIsAdjustOpen(false)} className="btn-secondary flex-1">Cancel</button>
+          <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <button type="submit" className="btn-success flex-1 py-3 font-bold uppercase tracking-wider shadow-md">Confirm Adjustment</button>
+            <button type="button" onClick={() => setIsAdjustOpen(false)} className="btn-secondary flex-1 py-3 font-bold uppercase tracking-wider">Cancel</button>
           </div>
         </form>
       </Modal>
 
       {/* Stock Movement Modal */}
-      <Modal isOpen={isMovementOpen} onClose={() => setIsMovementOpen(false)} title={`Stock Movement: ${movementItem?.name || ''}`}>
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-          {data.stockTransactions
-            .filter(t => t.item_id === movementItem?.id)
+      <Modal isOpen={isMovementOpen} onClose={() => setIsMovementOpen(false)} title={`Stock Movement Log: ${movementItem?.name || ''}`}>
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+          {(data.stockTransactions || [])
+            .filter(t => Number(t.item_id) === Number(movementItem?.id))
             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
             .map(trans => (
-              <div key={trans.id} className="p-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
+              <div key={trans.id} className="p-3.5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
                 <div className="flex justify-between items-start mb-1">
                   <div>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
                       trans.transaction_type === 'RESTOCK' ? 'bg-green-100 text-green-700' :
                       trans.transaction_type === 'SALE' ? 'bg-blue-100 text-blue-700' :
                       trans.transaction_type === 'VARIANCE' ? 'bg-red-100 text-red-700' :
@@ -491,43 +628,43 @@ export default function Inventory() {
                     }`}>
                       {trans.transaction_type}
                     </span>
-                    <span className="text-xs text-gray-500 ml-2">{new Date(trans.created_at).toLocaleString()}</span>
+                    <span className="text-xs text-gray-400 ml-2">{new Date(trans.created_at).toLocaleString()}</span>
                   </div>
-                  <span className={`font-bold ${trans.quantity_change > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {trans.quantity_change > 0 ? '+' : ''}{trans.quantity_change}
+                  <span className={`font-extrabold text-sm ${trans.quantity_change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {trans.quantity_change > 0 ? '+' : ''}{trans.quantity_change} units
                   </span>
                 </div>
-                <p className="text-sm text-gray-700 dark:text-gray-300">{trans.reason}</p>
-                {trans.notes && <p className="text-xs text-gray-500 italic mt-1">{trans.notes}</p>}
-                <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-tighter">By: {trans.created_by}</p>
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mt-1">{trans.reason}</p>
+                {trans.notes && <p className="text-xs text-gray-500 italic mt-0.5">{trans.notes}</p>}
+                <p className="text-[10px] text-gray-400 mt-1 uppercase">Recorded By: {trans.created_by}</p>
               </div>
             ))}
-          {data.stockTransactions.filter(t => t.item_id === movementItem?.id).length === 0 && (
-            <p className="text-center text-gray-500 py-4">No movement history recorded yet.</p>
+          {(data.stockTransactions || []).filter(t => Number(t.item_id) === Number(movementItem?.id)).length === 0 && (
+            <p className="text-center text-xs text-gray-500 py-6">No stock movement logs recorded yet.</p>
           )}
         </div>
-        <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
-           <button onClick={() => setIsMovementOpen(false)} className="btn-secondary w-full">Close</button>
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+           <button onClick={() => setIsMovementOpen(false)} className="btn-secondary w-full py-2.5 text-xs font-bold uppercase">Close Log</button>
         </div>
       </Modal>
 
       {/* Add Category Modal */}
-      <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title="Add New Category">
+      <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title="Add Inventory Category">
          <form onSubmit={handleAddCategory} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category Name</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category Name *</label>
               <input
                 type="text"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 className="form-input"
                 required
-                placeholder="e.g. Branding Materials"
+                placeholder="e.g. Branding Materials, Stationeries..."
               />
             </div>
-            <div className="flex gap-3 pt-4">
-              <button type="submit" className="btn-success flex-1">Save Category</button>
-              <button type="button" onClick={() => setIsCategoryModalOpen(false)} className="btn-secondary flex-1">Cancel</button>
+            <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+              <button type="submit" className="btn-success flex-1 py-2.5 font-bold uppercase tracking-wider">Save Category</button>
+              <button type="button" onClick={() => setIsCategoryModalOpen(false)} className="btn-secondary flex-1 py-2.5 font-bold uppercase tracking-wider">Cancel</button>
             </div>
          </form>
       </Modal>
