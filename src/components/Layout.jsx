@@ -9,16 +9,19 @@ export default function Layout({ children }) {
   const { compactMode } = useAuth()
 
   return (
-    <div className={`flex h-screen bg-gray-50 dark:bg-gray-950 ${compactMode ? 'compact' : ''}`}>
-      {/* Sidebar - Takes space in flex, doesn't overlap */}
-      <div className={`${sidebarOpen ? 'w-56' : 'w-20'} transition-all duration-300 flex-shrink-0`}>
+    <div className={`flex h-screen overflow-hidden bg-slate-100 dark:bg-[#060d1a] ${compactMode ? 'compact' : ''}`}>
+      {/* Sidebar */}
+      <div
+        className={`${sidebarOpen ? 'w-56' : 'w-[72px]'} transition-all duration-300 flex-shrink-0`}
+        style={{ minWidth: sidebarOpen ? '14rem' : '72px' }}
+      >
         <Sidebar open={sidebarOpen} />
       </div>
-      
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Topbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
-        <main className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-950 p-4 md:p-6">
+        <main className="flex-1 overflow-auto p-4 md:p-6 animate-fade-in">
           <SessionManager />
           {children}
         </main>

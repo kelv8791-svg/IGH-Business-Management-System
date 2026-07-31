@@ -232,26 +232,36 @@ export default function Dashboard() {
   }[period]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6 rounded-2xl text-white shadow-xl">
+      <div
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl text-white"
+        style={{ background: 'linear-gradient(135deg, #0d1627 0%, #1a0a2e 50%, #0f172a 100%)', boxShadow: '0 4px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.06)' }}
+      >
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Executive Dashboard</h1>
-            <span className="px-3 py-1 text-xs font-semibold bg-primary-gold/20 text-primary-gold border border-primary-gold/30 rounded-full">
-              {activeBranch} Branch
+            <span
+              className="px-3 py-1 text-xs font-bold rounded-full"
+              style={{ background: 'rgba(245,158,11,0.15)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)' }}
+            >
+              {activeBranch === 'All' ? 'All Branches' : `${activeBranch} Branch`}
             </span>
           </div>
-          <p className="text-sm text-gray-300 mt-1">
+          <p className="text-sm text-slate-400 mt-1.5">
             Real-time shop metrics, financial performance analysis, and recent activity logs.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+        <div
+          className="flex items-center gap-2 px-3 py-2 rounded-xl"
+          style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+        >
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
-            className="bg-transparent border-none text-xs sm:text-sm font-bold text-white focus:ring-0 cursor-pointer p-1"
+            className="bg-transparent border-none text-xs sm:text-sm font-bold text-white focus:ring-0 cursor-pointer p-0"
+            style={{ backgroundImage: 'none' }}
           >
             <option value="all" className="text-gray-900">All Time Overview</option>
             <option value="daily" className="text-gray-900">Last 24 Hours</option>
@@ -264,49 +274,55 @@ export default function Dashboard() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="kpi-card">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Sales Revenue</p>
-            <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">KSh {stats.totalSales.toLocaleString()}</h3>
-            <p className="text-xs text-gray-500 mt-1">{filteredSales.length} total transactions</p>
+            <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total Revenue</p>
+            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5">
+              KSh {stats.totalSales.toLocaleString()}
+            </h3>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{filteredSales.length} transactions</p>
           </div>
-          <div className="p-3 bg-green-50 dark:bg-green-900/30 text-green-600 rounded-xl">
-            <TrendingUp size={24} />
+          <div className="p-3.5 bg-emerald-50 dark:bg-emerald-900/25 text-emerald-600 dark:text-emerald-400 rounded-2xl flex-shrink-0">
+            <TrendingUp size={26} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="kpi-card">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Expenses</p>
-            <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mt-1">KSh {stats.totalExpenses.toLocaleString()}</h3>
-            <p className="text-xs text-gray-500 mt-1">{filteredExpenses.length} expense vouchers</p>
+            <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total Expenses</p>
+            <h3 className="text-2xl font-extrabold text-rose-600 dark:text-rose-400 mt-1.5">
+              KSh {stats.totalExpenses.toLocaleString()}
+            </h3>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{filteredExpenses.length} vouchers</p>
           </div>
-          <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 rounded-xl">
-            <TrendingDown size={24} />
+          <div className="p-3.5 bg-rose-50 dark:bg-rose-900/25 text-rose-600 dark:text-rose-400 rounded-2xl flex-shrink-0">
+            <TrendingDown size={26} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="kpi-card">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Net Cash Balance</p>
-            <h3 className={`text-xl font-bold mt-1 ${stats.netBalance >= 0 ? 'text-gray-800 dark:text-white' : 'text-red-600'}`}>
+            <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Net Balance</p>
+            <h3 className={`text-2xl font-extrabold mt-1.5 ${stats.netBalance >= 0 ? 'text-slate-800 dark:text-white' : 'text-rose-600 dark:text-rose-400'}`}>
               KSh {stats.netBalance.toLocaleString()}
             </h3>
-            <p className="text-xs text-gray-500 mt-1">{stats.netBalance >= 0 ? 'Positive Cashflow' : 'Deficit Cashflow'}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+              {stats.netBalance >= 0 ? '✓ Positive Cashflow' : '⚠ Deficit'}
+            </p>
           </div>
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl">
-            <DollarSign size={24} />
+          <div className="p-3.5 bg-blue-50 dark:bg-blue-900/25 text-blue-600 dark:text-blue-400 rounded-2xl flex-shrink-0">
+            <DollarSign size={26} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="kpi-card">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Net Profit Margin</p>
-            <h3 className="text-xl font-bold text-primary-gold mt-1">{stats.profitMargin}%</h3>
-            <p className="text-xs text-gray-500 mt-1">Revenue efficiency margin</p>
+            <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Profit Margin</p>
+            <h3 className="text-2xl font-extrabold text-amber-500 dark:text-amber-400 mt-1.5">{stats.profitMargin}%</h3>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Revenue efficiency</p>
           </div>
-          <div className="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 rounded-xl">
-            <Sparkles size={24} />
+          <div className="p-3.5 bg-amber-50 dark:bg-amber-900/25 text-amber-600 dark:text-amber-400 rounded-2xl flex-shrink-0">
+            <Sparkles size={26} />
           </div>
         </div>
       </div>
@@ -342,26 +358,26 @@ export default function Dashboard() {
       {hasData && (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-4">Revenue Trend Over Time</h3>
+            <div className="card">
+              <h3 className="section-title">Revenue Trend Over Time</h3>
               {filteredSales.length > 0
                 ? <Line data={salesByDate} options={chartOptions} />
                 : <EmptyChart label="No sales recorded in this period" />}
             </div>
-            <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-4">Sales Breakdown by Channel</h3>
+            <div className="card">
+              <h3 className="section-title">Sales Breakdown by Channel</h3>
               {filteredSales.length > 0
                 ? <Bar data={departmentSales} options={chartOptions} />
                 : <EmptyChart label="No sales recorded in this period" />}
             </div>
-            <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-4">Department Distribution</h3>
+            <div className="card">
+              <h3 className="section-title">Department Distribution</h3>
               {filteredSales.length > 0
                 ? <Pie data={departmentSales} options={chartOptions} />
                 : <EmptyChart label="No sales recorded in this period" />}
             </div>
-            <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-4">Expense Categories Breakdown</h3>
+            <div className="card">
+              <h3 className="section-title">Expense Categories Breakdown</h3>
               {filteredExpenses.length > 0
                 ? <Doughnut data={expenseCategories} options={chartOptions} />
                 : <EmptyChart label="No expenses recorded in this period" />}
@@ -370,21 +386,21 @@ export default function Dashboard() {
 
           {/* Activity Feed & Quick Module Overview */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-4">Recent Financial Transactions</h3>
-              <div className="space-y-2.5">
+            <div className="lg:col-span-2 card">
+              <h3 className="section-title">Recent Financial Transactions</h3>
+              <div className="space-y-2">
                 {[...filteredSales, ...filteredExpenses]
                   .sort((a, b) => (toDateStr(b.date) > toDateStr(a.date) ? 1 : -1))
                   .slice(0, 7)
                   .map((item, idx) => (
-                    <div key={`${item.id || idx}-${item.date}`} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-750 rounded-xl hover:bg-gray-100 transition-colors">
+                    <div key={`${item.id || idx}-${item.date}`} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                       <div>
-                        <p className="font-bold text-sm text-gray-800 dark:text-white">
+                        <p className="font-bold text-sm text-slate-800 dark:text-white">
                           {item.desc || item.dept || item.cat || 'Transaction'}
                         </p>
-                        <p className="text-xs text-gray-400 mt-0.5">{toDateStr(item.date)} • {item.dept ? `Sale (${item.dept})` : `Expense (${item.cat})`}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{toDateStr(item.date)} · {item.dept ? `Sale (${item.dept})` : `Expense (${item.cat})`}</p>
                       </div>
-                      <div className={`font-extrabold text-sm ${item.dept ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      <div className={`font-extrabold text-sm ${item.dept ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                         {item.dept ? '+' : '-'}KSh {(Number(item.amount) || 0).toLocaleString()}
                       </div>
                     </div>
@@ -392,52 +408,44 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-              <h3 className="text-base font-bold text-gray-800 dark:text-white mb-4">Module Highlights</h3>
+            <div className="card">
+              <h3 className="section-title">Module Highlights</h3>
               <div className="space-y-3">
-                <div className="p-3.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Users size={20} className="text-blue-600" />
-                    <div>
-                      <p className="text-xs text-gray-500 font-semibold">Registered Clients</p>
-                      <p className="text-lg font-bold text-blue-600">{(data.clients || []).length}</p>
-                    </div>
+                <div className="p-3.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center gap-3">
+                  <Users size={20} className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Registered Clients</p>
+                    <p className="text-lg font-extrabold text-blue-600 dark:text-blue-400">{(data.clients || []).length}</p>
                   </div>
                 </div>
 
                 {activeBranch !== 'iGift' && (
-                  <div className="p-3.5 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Briefcase size={20} className="text-purple-600" />
-                      <div>
-                        <p className="text-xs text-gray-500 font-semibold">Active Projects</p>
-                        <p className="text-lg font-bold text-purple-600">
-                          {(Array.isArray(data.designs) ? data.designs : []).filter(d => d.status === 'In Progress').length}
-                        </p>
-                      </div>
+                  <div className="p-3.5 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center gap-3">
+                    <Briefcase size={20} className="text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Active Projects</p>
+                      <p className="text-lg font-extrabold text-purple-600 dark:text-purple-400">
+                        {(Array.isArray(data.designs) ? data.designs : []).filter(d => d.status === 'In Progress').length}
+                      </p>
                     </div>
                   </div>
                 )}
 
-                <div className="p-3.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Truck size={20} className="text-amber-600" />
-                    <div>
-                      <p className="text-xs text-gray-500 font-semibold">Active Suppliers</p>
-                      <p className="text-lg font-bold text-amber-600">{(data.suppliers || []).length}</p>
-                    </div>
+                <div className="p-3.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center gap-3">
+                  <Truck size={20} className="text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Active Suppliers</p>
+                    <p className="text-lg font-extrabold text-amber-600 dark:text-amber-400">{(data.suppliers || []).length}</p>
                   </div>
                 </div>
 
-                <div className="p-3.5 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Boxes size={20} className="text-red-600" />
-                    <div>
-                      <p className="text-xs text-gray-500 font-semibold">Low Stock Inventory Items</p>
-                      <p className="text-lg font-bold text-red-600">
-                        {(Array.isArray(data.inventory) ? data.inventory : []).filter(i => (Number(i.quantity) || 0) <= (Number(i.reorderLevel) || 0)).length}
-                      </p>
-                    </div>
+                <div className="p-3.5 bg-rose-50 dark:bg-rose-900/20 rounded-xl flex items-center gap-3">
+                  <Boxes size={20} className="text-rose-600 dark:text-rose-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Low Stock Items</p>
+                    <p className="text-lg font-extrabold text-rose-600 dark:text-rose-400">
+                      {(Array.isArray(data.inventory) ? data.inventory : []).filter(i => (Number(i.quantity) || 0) <= (Number(i.reorderLevel) || 0)).length}
+                    </p>
                   </div>
                 </div>
               </div>

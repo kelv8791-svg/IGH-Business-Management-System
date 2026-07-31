@@ -1,21 +1,45 @@
 import { X } from 'lucide-react'
 
-export default function Modal({ isOpen, onClose, title, children }) {
+export default function Modal({ isOpen, onClose, title, children, size = 'md' }) {
   if (!isOpen) return null
 
+  const sizeClass = {
+    sm: 'max-w-sm',
+    md: 'max-w-2xl',
+    lg: 'max-w-4xl',
+    xl: 'max-w-6xl',
+  }[size] || 'max-w-2xl'
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{title}</h2>
+    <div
+      className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div
+        className={`modal-content ${sizeClass} w-full max-h-[92vh] overflow-y-auto flex flex-col rounded-2xl shadow-2xl`}
+        style={{
+          background: 'var(--bg-card, white)',
+        }}
+      >
+        {/* ── Header ── */}
+        <div
+          className="flex items-center justify-between px-6 py-4 flex-shrink-0"
+          style={{ borderBottom: '1px solid rgba(15,23,42,0.08)' }}
+        >
+          <h2 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
+            {title}
+          </h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
           >
-            <X size={24} />
+            <X size={20} />
           </button>
         </div>
-        <div className="p-6">
+
+        {/* ── Body ── */}
+        <div className="p-6 flex-1 bg-white dark:bg-slate-900 rounded-b-2xl">
           {children}
         </div>
       </div>

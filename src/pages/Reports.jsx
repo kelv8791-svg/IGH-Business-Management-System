@@ -648,71 +648,71 @@ export default function Reports() {
 
   if (user?.role === 'admin' && !reportType) {
     return (
-      <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="space-y-8 animate-fade-in">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Reports Dashboard</h1>
-            <p className="text-gray-500 dark:text-gray-400">Select a report category to view detailed data and exports.</p>
+            <h1 className="page-title">Reports Dashboard</h1>
+            <p className="page-subtitle">Select a report category to view detailed data and exports.</p>
           </div>
-          <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-gray-800 p-2.5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-             <div className="flex items-center gap-2 px-3 py-1 bg-primary-gold/10 text-primary-gold rounded-lg">
-                <Calendar size={18} />
-                <span className="text-xs font-bold uppercase tracking-wider">Period</span>
+          <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-slate-900 p-2.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+             <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl">
+                <Calendar size={16} />
+                <span className="text-xs font-extrabold uppercase tracking-widest">Period</span>
              </div>
              <div className="flex items-center gap-2">
-                <input 
-                  type="date" 
-                  value={startDate} 
+                <input
+                  type="date"
+                  value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-gray-50 dark:bg-gray-700/50 border-none rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-primary-gold/50 cursor-pointer min-w-[130px]"
+                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-1.5 text-sm focus:ring-2 focus:ring-amber-400/50 cursor-pointer min-w-[130px]"
                 />
-                <span className="text-gray-400 font-bold">to</span>
-                <input 
-                  type="date" 
-                  value={endDate} 
+                <span className="text-slate-400 font-bold text-sm">to</span>
+                <input
+                  type="date"
+                  value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-gray-50 dark:bg-gray-700/50 border-none rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-primary-gold/50 cursor-pointer min-w-[130px]"
+                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-1.5 text-sm focus:ring-2 focus:ring-amber-400/50 cursor-pointer min-w-[130px]"
                 />
              </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {reportTypes.map((report) => (
             <button
               key={report.value}
               onClick={() => setReportType(report.value)}
-              className={`group flex flex-col p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border-l-4 ${report.color} hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left`}
+              className={`group flex flex-col p-5 card border-l-4 ${report.color} hover:shadow-lg hover:-translate-y-1 transition-all duration-200 text-left`}
             >
-              <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl group-hover:scale-110 transition-transform duration-300 w-fit">
+              <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl group-hover:scale-110 transition-transform duration-200 w-fit">
                 {report.icon}
               </div>
-              <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">{report.label}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{report.desc}</p>
-              <div className="mt-auto pt-4 flex items-center text-primary-gold font-semibold text-sm">
-                View Report <Eye size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+              <h3 className="text-base font-extrabold text-slate-800 dark:text-white mb-1.5">{report.label}</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed flex-1">{report.desc}</p>
+              <div className="mt-4 flex items-center text-amber-600 dark:text-amber-400 font-bold text-xs gap-1">
+                View Report <Eye size={14} className="group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
           ))}
         </div>
 
         {/* Global Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
-           <div className="card text-center py-6">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Total Sales</p>
-              <p className="text-2xl font-extrabold text-green-600">KSh {data.sales.reduce((sum, s) => sum + s.amount, 0).toLocaleString()}</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+           <div className="card text-center py-5">
+              <p className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Total Sales</p>
+              <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">KSh {data.sales.reduce((sum, s) => sum + s.amount, 0).toLocaleString()}</p>
            </div>
-           <div className="card text-center py-6">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Total Expenses</p>
-              <p className="text-2xl font-extrabold text-red-600">KSh {data.expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</p>
+           <div className="card text-center py-5">
+              <p className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Total Expenses</p>
+              <p className="text-2xl font-extrabold text-rose-600 dark:text-rose-400">KSh {data.expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</p>
            </div>
-           <div className="card text-center py-6">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Stock Value</p>
-              <p className="text-2xl font-extrabold text-blue-600">KSh {data.inventory.reduce((sum, i) => sum + ((i.quantity || 0) * (i.unitPrice || 0)), 0).toLocaleString()}</p>
+           <div className="card text-center py-5">
+              <p className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Stock Value</p>
+              <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">KSh {data.inventory.reduce((sum, i) => sum + ((i.quantity || 0) * (i.unitPrice || 0)), 0).toLocaleString()}</p>
            </div>
-           <div className="card text-center py-6">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Active Branch</p>
-              <p className="text-2xl font-extrabold text-primary-gold">{activeBranch}</p>
+           <div className="card text-center py-5">
+              <p className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Active Branch</p>
+              <p className="text-2xl font-extrabold text-amber-500 dark:text-amber-400">{activeBranch}</p>
            </div>
         </div>
       </div>
@@ -720,34 +720,37 @@ export default function Reports() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {user?.role === 'admin' && (
-            <button 
+            <button
               onClick={() => setReportType(null)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-              title="Back to Dashboard"
+              className="topbar-btn"
+              title="Back to Reports"
             >
-              <ArrowLeft size={24} className="text-gray-600 dark:text-gray-300" />
+              <ArrowLeft size={20} />
             </button>
           )}
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
-            {reportTypes.find(r => r.value === reportType)?.label || 'Report'}
-          </h1>
+          <div>
+            <h1 className="page-title">
+              {reportTypes.find(r => r.value === reportType)?.label || 'Report'}
+            </h1>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <button onClick={generateCSV} className="btn-secondary flex items-center gap-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <Download size={18} className="text-blue-600" />
+          <button onClick={generateCSV} className="btn-secondary flex items-center gap-2">
+            <Download size={16} className="text-blue-600" />
             <span className="hidden sm:inline">Export CSV</span>
           </button>
-          <button onClick={generatePDF} className="btn-secondary flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800 text-red-600">
-            <FileText size={18} />
+          <button onClick={generatePDF} className="btn-secondary flex items-center gap-2 text-rose-600">
+            <FileText size={16} />
             <span className="hidden sm:inline">Export PDF</span>
           </button>
         </div>
       </div>
+
 
       {/* Report Controls */}
       <div className="card grid grid-cols-1 md:grid-cols-4 gap-4 items-end">

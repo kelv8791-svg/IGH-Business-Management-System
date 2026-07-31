@@ -153,83 +153,66 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Settings</h1>
+    <div className="space-y-6 animate-fade-in">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Settings</h1>
+          <p className="page-subtitle">Manage your account, users, and system configuration</p>
+        </div>
+      </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-        <button
-          onClick={() => setTab('account')}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
-            tab === 'account'
-              ? 'border-primary-gold text-primary-gold'
-              : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-          }`}
-        >
-          My Account
-        </button>
-        {/* Only Admin sees User Management and System */}
-        {user?.role === 'admin' && (
-          <>
-            <button
-              onClick={() => { setTab('users'); setAuditSearch(''); }}
-              className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
-                tab === 'users'
-                  ? 'border-primary-gold text-primary-gold'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-              }`}
-            >
-              User Management
-            </button>
-            <button
-              onClick={() => { setTab('audit'); setAuditSearch(''); }}
-              className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
-                tab === 'audit'
-                  ? 'border-primary-gold text-primary-gold'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-              }`}
-            >
-              Audit Trail
-            </button>
-            <button
-              onClick={() => { setTab('system'); setAuditSearch(''); }}
-              className={`px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
-                tab === 'system'
-                  ? 'border-primary-gold text-primary-gold'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-              }`}
-            >
-              System
-            </button>
-          </>
-        )}
+      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-2xl overflow-x-auto w-fit">
+        {[
+          { key: 'account', label: 'My Account' },
+          ...(user?.role === 'admin' ? [
+            { key: 'users',  label: 'User Management' },
+            { key: 'audit',  label: 'Audit Trail'     },
+            { key: 'system', label: 'System'          },
+          ] : [])
+        ].map(t => (
+          <button
+            key={t.key}
+            onClick={() => { setTab(t.key); setAuditSearch('') }}
+            className={`px-5 py-2 text-sm font-bold rounded-xl whitespace-nowrap transition-all duration-200 ${
+              tab === t.key
+                ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {/* My Account Tab */}
       {tab === 'account' && (
-        <div className="max-w-2xl mx-auto md:mx-0">
+        <div className="max-w-2xl">
           <div className="card space-y-6">
-            <div className="flex items-center gap-4 border-b border-gray-100 dark:border-gray-700 pb-4">
-              <div className="w-16 h-16 bg-primary-gold/10 rounded-full flex items-center justify-center text-primary-gold">
-                <User size={32} />
+            <div className="flex items-center gap-4 pb-5" style={{ borderBottom: '1px solid var(--border, #e2e8f0)' }}>
+              <div
+                className="w-16 h-16 rounded-2xl flex items-center justify-center text-white flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, #f59e0b, #b45309)' }}
+              >
+                <User size={30} />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-800 dark:text-white capitalize">{user?.username || 'User'}</h2>
-                <p className="text-sm text-gray-500 capitalize flex items-center gap-1">
-                  <Shield size={14} />
-                  {user?.role || 'Guest'}
+                <h2 className="text-xl font-extrabold text-slate-800 dark:text-white capitalize">{user?.username || 'User'}</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 capitalize flex items-center gap-1.5 mt-0.5">
+                  <Shield size={13} className="text-amber-500" />
+                  {user?.role || 'Guest'} · {user?.branch}
                 </p>
               </div>
             </div>
 
             <form onSubmit={handleChangePassword} className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
-                <Key size={18} />
+              <h3 className="text-base font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                <Key size={16} className="text-amber-500" />
                 Change Password
               </h3>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Password</label>
+                <label className="form-label">Current Password</label>
                 <input
                   type="password"
                   value={passwordForm.currentPassword}
