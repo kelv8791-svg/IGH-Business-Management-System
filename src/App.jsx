@@ -73,7 +73,15 @@ function AppRoutes() {
 }
 
 function App() {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('currentUser')
+      return savedUser ? JSON.parse(savedUser) : null
+    } catch (e) {
+      localStorage.removeItem('currentUser')
+      return null
+    }
+  })
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('darkMode') === 'true'
   })
@@ -83,10 +91,14 @@ function App() {
 
   useEffect(() => {
     const savedUser = localStorage.getItem('currentUser')
-    if (savedUser) {
-      setUser(JSON.parse(savedUser))
+    if (savedUser && !user) {
+      try {
+        setUser(JSON.parse(savedUser))
+      } catch (e) {
+        localStorage.removeItem('currentUser')
+      }
     }
-  }, [])
+  }, [user])
 
   useEffect(() => {
     localStorage.setItem('darkMode', darkMode)
