@@ -297,7 +297,7 @@ export default function Dashboard() {
                 Total Revenue
               </p>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400 mt-2 tracking-tight">
-                KSh {stats.totalSales.toLocaleString()}
+                KSh {(stats.totalSales || 0).toLocaleString()}
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">{filteredSales.length} transactions</p>
             </div>
@@ -322,7 +322,7 @@ export default function Dashboard() {
                 Total Expenses
               </p>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-rose-500 dark:text-rose-400 mt-2 tracking-tight">
-                KSh {stats.totalExpenses.toLocaleString()}
+                KSh {(stats.totalExpenses || 0).toLocaleString()}
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">{filteredExpenses.length} vouchers</p>
             </div>
@@ -346,8 +346,8 @@ export default function Dashboard() {
               <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                 Net Balance
               </p>
-              <h3 className={`text-2xl sm:text-3xl font-extrabold mt-2 tracking-tight ${stats.netBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                KSh {stats.netBalance.toLocaleString()}
+              <h3 className={`text-2xl sm:text-3xl font-extrabold mt-2 tracking-tight ${(stats.netBalance || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                KSh {(stats.netBalance || 0).toLocaleString()}
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
                 {stats.netBalance >= 0 ? 'Positive Cashflow' : 'Deficit'}

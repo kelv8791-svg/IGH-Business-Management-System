@@ -238,8 +238,8 @@ export default function Inventory() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Stock Valuation</p>
-            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {metrics.totalValuation.toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">{metrics.totalCount} active inventory items</p>
+            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {(metrics.totalValuation || 0).toLocaleString()}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">{(metrics.totalCount || 0)} active inventory items</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
             <Boxes size={20} />
@@ -364,7 +364,7 @@ export default function Inventory() {
                     KSh {Number(item.unitPrice || 0).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 text-sm font-bold text-blue-600 dark:text-blue-400">
-                    KSh {itemValue.toLocaleString()}
+                    KSh {Number(itemValue || 0).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 text-sm whitespace-nowrap">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${badge.cls}`}>

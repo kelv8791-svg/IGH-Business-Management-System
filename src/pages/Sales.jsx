@@ -209,8 +209,8 @@ export default function Sales() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Sales Volume</p>
-            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">KSh {stats.totalRev.toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">{stats.count} recorded sales</p>
+            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">KSh {(stats.totalRev || 0).toLocaleString()}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">{(stats.count || 0)} recorded sales</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
             <TrendingUp size={20} />
@@ -220,7 +220,7 @@ export default function Sales() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Settled Revenue</p>
-            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">KSh {stats.paidRev.toLocaleString()}</h3>
+            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">KSh {(stats.paidRev || 0).toLocaleString()}</h3>
             <p className="text-xs text-slate-400 mt-0.5">Fully collected payments</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
@@ -231,7 +231,7 @@ export default function Sales() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Pending Collections</p>
-            <h3 className="text-2xl font-extrabold text-amber-500 dark:text-amber-400 mt-1.5 tracking-tight">{stats.pendingCount} invoices</h3>
+            <h3 className="text-2xl font-extrabold text-amber-500 dark:text-amber-400 mt-1.5 tracking-tight">{(stats.pendingCount || 0)} invoices</h3>
             <p className="text-xs text-slate-400 mt-0.5">Awaiting customer payout</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
@@ -242,7 +242,7 @@ export default function Sales() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Average Transaction</p>
-            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {Math.round(stats.avgSale).toLocaleString()}</h3>
+            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {Math.round(stats.avgSale || 0).toLocaleString()}</h3>
             <p className="text-xs text-slate-400 mt-0.5">Average checkout value</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
@@ -309,8 +309,8 @@ export default function Sales() {
                       {group.sales.length} sales
                     </span>
                   </div>
-                  <span className="text-sm font-extrabold text-green-600 dark:text-green-400">
-                    KSh {group.total.toLocaleString()}
+                  <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
+                    KSh {Number(group.total || 0).toLocaleString()}
                   </span>
                 </button>
                 
@@ -383,8 +383,8 @@ export default function Sales() {
                                 )
                               )}
                             </td>
-                            <td className="px-6 py-4 text-sm font-extrabold text-green-600 dark:text-green-400 whitespace-nowrap">
-                              KSh {Number(sale.amount).toLocaleString()}
+                            <td className="px-6 py-4 text-sm font-extrabold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                              KSh {Number(sale.amount || 0).toLocaleString()}
                             </td>
                             <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
                               <div className="flex justify-end gap-2">
@@ -396,7 +396,7 @@ export default function Sales() {
                                 {user?.role === 'admin' && (
                                   <button
                                     onClick={() => {
-                                      if (window.confirm(`Are you sure you want to delete this sale of KSh ${Number(sale.amount).toLocaleString()} (${sale.desc || sale.client || 'Sale'})?`)) {
+                                      if (window.confirm(`Are you sure you want to delete this sale of KSh ${Number(sale.amount || 0).toLocaleString()} (${sale.desc || sale.client || 'Sale'})?`)) {
                                         deleteSale(sale.id)
                                       }
                                     }}

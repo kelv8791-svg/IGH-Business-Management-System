@@ -154,8 +154,8 @@ export default function Expenses() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Expenditure</p>
-            <h3 className="text-2xl font-extrabold text-rose-500 dark:text-rose-400 mt-1.5 tracking-tight">KSh {stats.totalExpenditure.toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">{stats.count} recorded expense vouchers</p>
+            <h3 className="text-2xl font-extrabold text-rose-500 dark:text-rose-400 mt-1.5 tracking-tight">KSh {(stats.totalExpenditure || 0).toLocaleString()}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">{(stats.count || 0)} recorded expense vouchers</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-500 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
             <TrendingDown size={20} />
@@ -165,7 +165,7 @@ export default function Expenses() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Average Voucher</p>
-            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {Math.round(stats.avgExpense).toLocaleString()}</h3>
+            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {Math.round(stats.avgExpense || 0).toLocaleString()}</h3>
             <p className="text-xs text-slate-400 mt-0.5">Average payout per entry</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
@@ -204,7 +204,7 @@ export default function Expenses() {
           </select>
           <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <span className="text-xs font-semibold text-gray-500 uppercase">Filtered Total:</span>
-            <span className="font-extrabold text-red-600">KSh {stats.totalExpenditure.toLocaleString()}</span>
+            <span className="font-extrabold text-rose-600">KSh {(stats.totalExpenditure || 0).toLocaleString()}</span>
           </div>
         </div>
 
@@ -249,8 +249,8 @@ export default function Expenses() {
                       {group.expenses.length} expenses
                     </span>
                   </div>
-                  <span className="text-sm font-extrabold text-red-600 dark:text-red-400">
-                    KSh {group.total.toLocaleString()}
+                  <span className="text-sm font-extrabold text-rose-600 dark:text-rose-400">
+                    KSh {Number(group.total || 0).toLocaleString()}
                   </span>
                 </button>
                 
@@ -279,8 +279,8 @@ export default function Expenses() {
                             <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs truncate">
                               {expense.desc || 'No description provided'}
                             </td>
-                            <td className="px-6 py-4 text-sm font-extrabold text-red-600 dark:text-red-400 whitespace-nowrap">
-                              KSh {Number(expense.amount).toLocaleString()}
+                            <td className="px-6 py-4 text-sm font-extrabold text-rose-600 dark:text-rose-400 whitespace-nowrap">
+                              KSh {Number(expense.amount || 0).toLocaleString()}
                             </td>
                             <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
                               <div className="flex justify-end gap-1.5">
@@ -290,12 +290,12 @@ export default function Expenses() {
                                 {user?.role === 'admin' && (
                                   <button
                                     onClick={() => {
-                                      if (window.confirm(`Are you sure you want to delete this expense of KSh ${Number(expense.amount).toLocaleString()} (${expense.cat}: ${expense.desc || 'No details'})?`)) {
+                                      if (window.confirm(`Are you sure you want to delete this expense of KSh ${Number(expense.amount || 0).toLocaleString()} (${expense.cat}: ${expense.desc || 'No details'})?`)) {
                                         deleteExpense(expense.id)
                                       }
                                     }}
                                     title="Delete Expense"
-                                    className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                    className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"
                                   >
                                     <Trash2 size={16} />
                                   </button>

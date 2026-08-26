@@ -220,7 +220,7 @@ export default function Suppliers() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Vendors</p>
-            <h3 className="text-2xl font-extrabold text-amber-500 dark:text-amber-400 mt-1.5 tracking-tight">{metrics.totalSuppliers}</h3>
+            <h3 className="text-2xl font-extrabold text-amber-500 dark:text-amber-400 mt-1.5 tracking-tight">{(metrics.totalSuppliers || 0)}</h3>
             <p className="text-xs text-slate-400 mt-0.5">Registered suppliers</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
@@ -231,7 +231,7 @@ export default function Suppliers() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Purchases Volume</p>
-            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">KSh {metrics.totalPurchases.toLocaleString()}</h3>
+            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">KSh {(metrics.totalPurchases || 0).toLocaleString()}</h3>
             <p className="text-xs text-slate-400 mt-0.5">Supplier expenses logged</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
@@ -242,8 +242,8 @@ export default function Suppliers() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Pending Credit Owed</p>
-            <h3 className={`text-2xl font-extrabold mt-1.5 tracking-tight ${metrics.totalOutstanding > 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
-              KSh {metrics.totalOutstanding.toLocaleString()}
+            <h3 className={`text-2xl font-extrabold mt-1.5 tracking-tight ${(metrics.totalOutstanding || 0) > 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
+              KSh {(metrics.totalOutstanding || 0).toLocaleString()}
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">Total credit balance pending</p>
           </div>
@@ -255,7 +255,7 @@ export default function Suppliers() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Payments Settled</p>
-            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">KSh {metrics.totalPaymentsMade.toLocaleString()}</h3>
+            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">KSh {(metrics.totalPaymentsMade || 0).toLocaleString()}</h3>
             <p className="text-xs text-slate-400 mt-0.5">Disbursed supplier payments</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
