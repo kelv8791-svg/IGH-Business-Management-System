@@ -251,13 +251,13 @@ export default function DesignProjects() {
                 <td className="px-6 py-3 text-sm font-medium">{design.type}</td>
                 <td className="px-6 py-3 text-sm">{design.client}</td>
                 <td className="px-6 py-3 text-sm">{(data.users.find(u => u.username === design.assignedTo)?.username) || design.assignedTo}</td>
-                <td className="px-6 py-3 text-sm font-semibold text-green-600">KSh {design.amount?.toLocaleString() || '0'}</td>
-                <td className="px-6 py-3 text-sm text-gray-600 dark:text-gray-400">{design.completion}</td>
+                <td className="px-6 py-3 text-sm font-semibold text-emerald-600 dark:text-emerald-400">KSh {Number(design.amount || 0).toLocaleString()}</td>
+                <td className="px-6 py-3 text-sm text-slate-600 dark:text-slate-400">{design.completion}</td>
                 <td className="px-6 py-3 text-sm">
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    design.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                    design.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
                     design.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                    design.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                    design.status === 'Pending' ? 'bg-amber-100 text-amber-800' :
                     'bg-purple-100 text-purple-800'
                   }`}>
                     {design.status}
@@ -265,14 +265,14 @@ export default function DesignProjects() {
                 </td>
                 <td className="px-6 py-3 text-sm">
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    design.paymentStatus === 'Full' ? 'bg-green-100 text-green-800' :
+                    design.paymentStatus === 'Full' ? 'bg-emerald-100 text-emerald-800' :
                     design.paymentStatus === 'Partial' ? 'bg-amber-100 text-amber-800' :
-                    'bg-gray-100 text-gray-800'
+                    'bg-slate-100 text-slate-800'
                   }`}>
                     {design.paymentStatus || 'Not Started'}
                   </span>
                 </td>
-                <td className="px-6 py-3 text-sm font-semibold text-amber-600">KSh {design.paymentAmount?.toLocaleString() || '0'}</td>
+                <td className="px-6 py-3 text-sm font-semibold text-amber-600 dark:text-amber-400">KSh {Number(design.paymentAmount || 0).toLocaleString()}</td>
                 <td className="px-6 py-3 text-sm">
                   {design.handedOver ? (
                     <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">Handed</span>
@@ -520,7 +520,7 @@ export default function DesignProjects() {
                         <div key={exp.id || Math.random()} className="flex justify-between items-center p-3 border border-gray-100 dark:border-gray-700 rounded-lg bg-orange-50 dark:bg-orange-900/10">
                             <div>
                                 <p className="font-medium text-sm text-orange-800 dark:text-orange-300">{exp.desc}</p>
-                                <p className="text-xs text-orange-600">Cost: KSh {Number(exp.amount).toLocaleString()}</p>
+                                <p className="text-xs text-orange-600">Cost: KSh {Number(exp.amount || 0).toLocaleString()}</p>
                             </div>
                             <button 
                                 onClick={() => handleDeleteDirectExpense(exp.id)}

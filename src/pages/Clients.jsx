@@ -85,13 +85,20 @@ export default function Clients() {
 
   const metrics = useMemo(() => {
     const clientList = data.clients || []
-    const totalRevenue = (data.sales || []).reduce((sum, s) => sum + Number(s.amount || 0), 0)
+    const salesList = data.sales || []
+    const totalVolume = salesList.reduce((sum, s) => sum + Number(s.amount || 0), 0)
+    const totalPaid = salesList
+      .filter(s => s.paymentStatus === 'Paid' || s.paymentStatus === 'Full')
+      .reduce((sum, s) => sum + Number(s.amount || 0), 0)
+    const totalPending = Math.max(0, totalVolume - totalPaid)
     const activeClientsCount = clientList.filter(c => getClientSalesCount(c.name) > 0).length
-    const avgSpend = clientList.length > 0 ? totalRevenue / clientList.length : 0
+    const avgSpend = clientList.length > 0 ? totalVolume / clientList.length : 0
 
     return {
       totalClients: clientList.length,
-      totalRevenue,
+      totalVolume,
+      totalPaid,
+      totalPending,
       activeClientsCount,
       avgSpend
     }
@@ -182,7 +189,7 @@ export default function Clients() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Accounts</p>
-            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">{metrics.totalClients}</h3>
+            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">{(metrics.totalClients || 0)}</h3>
             <p className="text-xs text-slate-400 mt-0.5">Registered accounts</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
@@ -193,7 +200,7 @@ export default function Clients() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Gross Client Invoicing</p>
-            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {metrics.totalVolume.toLocaleString()}</h3>
+            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {(metrics.totalVolume || 0).toLocaleString()}</h3>
             <p className="text-xs text-slate-400 mt-0.5">Historical billings</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
@@ -204,7 +211,7 @@ export default function Clients() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Collected Receivables</p>
-            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">KSh {metrics.totalPaid.toLocaleString()}</h3>
+            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">KSh {(metrics.totalPaid || 0).toLocaleString()}</h3>
             <p className="text-xs text-slate-400 mt-0.5">Settled client payments</p>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
@@ -215,8 +222,8 @@ export default function Clients() {
         <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Pending Receivables</p>
-            <h3 className={`text-2xl font-extrabold mt-1.5 tracking-tight ${metrics.totalPending > 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
-              KSh {metrics.totalPending.toLocaleString()}
+            <h3 className={`text-2xl font-extrabold mt-1.5 tracking-tight ${(metrics.totalPending || 0) > 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
+              KSh {(metrics.totalPending || 0).toLocaleString()}
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">Outstanding client balances</p>
           </div>
@@ -227,10 +234,10 @@ export default function Clients() {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="card p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-3">
+      <div className="card p-4 space-y-3">
         <div className="flex flex-col sm:flex-row gap-3 justify-between items-center">
           <div className="relative w-full sm:w-96">
-            <Search className="absolute left-3 top-3 text-gray-400" size={16} />
+            <Search className="absolute left-3 top-3 text-slate-400" size={16} />
             <input
               type="text"
               placeholder="Search by client name, phone, or location..."
@@ -240,7 +247,7 @@ export default function Clients() {
             />
           </div>
           {search && (
-            <button onClick={() => setSearch('')} className="text-xs text-primary-gold hover:underline flex items-center gap-1 font-semibold">
+            <button onClick={() => setSearch('')} className="text-xs text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 font-semibold">
               <RotateCcw size={12} />
               Reset Search
             </button>
@@ -249,50 +256,50 @@ export default function Clients() {
       </div>
 
       {/* Client Table */}
-      <div className="card overflow-x-auto p-0 rounded-xl border border-gray-200 dark:border-gray-700">
+      <div className="card overflow-x-auto p-0">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-800/80">
-              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Client Name</th>
-              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Phone & Contact</th>
-              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Location / Address</th>
-              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Lifetime Sales</th>
-              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+            <tr className="border-b border-slate-200 dark:border-slate-700">
+              <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Client Name</th>
+              <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Phone & Contact</th>
+              <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Location / Address</th>
+              <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Lifetime Sales</th>
+              <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {filteredClients.map((client) => {
-              const totalSpent = getClientTotalSales(client.name)
-              const ordersCount = getClientSalesCount(client.name)
+              const totalSpent = getClientTotalSales(client.name) || 0
+              const ordersCount = getClientSalesCount(client.name) || 0
 
               return (
-                <tr key={client.id} className="hover:bg-gray-50/70 dark:hover:bg-gray-700/50 transition-colors">
+                <tr key={client.id} className="hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors">
                   <td className="px-6 py-4 text-sm">
-                    <div className="font-bold text-gray-800 dark:text-white">{client.name}</div>
-                    <div className="text-xs text-gray-400 mt-0.5">{ordersCount} recorded purchases</div>
+                    <div className="font-bold text-slate-800 dark:text-white">{client.name}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{ordersCount} recorded purchases</div>
                   </td>
                   <td className="px-6 py-4 text-sm">
                     {client.phone ? (
-                      <div className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300 font-medium">
+                      <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
                         <Phone size={14} className="text-blue-500" />
                         {client.phone}
                       </div>
                     ) : (
-                      <span className="text-gray-400 text-xs">-</span>
+                      <span className="text-slate-400 text-xs">-</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm">
                     {client.location || client.address ? (
-                      <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
                         <MapPin size={14} className="text-amber-500" />
                         {client.location || client.address}
                       </div>
                     ) : (
-                      <span className="text-gray-400 text-xs">-</span>
+                      <span className="text-slate-400 text-xs">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm font-extrabold text-green-600 dark:text-green-400">
-                    KSh {totalSpent.toLocaleString()}
+                  <td className="px-6 py-4 text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
+                    KSh {Number(totalSpent || 0).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
                     <div className="flex justify-end gap-1.5">

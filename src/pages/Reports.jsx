@@ -260,38 +260,38 @@ export default function Reports() {
 
       if (reportType === 'sales') {
         head = [['Date', 'Client', 'Department', 'Amount', 'Status', 'Method']]
-        filteredData.forEach(s => body.push([s.date, s.client, s.dept, `KSh ${s.amount.toLocaleString()}`, s.paymentStatus, s.paymentMethod]))
-        const total = filteredData.reduce((sum, s) => sum + s.amount, 0)
+        filteredData.forEach(s => body.push([s.date, s.client, s.dept, `KSh ${Number(s.amount || 0).toLocaleString()}`, s.paymentStatus, s.paymentMethod]))
+        const total = filteredData.reduce((sum, s) => sum + (Number(s.amount) || 0), 0)
         body.push([{ content: `Total Revenue: KSh ${total.toLocaleString()}`, colSpan: 6, styles: { halign: 'right', fontStyle: 'bold' } }])
       } else if (reportType === 'expenses') {
         head = [['Date', 'Category', 'Description', 'Amount']]
-        filteredData.forEach(e => body.push([e.date, e.cat, e.desc, `KSh ${e.amount.toLocaleString()}`]))
-        const total = filteredData.reduce((sum, e) => sum + e.amount, 0)
+        filteredData.forEach(e => body.push([e.date, e.cat, e.desc, `KSh ${Number(e.amount || 0).toLocaleString()}`]))
+        const total = filteredData.reduce((sum, e) => sum + (Number(e.amount) || 0), 0)
         body.push([{ content: `Total Expenses: KSh ${total.toLocaleString()}`, colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } }])
       } else if (reportType === 'clients') {
         head = [['Name', 'Phone', 'Location', 'Total Sales']]
-        filteredData.forEach(c => body.push([c.name, c.phone, c.location, `KSh ${c.totalSales.toLocaleString()}`]))
+        filteredData.forEach(c => body.push([c.name, c.phone, c.location, `KSh ${Number(c.totalSales || 0).toLocaleString()}`]))
       } else if (reportType === 'designs') {
         head = [['Date', 'Type', 'Client', 'Designer', 'Amount', 'Status']]
-        filteredData.forEach(d => body.push([d.date, d.type, d.client, d.assignedTo, `KSh ${d.amount?.toLocaleString() || '0'}`, d.status]))
+        filteredData.forEach(d => body.push([d.date, d.type, d.client, d.assignedTo, `KSh ${Number(d.amount || 0).toLocaleString()}`, d.status]))
       } else if (reportType === 'suppliers') {
         head = [['Name', 'Contact', 'Phone', 'Total Spent']]
-        filteredData.forEach(s => body.push([s.name, s.contact, s.phone, `KSh ${s.totalSpent.toLocaleString()}`]))
+        filteredData.forEach(s => body.push([s.name, s.contact, s.phone, `KSh ${Number(s.totalSpent || 0).toLocaleString()}`]))
       } else if (reportType === 'supplierExpenses') {
         head = [['Date', 'Supplier', 'Type', 'Amount', 'Remarks']]
         filteredData.forEach(e => {
           const supName = data.suppliers.find(s => s.id === e.supplier)?.name || 'Unknown'
-          body.push([e.date, supName, e.type, `KSh ${e.amount.toLocaleString()}`, e.remarks || ''])
+          body.push([e.date, supName, e.type, `KSh ${Number(e.amount || 0).toLocaleString()}`, e.remarks || ''])
         })
-        const total = filteredData.reduce((sum, e) => sum + e.amount, 0)
+        const total = filteredData.reduce((sum, e) => sum + (Number(e.amount) || 0), 0)
         body.push([{ content: `Total: KSh ${total.toLocaleString()}`, colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } }])
       } else if (reportType === 'inventory') {
         head = [['Item', 'Category', 'Quantity', 'Price', 'Value']]
         filteredData.forEach(i => {
-          const val = (i.quantity || 0) * (i.unitPrice || 0)
-          body.push([i.name, i.category, String(i.quantity), `KSh ${i.unitPrice?.toLocaleString() || '0'}`, `KSh ${val.toLocaleString()}`])
+          const val = (Number(i.quantity) || 0) * (Number(i.unitPrice) || 0)
+          body.push([i.name, i.category, String(i.quantity || 0), `KSh ${Number(i.unitPrice || 0).toLocaleString()}`, `KSh ${val.toLocaleString()}`])
         })
-        const total = filteredData.reduce((sum, i) => sum + ((i.quantity || 0) * (i.unitPrice || 0)), 0)
+        const total = filteredData.reduce((sum, i) => sum + ((Number(i.quantity) || 0) * (Number(i.unitPrice) || 0)), 0)
         body.push([{ content: `Total Inventory Value: KSh ${total.toLocaleString()}`, colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } }])
       } else if (reportType === 'stockMovement') {
         head = [['Date', 'Item', 'Type', 'Change', 'Reason', 'User']]
@@ -353,13 +353,13 @@ export default function Reports() {
                   <td className="px-4 py-2">{sale.date}</td>
                   <td className="px-4 py-2">{sale.client}</td>
                   <td className="px-4 py-2">{sale.dept}</td>
-                  <td className="px-4 py-2 text-right font-semibold">KSh {sale.amount.toLocaleString()}</td>
+                  <td className="px-4 py-2 text-right font-semibold">KSh {Number(sale.amount || 0).toLocaleString()}</td>
                   <td className="px-4 py-2">{sale.paymentStatus}</td>
                 </tr>
               ))}
               <tr className="border-t-2 border-gray-300 dark:border-gray-600 font-bold">
                 <td colSpan="3" className="px-4 py-2 text-right">Total Sales:</td>
-                <td className="px-4 py-2 text-right">KSh {filteredData.reduce((sum, s) => sum + s.amount, 0).toLocaleString()}</td>
+                <td className="px-4 py-2 text-right">KSh {filteredData.reduce((sum, s) => sum + (Number(s.amount) || 0), 0).toLocaleString()}</td>
               </tr>
             </tbody>
           </table>
@@ -385,12 +385,12 @@ export default function Reports() {
                   <td className="px-4 py-2">{expense.date}</td>
                   <td className="px-4 py-2">{expense.cat}</td>
                   <td className="px-4 py-2">{expense.desc}</td>
-                  <td className="px-4 py-2 text-right font-semibold">KSh {expense.amount.toLocaleString()}</td>
+                  <td className="px-4 py-2 text-right font-semibold">KSh {Number(expense.amount || 0).toLocaleString()}</td>
                 </tr>
               ))}
               <tr className="border-t-2 border-gray-300 dark:border-gray-600 font-bold">
                 <td colSpan="3" className="px-4 py-2 text-right">Total Expenses:</td>
-                <td className="px-4 py-2 text-right">KSh {filteredData.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</td>
+                <td className="px-4 py-2 text-right">KSh {filteredData.reduce((sum, e) => sum + (Number(e.amount) || 0), 0).toLocaleString()}</td>
               </tr>
             </tbody>
           </table>
@@ -416,7 +416,7 @@ export default function Reports() {
                   <td className="px-4 py-2">{client.name}</td>
                   <td className="px-4 py-2">{client.phone}</td>
                   <td className="px-4 py-2">{client.location}</td>
-                  <td className="px-4 py-2 text-right font-semibold">KSh {client.totalSales.toLocaleString()}</td>
+                  <td className="px-4 py-2 text-right font-semibold">KSh {Number(client.totalSales || 0).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -446,7 +446,7 @@ export default function Reports() {
                   <td className="px-4 py-2">{design.type}</td>
                   <td className="px-4 py-2">{design.client}</td>
                   <td className="px-4 py-2">{design.assignedTo}</td>
-                  <td className="px-4 py-2 text-right font-semibold">KSh {design.amount?.toLocaleString() || '0'}</td>
+                  <td className="px-4 py-2 text-right font-semibold">KSh {Number(design.amount || 0).toLocaleString()}</td>
                   <td className="px-4 py-2">{design.status}</td>
                 </tr>
               ))}
@@ -474,7 +474,7 @@ export default function Reports() {
                   <td className="px-4 py-2">{supplier.name}</td>
                   <td className="px-4 py-2">{supplier.contact}</td>
                   <td className="px-4 py-2">{supplier.phone}</td>
-                  <td className="px-4 py-2 text-right font-semibold">KSh {supplier.totalSpent.toLocaleString()}</td>
+                  <td className="px-4 py-2 text-right font-semibold">KSh {Number(supplier.totalSpent || 0).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -503,13 +503,13 @@ export default function Reports() {
                     <td className="px-4 py-2">{expense.date}</td>
                     <td className="px-4 py-2">{supplierName}</td>
                     <td className="px-4 py-2">{expense.type}</td>
-                    <td className="px-4 py-2 text-right font-semibold">KSh {expense.amount.toLocaleString()}</td>
+                    <td className="px-4 py-2 text-right font-semibold">KSh {Number(expense.amount || 0).toLocaleString()}</td>
                   </tr>
                 )
               })}
               <tr className="border-t-2 border-gray-300 dark:border-gray-600 font-bold">
                 <td colSpan="3" className="px-4 py-2 text-right">Total:</td>
-                <td className="px-4 py-2 text-right">KSh {filteredData.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</td>
+                <td className="px-4 py-2 text-right">KSh {filteredData.reduce((sum, e) => sum + (Number(e.amount) || 0), 0).toLocaleString()}</td>
               </tr>
             </tbody>
           </table>
@@ -518,7 +518,7 @@ export default function Reports() {
     }
 
     if (reportType === 'inventory') {
-      const totalValue = filteredData.reduce((sum, item) => sum + ((item.quantity || 0) * (item.unitPrice || 0)), 0)
+      const totalValue = filteredData.reduce((sum, item) => sum + ((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)), 0)
       return (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -537,8 +537,8 @@ export default function Reports() {
                   <td className="px-4 py-2 font-medium">{item.name}</td>
                   <td className="px-4 py-2">{item.category}</td>
                   <td className={`px-4 py-2 text-right ${item.quantity <= item.reorderLevel ? 'text-red-600 font-bold' : ''}`}>{item.quantity}</td>
-                  <td className="px-4 py-2 text-right">KSh {item.unitPrice?.toLocaleString() || '0'}</td>
-                  <td className="px-4 py-2 text-right font-semibold">KSh {((item.quantity || 0) * (item.unitPrice || 0)).toLocaleString()}</td>
+                  <td className="px-4 py-2 text-right">KSh {Number(item.unitPrice || 0).toLocaleString()}</td>
+                  <td className="px-4 py-2 text-right font-semibold">KSh {((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)).toLocaleString()}</td>
                 </tr>
               ))}
               <tr className="border-t-2 border-gray-300 dark:border-gray-600 font-bold">
@@ -621,22 +621,22 @@ export default function Reports() {
               <h3 className="font-bold text-green-800 dark:text-green-300 mb-2 flex items-center gap-2">
                 <TrendingUp size={18} /> Sales Summary
               </h3>
-              <p className="text-2xl font-bold">KSh {filteredData.sales.reduce((sum, s) => sum + s.amount, 0).toLocaleString()}</p>
-              <p className="text-sm text-gray-500">{filteredData.sales.length} Transactions</p>
+              <p className="text-2xl font-bold">KSh {(filteredData.sales || []).reduce((sum, s) => sum + (Number(s.amount) || 0), 0).toLocaleString()}</p>
+              <p className="text-sm text-gray-500">{(filteredData.sales || []).length} Transactions</p>
             </div>
             <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-800">
               <h3 className="font-bold text-red-800 dark:text-red-300 mb-2 flex items-center gap-2">
                 <TrendingDown size={18} /> Expenses Summary
               </h3>
-              <p className="text-2xl font-bold">KSh {filteredData.expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</p>
-              <p className="text-sm text-gray-500">{filteredData.expenses.length} Transactions</p>
+              <p className="text-2xl font-bold">KSh {(filteredData.expenses || []).reduce((sum, e) => sum + (Number(e.amount) || 0), 0).toLocaleString()}</p>
+              <p className="text-sm text-gray-500">{(filteredData.expenses || []).length} Transactions</p>
             </div>
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
               <h3 className="font-bold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
                 <Users size={18} /> Clients & Projects
               </h3>
-              <p className="text-2xl font-bold">{filteredData.clients.length} Clients</p>
-              <p className="text-sm text-gray-500">{filteredData.designs.length} Total Projects</p>
+              <p className="text-2xl font-bold">{(filteredData.clients || []).length} Clients</p>
+              <p className="text-sm text-gray-500">{(filteredData.designs || []).length} Total Projects</p>
             </div>
           </div>
           
@@ -706,15 +706,15 @@ export default function Reports() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
            <div className="card text-center py-5">
               <p className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Total Sales</p>
-              <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">KSh {data.sales.reduce((sum, s) => sum + s.amount, 0).toLocaleString()}</p>
+              <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">KSh {(data.sales || []).reduce((sum, s) => sum + (Number(s.amount) || 0), 0).toLocaleString()}</p>
            </div>
            <div className="card text-center py-5">
               <p className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Total Expenses</p>
-              <p className="text-2xl font-extrabold text-rose-600 dark:text-rose-400">KSh {data.expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</p>
+              <p className="text-2xl font-extrabold text-rose-600 dark:text-rose-400">KSh {(data.expenses || []).reduce((sum, e) => sum + (Number(e.amount) || 0), 0).toLocaleString()}</p>
            </div>
            <div className="card text-center py-5">
               <p className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Stock Value</p>
-              <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">KSh {data.inventory.reduce((sum, i) => sum + ((i.quantity || 0) * (i.unitPrice || 0)), 0).toLocaleString()}</p>
+              <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">KSh {(data.inventory || []).reduce((sum, i) => sum + ((Number(i.quantity) || 0) * (Number(i.unitPrice) || 0)), 0).toLocaleString()}</p>
            </div>
            <div className="card text-center py-5">
               <p className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Active Branch</p>

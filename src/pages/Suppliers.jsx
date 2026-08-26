@@ -317,31 +317,31 @@ export default function Suppliers() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredSuppliers.map((supplier) => {
-                const totalPurchases = getSupplierTotalExpenses(supplier.id)
-                const balance = getSupplierBalance(supplier.id)
+                const totalPurchases = getSupplierTotalExpenses(supplier.id) || 0
+                const balance = getSupplierBalance(supplier.id) || 0
 
                 return (
                   <tr key={supplier.id} className="hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors">
-                    <td className="px-6 py-4 text-sm font-bold text-gray-800 dark:text-white">
+                    <td className="px-6 py-4 text-sm font-bold text-slate-800 dark:text-white">
                       {supplier.name}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                       <div>{supplier.contact || 'No contact person'}</div>
-                      <div className="text-xs text-gray-400 font-mono">{supplier.phone}</div>
+                      <div className="text-xs text-slate-400 font-mono">{supplier.phone}</div>
                     </td>
-                    <td className="px-6 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
+                    <td className="px-6 py-4 text-sm font-mono text-slate-500 dark:text-slate-400">
                       {supplier.kra || '-'}
                     </td>
                     <td className="px-6 py-4 text-sm font-bold text-blue-600 dark:text-blue-400">
-                      KSh {totalPurchases.toLocaleString()}
+                      KSh {Number(totalPurchases || 0).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-sm font-bold whitespace-nowrap">
-                      <span className={`px-2.5 py-1 rounded-full text-xs ${
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
                         balance > 0 
-                          ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' 
-                          : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                          ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300' 
+                          : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
                       }`}>
-                        KSh {balance.toLocaleString()}
+                        KSh {Number(balance || 0).toLocaleString()}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
@@ -361,7 +361,7 @@ export default function Suppliers() {
                               }
                             }}
                             title="Delete Supplier"
-                            className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                            className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -374,19 +374,93 @@ export default function Suppliers() {
             </tbody>
           </table>
           {filteredSuppliers.length === 0 && (
-            <div className="p-10 text-center bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 space-y-4">
+            <div className="p-10 text-center bg-white dark:bg-slate-800 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 space-y-4">
               <div className="w-14 h-14 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto">
                 <Sparkles size={28} />
               </div>
               <div className="max-w-md mx-auto space-y-1">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-white">No Suppliers Found</h3>
-                <p className="text-xs text-gray-500">There are no suppliers matching your active search query.</p>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white">No Suppliers Found</h3>
+                <p className="text-xs text-slate-500">There are no suppliers matching your active search query.</p>
               </div>
               <button onClick={() => handleOpenSupplierModal()} className="btn-primary inline-flex items-center gap-2 py-2.5 px-5 text-xs font-bold shadow-lg">
                 <Plus size={16} />
                 Add Supplier Record
               </button>
             </div>
+          )}
+        </div>
+      )}
+
+      {/* Purchases Tab View */}
+      {tab === 'purchases' && (
+        <div className="card overflow-x-auto p-0">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-700">
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Date</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Supplier</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Type / Category</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Amount</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Remarks</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {(data.supplierExpenses || []).map((exp) => {
+                const sup = data.suppliers.find(s => s.id === exp.supplier)
+                return (
+                  <tr key={exp.id} className="hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors">
+                    <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{exp.date}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-slate-800 dark:text-white">{sup?.name || 'Unknown'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{exp.type || exp.cat || 'Purchase'}</td>
+                    <td className="px-6 py-4 text-sm font-extrabold text-blue-600 dark:text-blue-400">KSh {Number(exp.amount || 0).toLocaleString()}</td>
+                    <td className="px-6 py-4 text-sm">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${exp.payment_status === 'On Credit' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                        {exp.payment_status || 'Paid'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-500">{exp.remarks || '-'}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+          {(data.supplierExpenses || []).length === 0 && (
+            <div className="p-8 text-center text-slate-400 text-sm">No supplier purchases recorded yet.</div>
+          )}
+        </div>
+      )}
+
+      {/* Payments Tab View */}
+      {tab === 'payments' && (
+        <div className="card overflow-x-auto p-0">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-700">
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Date</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Supplier</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Amount Paid</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Payment Method</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Reference</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {(data.supplierPayments || []).map((pay) => {
+                const sup = data.suppliers.find(s => s.id === pay.supplier_id)
+                return (
+                  <tr key={pay.id} className="hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors">
+                    <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{pay.date}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-slate-800 dark:text-white">{sup?.name || 'Unknown'}</td>
+                    <td className="px-6 py-4 text-sm font-extrabold text-emerald-600 dark:text-emerald-400">KSh {Number(pay.amount || 0).toLocaleString()}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{pay.payment_method || 'Cash'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-500 font-mono text-xs">{pay.reference || '-'}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+          {(data.supplierPayments || []).length === 0 && (
+            <div className="p-8 text-center text-slate-400 text-sm">No supplier payments recorded yet.</div>
           )}
         </div>
       )}
