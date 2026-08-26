@@ -33,28 +33,59 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
 
-    try {
-      const { data: user, error: loginErr } = await supabase
-        .from('users')
-        .select('username, email, role, branch, pref_compact')
-        .eq('username', username.toLowerCase())
-        .eq('password', password)
-        .single()
+    const normalizedUsername = (username || '').trim().toLowerCase()
 
-      if (loginErr || !user) {
-        setError('Invalid username or password. Please try again.')
-        setLoading(false)
-        return
+    try {
+      // 1. Try secure cryptographic login RPC first
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('verify_user_login', {
+        p_username: normalizedUsername,
+        p_password: password
+      })
+
+      let authenticatedUser = null
+
+      if (!rpcErr && rpcRes) {
+        if (!rpcRes.success) {
+          setError(rpcRes.message || 'Invalid username or password. Please try again.')
+          return
+        }
+        authenticatedUser = rpcRes.user
+      } else {
+        // Fallback: direct query if RPC is not yet registered in SQL editor
+        const { data: user, error: loginErr } = await supabase
+          .from('users')
+          .select('username, email, role, branch, pref_compact')
+          .eq('username', normalizedUsername)
+          .eq('password', password)
+          .single()
+
+        if (loginErr || !user) {
+          setError('Invalid username or password. Please try again.')
+          return
+        }
+        authenticatedUser = user
       }
 
-      const sessionToken = Date.now().toString(36) + Math.random().toString(36).substr(2)
-      await updateUser(user.username, { session_token: sessionToken })
+      // Generate secure session token
+      const sessionToken = typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : (Date.now().toString(36) + Math.random().toString(36).substring(2))
 
-      login({ ...user, session_token: sessionToken })
+      try {
+        await supabase
+          .from('users')
+          .update({ session_token: sessionToken })
+          .eq('username', normalizedUsername)
+      } catch (tokenErr) {
+        console.warn('Session token update notice:', tokenErr)
+      }
+
+      login({ ...authenticatedUser, session_token: sessionToken })
       navigate('/')
     } catch (err) {
       console.error('Login failed:', err)
       setError('System error during login. Please try again.')
+    } finally {
       setLoading(false)
     }
   }
@@ -65,6 +96,7 @@ export default function LoginPage() {
     setChangePassSuccess('')
 
     const { username: userToChange, currentPassword, newPassword, confirmPassword } = changePassData
+    const normalizedUser = (userToChange || '').trim().toLowerCase()
 
     if (newPassword !== confirmPassword) {
       setChangePassError('New passwords do not match')
@@ -77,19 +109,36 @@ export default function LoginPage() {
     }
 
     try {
-      const { data: user, error: verifyErr } = await supabase
-        .from('users')
-        .select('username')
-        .eq('username', userToChange.toLowerCase())
-        .eq('password', currentPassword)
-        .single()
+      // 1. Try secure RPC
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('update_user_password_secure', {
+        p_username: normalizedUser,
+        p_old_password: currentPassword,
+        p_new_password: newPassword,
+        p_is_admin_override: false
+      })
 
-      if (verifyErr || !user) {
-        setChangePassError('Invalid username or current password')
-        return
+      if (!rpcErr && rpcRes) {
+        if (!rpcRes.success) {
+          setChangePassError(rpcRes.message || 'Failed to update password')
+          return
+        }
+      } else {
+        // Fallback: direct check & update
+        const { data: user, error: verifyErr } = await supabase
+          .from('users')
+          .select('username')
+          .eq('username', normalizedUser)
+          .eq('password', currentPassword)
+          .single()
+
+        if (verifyErr || !user) {
+          setChangePassError('Invalid username or current password')
+          return
+        }
+
+        await updateUser(normalizedUser, { password: newPassword })
       }
 
-      await updateUser(user.username, { password: newPassword })
       setChangePassSuccess('Password updated successfully! You can now login.')
       setChangePassData({ username: '', currentPassword: '', newPassword: '', confirmPassword: '' })
 
@@ -98,6 +147,7 @@ export default function LoginPage() {
         setChangePassSuccess('')
       }, 2500)
     } catch (err) {
+      console.error('Password change error:', err)
       setChangePassError('Failed to update password. Please try again.')
     }
   }

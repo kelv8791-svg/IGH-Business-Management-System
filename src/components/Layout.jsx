@@ -9,7 +9,7 @@ export default function Layout({ children }) {
   const { compactMode } = useAuth()
 
   return (
-    <div className={`flex h-screen overflow-hidden bg-slate-100 dark:bg-[#060d1a] ${compactMode ? 'compact' : ''}`}>
+    <div className={`flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0b1329] ${compactMode ? 'compact' : ''}`}>
       {/* Sidebar */}
       <div
         className={`${sidebarOpen ? 'w-56' : 'w-[72px]'} transition-all duration-300 flex-shrink-0`}

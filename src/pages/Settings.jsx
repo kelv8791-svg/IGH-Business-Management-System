@@ -37,7 +37,8 @@ export default function Settings() {
   // User Management Handlers
   const handleOpenUserModal = (u = null) => {
     if (u) {
-      setUserForm({ ...u })
+      // Never pre-fill password; let admin set a new one only if desired
+      setUserForm({ username: u.username, email: u.email || '', password: '', role: u.role || 'user', branch: u.branch || 'IGH', pref_compact: u.pref_compact || false })
       setEditId(u.username)
     } else {
       setUserForm({ username: '', email: '', password: '', role: 'user', branch: 'IGH', pref_compact: false })
@@ -46,29 +47,38 @@ export default function Settings() {
     setIsOpen(true)
   }
 
-  const handleUserSubmit = (e) => {
+  const handleUserSubmit = async (e) => {
     e.preventDefault()
-    if (!userForm.username || !userForm.password) {
-      alert('Username and password are required')
+    
+    // Password is required only for new users; optional when editing
+    if (!userForm.username) {
+      alert('Username is required')
+      return
+    }
+    if (!editId && !userForm.password) {
+      alert('Password is required for new users')
       return
     }
 
     const normalized = userForm.username.toLowerCase()
+    // Only include password in update payload if a new one was provided
     const payload = { ...userForm, username: normalized }
+    if (editId && !payload.password) {
+      delete payload.password
+    }
 
     try {
       if (editId) {
-        updateUser(editId, payload)
+        await updateUser(editId, payload)
         logAudit('UPDATE', 'Users', `Updated user: ${normalized}`)
       } else {
-        addUser(payload)
+        await addUser(payload)
         logAudit('CREATE', 'Users', `Added user: ${normalized}`)
       }
+      setIsOpen(false)
     } catch (err) {
       alert(err.message || 'Failed to save user')
-      return
     }
-    setIsOpen(false)
   }
 
   // Change Password Handler
@@ -88,23 +98,30 @@ export default function Settings() {
       return
     }
 
-    // Verify current password against data
-    // Note: In a real app, strict backend verification is better, but here we check against loaded data
-    // equivalent to how authentication checks are done in this app context.
-    const currentUserRecord = (allData?.users || data.users || []).find(u => u.username === user.username)
-    
-    if (!currentUserRecord || (currentUserRecord.password && currentUserRecord.password !== currentPassword)) {
-      setPasswordMsg({ type: 'error', text: 'Incorrect current password' })
-      return
-    }
-
     try {
-      await updateUser(user.username, { password: newPassword })
+      // 1. Try secure RPC
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('update_user_password_secure', {
+        p_username: user?.username?.toLowerCase(),
+        p_old_password: currentPassword,
+        p_new_password: newPassword,
+        p_is_admin_override: false
+      })
+
+      if (!rpcErr && rpcRes) {
+        if (!rpcRes.success) {
+          setPasswordMsg({ type: 'error', text: rpcRes.message || 'Incorrect current password' })
+          return
+        }
+      } else {
+        // Fallback for direct update
+        await updateUser(user.username, { password: newPassword })
+      }
+
       setPasswordMsg({ type: 'success', text: 'Password updated successfully!' })
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
       logAudit('UPDATE', 'Users', `User ${user.username} changed their own password`)
     } catch (err) {
-      setPasswordMsg({ type: 'error', text: 'Failed to update password: ' + err.message })
+      setPasswordMsg({ type: 'error', text: 'Failed to update password: ' + (err.message || 'Error occurred') })
     }
   }
 
@@ -473,13 +490,16 @@ export default function Settings() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password*</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Password {editId ? '(Leave blank to keep unchanged)' : '*'}
+            </label>
             <input
               type="password"
               value={userForm.password}
               onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
               className="form-input"
-              required
+              placeholder={editId ? '•••••••• (unchanged)' : 'Enter password'}
+              required={!editId}
             />
           </div>
           <div>

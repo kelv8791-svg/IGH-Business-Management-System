@@ -14,34 +14,41 @@
 }
 
 :root {
-  /* Brand token */
+  /* Vibrant Brand Tokens */
   --gold:          #f59e0b;
   --gold-dark:     #d97706;
   --gold-darker:   #b45309;
   --gold-light:    #fef3c7;
-  --gold-glow:     rgba(245, 158, 11, 0.25);
+  --gold-glow:     rgba(245, 158, 11, 0.28);
 
-  /* Light surface tokens */
-  --bg-page:       #f1f5f9;
+  --blue-brand:    #2563eb;
+  --blue-vibrant:  #3b82f6;
+  --blue-light:    #eff6ff;
+
+  --emerald-vibrant:#10b981;
+  --emerald-light:  #ecfdf5;
+
+  /* Lighter, Fresh Surface Tokens */
+  --bg-page:       #f8fafc;
   --bg-card:       #ffffff;
-  --bg-card-hover: #fafbfc;
-  --bg-subtle:     #f8fafc;
-  --border:        #e2e8f0;
+  --bg-card-hover: #fcfdfe;
+  --bg-subtle:     #f1f5f9;
+  --border:        rgba(226, 232, 240, 0.85);
   --border-muted:  #f1f5f9;
   --text-primary:  #0f172a;
   --text-secondary:#475569;
   --text-muted:    #94a3b8;
 
-  /* Dark surface tokens */
-  --dark-bg-page:       #060d1a;
-  --dark-bg-card:       #0f172a;
-  --dark-bg-card-hover: #131f33;
-  --dark-bg-subtle:     #0d1623;
-  --dark-border:        #1e2d45;
-  --dark-border-muted:  #162032;
-  --dark-text-primary:  #f1f5f9;
+  /* Modern Ambient Dark Tokens */
+  --dark-bg-page:       #0b1329;
+  --dark-bg-card:       #111c38;
+  --dark-bg-card-hover: #162447;
+  --dark-bg-subtle:     #0e172e;
+  --dark-border:        rgba(255, 255, 255, 0.08);
+  --dark-border-muted:  rgba(255, 255, 255, 0.04);
+  --dark-text-primary:  #f8fafc;
   --dark-text-secondary:#94a3b8;
-  --dark-text-muted:    #475569;
+  --dark-text-muted:    #64748b;
 }
 
 html {
@@ -52,7 +59,7 @@ html {
 }
 
 body {
-  @apply bg-slate-100 text-slate-900 dark:bg-[#060d1a] dark:text-slate-100;
+  @apply bg-slate-50 text-slate-900 dark:bg-[#0b1329] dark:text-slate-100;
   min-height: 100vh;
   line-height: 1.6;
 }

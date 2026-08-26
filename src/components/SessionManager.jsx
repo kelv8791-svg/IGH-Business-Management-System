@@ -10,6 +10,13 @@ export default function SessionManager() {
   const navigate = useNavigate()
   const processingLogout = useRef(false)
 
+  // Reset processing flag when user logs in or changes
+  useEffect(() => {
+    if (user) {
+      processingLogout.current = false
+    }
+  }, [user])
+
   // Function to handle logout
   const performLogout = () => {
     if (processingLogout.current) return
@@ -62,8 +69,8 @@ export default function SessionManager() {
     // Check immediately on mount
     checkSession()
 
-    // Then poll every 2 seconds
-    const intervalId = setInterval(checkSession, 2000)
+    // Then poll periodically (20 seconds fallback to conserve database limits)
+    const intervalId = setInterval(checkSession, 20000)
 
     return () => clearInterval(intervalId)
   }, [user]) // Only re-establish if user changes

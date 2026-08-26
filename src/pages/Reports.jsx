@@ -25,81 +25,85 @@ export default function Reports() {
   const { user } = useAuth()
   const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
   
-  const reportTypes = [
-    { 
-      value: 'sales', 
-      label: 'Sales Report', 
-      desc: 'Overview of all sales transactions and revenue.',
-      icon: <TrendingUp className="text-green-500" size={24} />,
-      color: 'border-green-500'
-    },
-    { 
-      value: 'expenses', 
-      label: 'Expense Report', 
-      desc: 'Track operational costs and categorical spending.',
-      icon: <TrendingDown className="text-red-500" size={24} />,
-      color: 'border-red-500'
-    },
-    { 
-      value: 'clients', 
-      label: 'Client Report', 
-      desc: 'Analysis of client relationships and lifetime value.',
-      icon: <Users className="text-blue-500" size={24} />,
-      color: 'border-blue-500'
-    },
-    { 
-      value: 'suppliers', 
-      label: 'Supplier Report', 
-      desc: 'Summary of supplier interactions and credit limits.',
-      icon: <Truck className="text-amber-500" size={24} />,
-      color: 'border-amber-500'
-    },
-    { 
-      value: 'supplierExpenses', 
-      label: 'Supplier Expenses', 
-      desc: 'Detailed log of purchases and supplier costs.',
-      icon: <ShoppingCart className="text-purple-500" size={24} />,
-      color: 'border-purple-500'
-    },
-    { 
-      value: 'inventory', 
-      label: 'Inventory Report', 
-      desc: 'Current stock levels, valuation, and reorder alerts.',
-      icon: <Package className="text-orange-500" size={24} />,
-      color: 'border-orange-500'
-    },
-    { 
-      value: 'stockMovement', 
-      label: 'Stock Movement', 
-      desc: 'Log of all stock additions, sales, and adjustments.',
-      icon: <History className="text-indigo-500" size={24} />,
-      color: 'border-indigo-500'
-    },
-    { 
-      value: 'full', 
-      label: 'Full System Report', 
-      desc: 'Comprehensive business overview across all modules.',
-      icon: <BarChart3 className="text-slate-500" size={24} />,
-      color: 'border-slate-500'
-    },
-  ].filter(r => {
-    if (user?.role !== 'admin') {
-      if (activeBranch === 'IGH' && r.value === 'inventory') return false
-      if (activeBranch === 'iGift' && r.value === 'designs') return false
-    }
-    return true
-  })
-
-  const hasDesigns = data.designs && data.designs.length > 0 && activeBranch !== 'iGift'
-  if (hasDesigns) {
-    reportTypes.splice(3, 0, {
-      value: 'designs',
-      label: 'Design Projects',
-      desc: 'Track project progress, designers, and project revenue.',
-      icon: <FileText className="text-cyan-500" size={24} />,
-      color: 'border-cyan-500'
+  const reportTypes = useMemo(() => {
+    const list = [
+      { 
+        value: 'sales', 
+        label: 'Sales Report', 
+        desc: 'Overview of all sales transactions and revenue.',
+        icon: <TrendingUp className="text-green-500" size={24} />,
+        color: 'border-green-500'
+      },
+      { 
+        value: 'expenses', 
+        label: 'Expense Report', 
+        desc: 'Track operational costs and categorical spending.',
+        icon: <TrendingDown className="text-red-500" size={24} />,
+        color: 'border-red-500'
+      },
+      { 
+        value: 'clients', 
+        label: 'Client Report', 
+        desc: 'Analysis of client relationships and lifetime value.',
+        icon: <Users className="text-blue-500" size={24} />,
+        color: 'border-blue-500'
+      },
+      { 
+        value: 'suppliers', 
+        label: 'Supplier Report', 
+        desc: 'Summary of supplier interactions and credit limits.',
+        icon: <Truck className="text-amber-500" size={24} />,
+        color: 'border-amber-500'
+      },
+      { 
+        value: 'supplierExpenses', 
+        label: 'Supplier Expenses', 
+        desc: 'Detailed log of purchases and supplier costs.',
+        icon: <ShoppingCart className="text-purple-500" size={24} />,
+        color: 'border-purple-500'
+      },
+      { 
+        value: 'inventory', 
+        label: 'Inventory Report', 
+        desc: 'Current stock levels, valuation, and reorder alerts.',
+        icon: <Package className="text-orange-500" size={24} />,
+        color: 'border-orange-500'
+      },
+      { 
+        value: 'stockMovement', 
+        label: 'Stock Movement', 
+        desc: 'Log of all stock additions, sales, and adjustments.',
+        icon: <History className="text-indigo-500" size={24} />,
+        color: 'border-indigo-500'
+      },
+      { 
+        value: 'full', 
+        label: 'Full System Report', 
+        desc: 'Comprehensive business overview across all modules.',
+        icon: <BarChart3 className="text-slate-500" size={24} />,
+        color: 'border-slate-500'
+      },
+    ].filter(r => {
+      if (user?.role !== 'admin') {
+        if (activeBranch === 'IGH' && r.value === 'inventory') return false
+        if (activeBranch === 'iGift' && r.value === 'designs') return false
+      }
+      return true
     })
-  }
+
+    const hasDesigns = data.designs && data.designs.length > 0 && activeBranch !== 'iGift'
+    if (hasDesigns) {
+      list.splice(3, 0, {
+        value: 'designs',
+        label: 'Design Projects',
+        desc: 'Track project progress, designers, and project revenue.',
+        icon: <FileText className="text-cyan-500" size={24} />,
+        color: 'border-cyan-500'
+      })
+    }
+
+    return list
+  }, [user, activeBranch, data.designs])
 
   const [reportType, setReportType] = useState(null)
   const [startDate, setStartDate] = useState('')
@@ -142,7 +146,9 @@ export default function Reports() {
       case 'stockMovement':
         return data.stockTransactions.filter(t => {
             if (!startDate || !endDate) return true
-            const date = t.created_at.split('T')[0]
+            const rawDate = t.created_at ?? t.date ?? null
+            if (!rawDate) return true
+            const date = rawDate.split('T')[0]
             return date >= startDate && date <= endDate
         })
       case 'full':

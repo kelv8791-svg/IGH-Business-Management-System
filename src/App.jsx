@@ -14,6 +14,7 @@ import Layout from './components/Layout'
 import ErrorBoundary from './components/ErrorBoundary'
 import { DataProvider, useData } from './context/DataContext'
 import AuthContext, { useAuth } from './context/AuthContext'
+import supabase from './lib/supabaseClient'
 
 function AppRoutes() {
   const { user } = useAuth()
@@ -105,7 +106,14 @@ function App() {
     localStorage.setItem('currentUser', JSON.stringify(userData))
   }
 
-  const logout = () => {
+  const logout = async () => {
+    if (user?.username) {
+      try {
+        await supabase.from('users').update({ session_token: null }).eq('username', user.username)
+      } catch (err) {
+        console.error('Failed to clear session_token on logout:', err)
+      }
+    }
     setUser(null)
     localStorage.removeItem('currentUser')
   }

@@ -122,8 +122,8 @@ export function DataProvider({ children }) {
           user ? buildQuery('inventory').order('name') : Promise.resolve({ data: [] }),
           user ? buildQuery('inventory_categories').order('name') : Promise.resolve({ data: [] }),
           user ? buildQuery('stock_transactions').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
-          supabase.from('audit').select('*').order('timestamp', { ascending: false }),
-          supabase.from('users').select('username, email, password, role, branch, pref_compact')
+          user ? (user.role === 'admin' ? supabase.from('audit').select('*').order('timestamp', { ascending: false }) : supabase.from('audit').select('*').eq('branch', user.branch).order('timestamp', { ascending: false })) : Promise.resolve({ data: [] }),
+          supabase.from('users').select('username, email, role, branch, pref_compact')
         ])
 
         if (usersErr) console.error('Error fetching users:', usersErr)
@@ -153,7 +153,7 @@ export function DataProvider({ children }) {
     fetchAllData()
   }, [user])
 
-  // Real-time subscriptions
+  // Real-time subscriptions with strict branch isolation
   useEffect(() => {
     const tables = ['sales', 'clients', 'designs', 'expenses', 'suppliers', 'supplier_expenses', 'supplier_payments', 'inventory', 'inventory_categories', 'stock_transactions', 'audit', 'users']
     
@@ -163,6 +163,14 @@ export function DataProvider({ children }) {
 
       return supabase.channel(`public:${table}`)
         .on('postgres_changes', { event: '*', schema: 'public', table }, (payload) => {
+          // Branch isolation check: if user is not admin and payload belongs to a different branch, ignore event
+          if (user && user.role !== 'admin' && table !== 'users') {
+            const eventBranch = payload.new?.branch || payload.old?.branch
+            if (eventBranch && eventBranch.toLowerCase() !== (user.branch || 'IGH').toLowerCase()) {
+              return
+            }
+          }
+
           setData(prev => {
             const list = prev[dataKey] || []
             if (payload.eventType === 'INSERT') {
@@ -187,11 +195,11 @@ export function DataProvider({ children }) {
     return () => {
       channels.forEach(channel => supabase.removeChannel(channel))
     }
-  }, [])
+  }, [user])
 
   // Helper for optimistic updates
   const updateLocalState = (table, action, record, idField = 'id') => {
-    const keyMap = { supplier_expenses: 'supplierExpenses', supplier_payments: 'supplierPayments', inventory_categories: 'inventoryCategories' }
+    const keyMap = { supplier_expenses: 'supplierExpenses', supplier_payments: 'supplierPayments', inventory_categories: 'inventoryCategories', stock_transactions: 'stockTransactions' }
     const dataKey = keyMap[table] || table
 
     setData(prev => {
@@ -451,13 +459,14 @@ export function DataProvider({ children }) {
       const saleAlreadyExists = data.sales.some(s => Number(s.designId) === Number(id))
       
       if (!saleAlreadyExists) {
+        const projectType = designBeforeUpdate.type || designBeforeUpdate.title || 'Design'
         const newSale = {
           id: Date.now() + Math.floor(Math.random() * 1000),
           date: updates.paymentDate || designBeforeUpdate.paymentDate || new Date().toISOString().split('T')[0],
           client: designBeforeUpdate.client,
-          dept: designBeforeUpdate.title || 'Design',
+          dept: projectType,
           amount: updates.paymentAmount || designBeforeUpdate.paymentAmount,
-          desc: `${designBeforeUpdate.title || 'Design'} - ${designBeforeUpdate.client}`,
+          desc: `${projectType} - ${designBeforeUpdate.client}`,
           source: 'Design Project',
           designId: id,
           paymentMethod: updates.paymentMethod || 'Cash',
@@ -484,9 +493,31 @@ export function DataProvider({ children }) {
   }
 
   const deleteDesign = async (id) => {
-    updateLocalState('designs', 'DELETE', { id })
-    await performAction('designs', 'DELETE', { id })
-    logAudit('DELETE', 'Design Projects', `Deleted design ID ${id}`)
+    try {
+      // Restore stock for any materials attached to this design project before deletion
+      const linkedMaterials = await getDesignMaterials(id)
+      if (Array.isArray(linkedMaterials) && linkedMaterials.length > 0) {
+        for (const mat of linkedMaterials) {
+          if (mat.item_id && (Number(mat.quantity_used) || 0) > 0) {
+            await addStockTransaction({
+              item_id: mat.item_id,
+              quantity_change: Number(mat.quantity_used),
+              transaction_type: 'PROJECT_RETURN',
+              reason: `Design project #${id} deleted. Returning material stock.`,
+              date: new Date().toISOString().split('T')[0],
+              created_by: user?.username || 'system'
+            })
+          }
+        }
+      }
+
+      updateLocalState('designs', 'DELETE', { id })
+      await performAction('designs', 'DELETE', { id })
+      logAudit('DELETE', 'Design Projects', `Deleted design ID ${id}`)
+    } catch (err) {
+      console.error('Delete design failed:', err)
+      throw err
+    }
   }
 
   // Expenses operations
@@ -628,16 +659,34 @@ export function DataProvider({ children }) {
   }
 
   const deleteSupplierExpense = async (id) => {
+    const expense = (data.supplierExpenses || []).find(e => e.id === id)
     updateLocalState('supplier_expenses', 'DELETE', { id })
-    await performAction('supplier_expenses', 'DELETE', { id })
-    logAudit('DELETE', 'Supplier Expenses', `Deleted supplier expense ID ${id}`)
+    try {
+      await performAction('supplier_expenses', 'DELETE', { id })
+      
+      // Reverse stock purchase if linked to inventory
+      if (expense && expense.inventory_item_id && (Number(expense.quantity) || 0) > 0) {
+        await addStockTransaction({
+          item_id: expense.inventory_item_id,
+          quantity_change: -Number(expense.quantity),
+          transaction_type: 'CORRECTION',
+          reason: `Supplier Expense #${id} deleted. Reversing stock purchase.`,
+          date: new Date().toISOString().split('T')[0],
+          created_by: user?.username || 'system'
+        })
+      }
+
+      logAudit('DELETE', 'Supplier Expenses', `Deleted supplier expense ID ${id}`)
+    } catch (err) {
+      console.error('Delete supplier expense failed:', err)
+      throw err
+    }
   }
 
   // Supplier Payments operations
   const addSupplierPayment = async (payment) => {
     const newPayment = {
       ...payment,
-      id: Number(Date.now().toString() + Math.floor(Math.random() * 1000).toString().padStart(3, '0')),
       amount: Number(payment.amount) || 0,
       branch: getPayloadBranch(payment.branch)
     }
@@ -741,7 +790,7 @@ export function DataProvider({ children }) {
     updateLocalState('inventory_categories', 'CREATE', newCat)
     try {
       await performAction('inventory_categories', 'CREATE', newCat)
-      logAudit('CREATE', 'Inventory', `Added category: ${name}`)
+      logAudit('CREATE', 'Inventory', `Added category: ${catName}`)
       return newCat
     } catch (err) {
       if (err.message?.includes("column") && err.message?.includes("branch")) {
@@ -776,12 +825,24 @@ export function DataProvider({ children }) {
   const updateUser = async (username, updates) => {
     const normalized = (username || '').toLowerCase()
     const userList = Array.isArray(data.users) ? data.users : []
-    const user = userList.find(u => u.username === normalized)
-    if (!user) return;
-    const updatedUser = { ...user, ...updates, username: (updates.username ? updates.username.toLowerCase() : user.username) }
+    const existingUser = userList.find(u => u.username === normalized)
+    
+    // Perform direct update in Supabase to ensure session_token or profile updates succeed reliably
+    const { data: updatedRows, error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('username', normalized)
+      .select('username, email, role, branch, pref_compact')
+      
+    if (error) {
+      console.error('Update user error:', error)
+      throw error
+    }
+
+    const updatedUser = { ...(existingUser || {}), ...updates, username: normalized }
     updateLocalState('users', 'UPDATE', updatedUser, 'username')
-    await performAction('users', 'UPDATE', updatedUser, 'username')
     logAudit('UPDATE', 'Users', `Updated user: ${normalized}`)
+    return updatedUser
   }
 
   const deleteUser = async (username) => {
@@ -797,30 +858,63 @@ export function DataProvider({ children }) {
     const item = transaction.item || inventoryList.find(i => Number(i.id) === Number(transaction.item_id))
     if (!item) throw new Error('Item not found')
 
-    const newQuantity = (item.quantity || 0) + transaction.quantity_change
+    const currentQty = Number(item.quantity) || 0
+    const change = Number(transaction.quantity_change) || 0
+    const newQuantity = currentQty + change
 
-    const newTransaction = { 
-      ...transaction, 
-      branch: getPayloadBranch(),
-      date: transaction.date || new Date().toISOString().split('T')[0]
+    // Item #17: Prevent negative stock overselling
+    if (newQuantity < 0) {
+      const msg = `Stock adjustment rejected: ${item.name} has only ${currentQty} units. Cannot deduct ${Math.abs(change)} units.`
+      alert(msg)
+      throw new Error(msg)
     }
-    
+
+    const payloadBranch = getPayloadBranch(transaction.branch || item.branch)
+    const transDate = transaction.date || new Date().toISOString().split('T')[0]
+
     try {
-        const { error: transError } = await supabase.from('stock_transactions').insert(newTransaction)
-        if (transError) throw transError
+      // Item #10: Try Atomic Stored Procedure RPC first
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('process_stock_transaction', {
+        p_item_id: item.id,
+        p_quantity_change: change,
+        p_transaction_type: transaction.transaction_type || 'ADJUSTMENT',
+        p_reason: transaction.reason || 'Stock Update',
+        p_date: transDate,
+        p_created_by: transaction.created_by || user?.username || 'system',
+        p_branch: payloadBranch
+      })
 
-        const { error: invError } = await supabase.from('inventory').update({ quantity: newQuantity }).eq('id', item.id)
-        if (invError) throw invError
-        
-        updateLocalState('inventory', 'UPDATE', { ...item, quantity: newQuantity })
+      if (!rpcErr && rpcRes && rpcRes.success) {
+        updateLocalState('inventory', 'UPDATE', { ...item, quantity: rpcRes.new_quantity })
+        logAudit('UPDATE', 'Inventory', `Adjusted stock for ${item.name}: ${change > 0 ? '+' : ''}${change} (${transaction.transaction_type})`)
+        return rpcRes.new_quantity
+      }
 
-        logAudit('UPDATE', 'Inventory', `Adjusted stock for ${item.name}: ${transaction.quantity_change > 0 ? '+' : ''}${transaction.quantity_change} (${transaction.transaction_type})`)
+      // Fallback if RPC is not installed in database yet
+      const newTransaction = { 
+        item_id: item.id,
+        quantity_change: change,
+        transaction_type: transaction.transaction_type || 'ADJUSTMENT',
+        reason: transaction.reason || 'Stock Update',
+        date: transDate,
+        created_by: transaction.created_by || user?.username || 'system',
+        branch: payloadBranch
+      }
+      
+      const { error: transError } = await supabase.from('stock_transactions').insert(newTransaction)
+      if (transError) throw transError
 
-        return newQuantity
+      const { error: invError } = await supabase.from('inventory').update({ quantity: newQuantity }).eq('id', item.id)
+      if (invError) throw invError
+      
+      updateLocalState('inventory', 'UPDATE', { ...item, quantity: newQuantity })
+      logAudit('UPDATE', 'Inventory', `Adjusted stock for ${item.name}: ${change > 0 ? '+' : ''}${change} (${transaction.transaction_type})`)
+
+      return newQuantity
     } catch (err) {
-        console.error('Stock transaction failed:', err)
-        alert('Failed to update stock! ' + err.message)
-        throw err
+      console.error('Stock transaction failed:', err)
+      alert('Failed to update stock! ' + err.message)
+      throw err
     }
   }
 
@@ -882,14 +976,14 @@ export function DataProvider({ children }) {
 
   // Audit operations
   const logAudit = async (action, module, details) => {
-    const currentUser = localStorage.getItem('currentUser')
-    const parsed = currentUser ? JSON.parse(currentUser) : null
-    const user = parsed ? (parsed.username || parsed.email || 'Unknown') : 'Unknown'
+    const activeUsername = user?.username || user?.email || 'Unknown'
+    const activeBranch = getPayloadBranch()
     const auditEntry = {
-      user,
+      user: activeUsername,
       action,
       module,
-      details
+      details,
+      branch: activeBranch
     }
     try {
       await supabase.from('audit').insert(auditEntry)
@@ -945,20 +1039,22 @@ export function DataProvider({ children }) {
     const inventoryList = Array.isArray(filteredData.inventory) ? filteredData.inventory : []
     const item = inventoryList.find(i => Number(i.id) === Number(id))
     if (!item) return 'Unknown'
-    if (item.quantity === 0) return 'Out of Stock'
-    if (item.quantity <= item.reorderLevel) return 'Low Stock'
+    if ((Number(item.quantity) || 0) <= 0) return 'Out of Stock'
+    if (item.reorderLevel !== null && item.reorderLevel !== undefined && Number(item.quantity) <= Number(item.reorderLevel)) return 'Low Stock'
     return 'In Stock'
   }
 
   const clearAllData = async () => {
-    const confirmation = window.confirm('Are you sure you want to clear all data from Supabase?')
+    const confirmation = window.confirm('CRITICAL WARNING: This will permanently wipe all operational data from the database. Continue?')
     if (!confirmation) return;
     
-    const tables = ['sales', 'clients', 'designs', 'expenses', 'suppliers', 'supplier_expenses', 'inventory', 'inventory_categories', 'audit', 'users']
+    // Complete list of all system tables
+    const tables = ['sales', 'clients', 'designs', 'expenses', 'suppliers', 'supplier_expenses', 'supplier_payments', 'inventory', 'inventory_categories', 'stock_transactions', 'design_materials', 'audit']
     for (const table of tables) {
-      await supabase.from(table).delete().neq(table === 'users' ? 'username' : 'id', -1)
+      await supabase.from(table).delete().neq('id', -1)
     }
-    await addUser({ username: 'admin', email: 'admin@igh.com', password: 'admin123', role: 'admin', pref_compact: false })
+    alert('All business operational records have been cleared successfully.')
+    window.location.reload()
   }
 
   const value = {

@@ -384,7 +384,15 @@ export default function Inventory() {
                         <FileText size={16} />
                       </button>
                       {user?.role === 'admin' && (
-                        <button onClick={() => deleteInventoryItem(item.id)} title="Delete Item" className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors">
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to permanently delete "${item.name}" (Stock: ${item.quantity} units)?`)) {
+                              deleteInventoryItem(item.id)
+                            }
+                          }}
+                          title="Delete Item"
+                          className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                        >
                           <Trash2 size={16} />
                         </button>
                       )}
