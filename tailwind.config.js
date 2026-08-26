@@ -8,40 +8,36 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Logo-aligned Orange, Yellow/Gold, Black & White Palette
+        // Executive White, Warm Gold/Amber & Charcoal Slate Palette
         brand: {
-          orange: '#f97316',
-          orangeDark: '#ea580c',
-          orangeLight: '#ffedd5',
           gold: '#f59e0b',
+          goldHover: '#d97706',
           goldLight: '#fef3c7',
           yellow: '#eab308',
-          black: '#0f172a',
+          charcoal: '#111827',
           obsidian: '#0b101d',
-          charcoal: '#151c2e',
+          graphite: '#1e293b',
+          muted: '#64748b',
         },
         primary: {
-          bg: '#f4f6fa',
+          bg: '#f8fafc',
           card: '#ffffff',
           text: '#0f172a',
           muted: '#64748b',
           gold: '#f59e0b',
-          orange: '#f97316',
           blue: '#2563eb',
           emerald: '#10b981',
           rose: '#f43f5e',
-          sidebar: '#0c101d',
-          sidebarLight: '#161f36',
+          sidebar: '#111827',
+          sidebarLight: '#1f2937',
         }
       },
       boxShadow: {
-        'card':        '0 2px 12px -2px rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.02)',
-        'card-hover':  '0 12px 32px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03)',
+        'card':        '0 2px 8px -1px rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.02)',
+        'card-hover':  '0 12px 28px -4px rgba(245, 158, 11, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04)',
         'card-dark':   '0 4px 20px 0 rgba(0, 0, 0, 0.45)',
-        'brand-glow':  '0 0 24px rgba(249, 115, 22, 0.25)',
-        'gold-glow':   '0 0 24px rgba(245, 158, 11, 0.25)',
-        'blue-glow':   '0 0 24px rgba(37, 99, 235, 0.25)',
-        'sidebar':     '4px 0 30px rgba(0, 0, 0, 0.12)',
+        'gold-glow':   '0 4px 20px -2px rgba(245, 158, 11, 0.35)',
+        'sidebar':     '4px 0 24px rgba(0, 0, 0, 0.18)',
         'topbar':      '0 1px 0 rgba(15, 23, 42, 0.06)',
       },
       borderRadius: {

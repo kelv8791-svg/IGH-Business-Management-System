@@ -259,7 +259,7 @@ export default function Dashboard() {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Executive Dashboard
             </h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60">
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50">
               {activeBranch === 'All' ? 'All Branches' : `${activeBranch} Branch`}
             </span>
           </div>
@@ -269,7 +269,7 @@ export default function Dashboard() {
         </div>
 
         {/* Date Filter Pill */}
-        <div className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-white dark:bg-[#10172a] border border-slate-200/80 dark:border-slate-800 shadow-sm">
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm">
           <Calendar size={15} className="text-slate-400" />
           <select
             value={period}

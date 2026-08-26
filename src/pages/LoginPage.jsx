@@ -98,54 +98,63 @@ export default function LoginPage() {
     const { username: userToChange, currentPassword, newPassword, confirmPassword } = changePassData
     const normalizedUser = (userToChange || '').trim().toLowerCase()
 
-    if (newPassword !== confirmPassword) {
-      setChangePassError('New passwords do not match')
+    if (!normalizedUser) {
+      setChangePassError('Please enter your username.')
       return
     }
-
     if (newPassword.length < 6) {
-      setChangePassError('New password must be at least 6 characters')
+      setChangePassError('New password must be at least 6 characters.')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setChangePassError('New passwords do not match.')
       return
     }
 
     try {
-      // 1. Try secure RPC
-      const { data: rpcRes, error: rpcErr } = await supabase.rpc('update_user_password_secure', {
+      // 1. Try secure RPC first
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('change_user_password', {
         p_username: normalizedUser,
-        p_old_password: currentPassword,
-        p_new_password: newPassword,
-        p_is_admin_override: false
+        p_current_password: currentPassword,
+        p_new_password: newPassword
       })
 
       if (!rpcErr && rpcRes) {
         if (!rpcRes.success) {
-          setChangePassError(rpcRes.message || 'Failed to update password')
+          setChangePassError(rpcRes.message || 'Current password incorrect.')
           return
         }
       } else {
-        // Fallback: direct check & update
-        const { data: user, error: verifyErr } = await supabase
+        // Fallback: verify and update directly
+        const { data: targetUser, error: findErr } = await supabase
           .from('users')
-          .select('username')
+          .select('id, username, password')
           .eq('username', normalizedUser)
           .eq('password', currentPassword)
           .single()
 
-        if (verifyErr || !user) {
-          setChangePassError('Invalid username or current password')
+        if (findErr || !targetUser) {
+          setChangePassError('Current password incorrect or user not found.')
           return
         }
 
-        await updateUser(normalizedUser, { password: newPassword })
+        const { error: updateErr } = await supabase
+          .from('users')
+          .update({ password: newPassword })
+          .eq('id', targetUser.id)
+
+        if (updateErr) {
+          setChangePassError('Failed to update password. Please try again.')
+          return
+        }
       }
 
-      setChangePassSuccess('Password updated successfully! You can now login.')
+      setChangePassSuccess('Password updated successfully! You can now log in.')
       setChangePassData({ username: '', currentPassword: '', newPassword: '', confirmPassword: '' })
-
       setTimeout(() => {
         setShowPasswordModal(false)
         setChangePassSuccess('')
-      }, 2500)
+      }, 1500)
     } catch (err) {
       console.error('Password change error:', err)
       setChangePassError('Failed to update password. Please try again.')
@@ -155,40 +164,36 @@ export default function LoginPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #060d1a 0%, #0f172a 40%, #1a0a2e 70%, #0f172a 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #0b101d 0%, #111827 50%, #0f172a 100%)' }}
     >
-      {/* ── Decorative Orbs ── */}
+      {/* ── Decorative Ambient Orbs ── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div
           className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20"
           style={{ background: 'radial-gradient(circle, #f59e0b 0%, transparent 70%)', filter: 'blur(60px)' }}
         />
         <div
-          className="absolute -bottom-40 -right-20 w-96 h-96 rounded-full opacity-15"
-          style={{ background: 'radial-gradient(circle, #7c3aed 0%, transparent 70%)', filter: 'blur(80px)' }}
+          className="absolute -bottom-40 -right-20 w-96 h-96 rounded-full opacity-10"
+          style={{ background: 'radial-gradient(circle, #f59e0b 0%, transparent 70%)', filter: 'blur(80px)' }}
         />
+        {/* Subtle grid pattern */}
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-5"
-          style={{ background: 'radial-gradient(circle, #f59e0b 0%, transparent 60%)', filter: 'blur(40px)' }}
-        />
-        {/* Grid pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.025]"
+          className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
-            backgroundSize: '50px 50px'
+            backgroundSize: '40px 40px'
           }}
         />
       </div>
 
       {/* ── Change Password Button ── */}
-      <div className="absolute top-5 right-5 z-20">
+      <div className="absolute top-4 right-4 z-20">
         <button
           onClick={() => setShowPasswordModal(true)}
-          className="flex items-center gap-2 text-slate-300 hover:text-white transition-all px-4 py-2.5 rounded-xl text-xs font-bold"
+          className="flex items-center gap-2 text-slate-300 hover:text-white transition-all px-3.5 py-2 rounded-xl text-xs font-bold"
           style={{
-            background: 'rgba(255,255,255,0.08)',
-            border: '1px solid rgba(255,255,255,0.12)',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.1)',
             backdropFilter: 'blur(12px)',
           }}
         >
@@ -200,38 +205,36 @@ export default function LoginPage() {
       {/* ── Login Card ── */}
       <div className="w-full max-w-md z-10 animate-slide-up">
         <div
-          className="rounded-3xl p-8 space-y-7"
+          className="rounded-3xl p-6 sm:p-8 space-y-6"
           style={{
-            background: 'rgba(15, 23, 42, 0.85)',
+            background: 'rgba(17, 24, 39, 0.92)',
             backdropFilter: 'blur(24px)',
             border: '1px solid rgba(255,255,255,0.08)',
-            boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(245,158,11,0.05) inset',
+            boxShadow: '0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(245,158,11,0.08) inset',
           }}
         >
           {/* Logo + Branding */}
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-3.5">
             <div className="flex justify-center">
               <div
                 className="p-2 rounded-2xl"
                 style={{
                   background: 'white',
-                  boxShadow: '0 0 0 4px rgba(245,158,11,0.2), 0 8px 32px rgba(0,0,0,0.4)',
+                  boxShadow: '0 0 0 3px rgba(245,158,11,0.25), 0 8px 24px rgba(0,0,0,0.3)',
                 }}
               >
                 <img
                   src="/logo.jpg"
                   alt="IGH Logo"
-                  className="h-20 w-auto rounded-xl object-contain"
+                  className="h-16 sm:h-20 w-auto rounded-xl object-contain"
                 />
               </div>
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-white tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
                 IGH Business Management
               </h1>
-              <p className="flex items-center justify-center gap-1.5 mt-2 text-xs font-semibold"
-                style={{ color: '#f59e0b' }}
-              >
+              <p className="flex items-center justify-center gap-1.5 mt-1.5 text-xs font-semibold text-amber-400">
                 <Sparkles size={13} />
                 Where Creativity Meets Excellence
               </p>
@@ -239,26 +242,24 @@ export default function LoginPage() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleLogin} className="space-y-5" autoComplete="off">
+          <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
             <div>
-              <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-1.5">
                 Username
               </label>
               <div className="relative">
                 <User
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
-                  size={17}
+                  size={16}
                 />
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 text-sm font-medium rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all"
                   style={{
                     background: 'rgba(255,255,255,0.05)',
                     border: '1px solid rgba(255,255,255,0.1)',
-                    '--tw-ring-color': 'rgba(245,158,11,0.4)',
-                    focusRingColor: 'rgba(245,158,11,0.4)',
                   }}
                   placeholder="Enter your username"
                   required
@@ -268,19 +269,19 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-1.5">
                 Password
               </label>
               <div className="relative">
                 <Lock
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
-                  size={17}
+                  size={16}
                 />
                 <input
                   type={showPw ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-12 py-3 text-sm font-medium rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 transition-all"
+                  className="w-full pl-10 pr-12 py-2.5 sm:py-3 text-sm font-medium rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all"
                   style={{
                     background: 'rgba(255,255,255,0.05)',
                     border: '1px solid rgba(255,255,255,0.1)',
@@ -301,7 +302,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl text-xs font-semibold"
+              <div className="flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold"
                 style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5' }}
               >
                 <AlertTriangle size={15} className="shrink-0 mt-0.5 text-rose-400" />
@@ -312,19 +313,19 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 text-sm font-extrabold uppercase tracking-wider rounded-xl text-white transition-all duration-200 shadow-gold-glow hover:shadow-gold-glow active:scale-[0.98]"
+              className="w-full py-3 text-sm font-extrabold uppercase tracking-wider rounded-xl text-slate-950 transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]"
               style={{
                 background: loading
                   ? 'rgba(245,158,11,0.5)'
-                  : 'linear-gradient(135deg, #f59e0b 0%, #d97706 60%, #b45309 100%)',
+                  : 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
               }}
             >
               {loading ? 'Signing In...' : 'Sign In to System'}
             </button>
           </form>
 
-          <div className="text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
-            <p className="text-[11px] text-slate-600">
+          <div className="text-center pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <p className="text-[11px] text-slate-500">
               Secure Access · Authorized IGH &amp; iGift Staff Only
             </p>
           </div>

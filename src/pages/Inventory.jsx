@@ -211,7 +211,7 @@ export default function Inventory() {
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Inventory Management</h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60">
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50">
               {activeBranch} Branch
             </span>
           </div>
@@ -342,7 +342,7 @@ export default function Inventory() {
               const itemValue = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)
 
               return (
-                <tr key={item.id} className="hover:bg-gray-50/70 dark:hover:bg-gray-700/50 transition-colors">
+                <tr key={item.id} className="hover:bg-amber-50/30 dark:hover:bg-slate-800/60 transition-colors">
                   <td className="px-6 py-4 text-sm">
                     <div className="font-bold text-gray-800 dark:text-white">{item.name}</div>
                     {item.sku && <div className="text-xs font-mono text-gray-400">SKU: {item.sku}</div>}

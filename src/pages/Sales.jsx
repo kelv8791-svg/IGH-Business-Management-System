@@ -190,7 +190,7 @@ export default function Sales() {
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Sales Management</h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60">
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50">
               {activeBranch} Branch
             </span>
           </div>
@@ -334,7 +334,7 @@ export default function Sales() {
                       </thead>
                       <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                         {group.sales.map((sale) => (
-                          <tr key={sale.id} className="hover:bg-gray-50/70 dark:hover:bg-gray-700/50 transition-colors">
+                          <tr key={sale.id} className="hover:bg-amber-50/30 dark:hover:bg-slate-800/60 transition-colors">
                             <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-800 dark:text-gray-200">{sale.date}</td>
                             <td className="px-6 py-4 text-sm">
                               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">

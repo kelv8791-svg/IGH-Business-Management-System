@@ -7,20 +7,20 @@ import {
   Sparkles
 } from 'lucide-react'
 
-export default function Sidebar({ open }) {
+export default function Sidebar({ open, onCloseMobile }) {
   const location = useLocation()
   const { user } = useAuth()
   const { selectedBranch } = useData()
 
   const navItems = [
-    { path: '/',                label: 'Dashboard',       icon: LayoutDashboard, color: 'text-sky-400'    },
-    { path: '/sales',           label: 'Sales',           icon: DollarSign,      color: 'text-emerald-400' },
-    { path: '/clients',         label: 'Clients',         icon: Users,           color: 'text-blue-400'   },
-    { path: '/design-projects', label: 'Design Projects', icon: Layers,          color: 'text-purple-400' },
-    { path: '/expenses',        label: 'Expenses',        icon: ShoppingCart,    color: 'text-rose-400'   },
-    { path: '/suppliers',       label: 'Suppliers',       icon: Briefcase,       color: 'text-amber-400'  },
-    { path: '/inventory',       label: 'Inventory',       icon: Package,         color: 'text-orange-400' },
-    { path: '/reports',         label: 'Reports',         icon: BarChart3,       color: 'text-indigo-400' },
+    { path: '/',                label: 'Dashboard',       icon: LayoutDashboard },
+    { path: '/sales',           label: 'Sales',           icon: DollarSign      },
+    { path: '/clients',         label: 'Clients',         icon: Users           },
+    { path: '/design-projects', label: 'Design Projects', icon: Layers          },
+    { path: '/expenses',        label: 'Expenses',        icon: ShoppingCart    },
+    { path: '/suppliers',       label: 'Suppliers',       icon: Briefcase       },
+    { path: '/inventory',       label: 'Inventory',       icon: Package         },
+    { path: '/reports',         label: 'Reports',         icon: BarChart3       },
   ].filter(item => {
     if (user?.role === 'admin') return true
     const branch = user?.branch || 'IGH'
@@ -31,12 +31,16 @@ export default function Sidebar({ open }) {
 
   const isActive = (path) => location.pathname === path
 
+  const handleNavClick = () => {
+    if (onCloseMobile) onCloseMobile()
+  }
+
   return (
     <aside
-      className="h-screen overflow-y-auto z-40 flex flex-col text-white flex-shrink-0 select-none"
+      className="h-full overflow-y-auto z-40 flex flex-col text-white flex-shrink-0 select-none"
       style={{
-        background: '#0d1322',
-        borderRight: '1px solid rgba(255, 255, 255, 0.07)',
+        background: '#111827',
+        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
         boxShadow: '4px 0 24px rgba(0, 0, 0, 0.25)',
       }}
     >
@@ -46,7 +50,7 @@ export default function Sidebar({ open }) {
         style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}
       >
         <div
-          className={`rounded-2xl overflow-hidden transition-all duration-300 shadow-md ring-2 ring-amber-500/30 ${open ? 'w-14 h-14' : 'w-10 h-10'}`}
+          className={`rounded-2xl overflow-hidden transition-all duration-300 shadow-md ring-2 ring-amber-500/40 ${open ? 'w-14 h-14' : 'w-10 h-10'}`}
           style={{ background: 'white' }}
         >
           <img
@@ -68,7 +72,7 @@ export default function Sidebar({ open }) {
       </div>
 
       {/* ── Navigation ── */}
-      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+      <nav className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto">
         {navItems.map(item => {
           const Icon = item.icon
           const active = isActive(item.path)
@@ -76,15 +80,16 @@ export default function Sidebar({ open }) {
             <Link
               key={item.path}
               to={item.path}
+              onClick={handleNavClick}
               title={!open ? item.label : undefined}
               className={`sidebar-nav-item ${active ? 'active' : ''}`}
             >
               <Icon
                 size={18}
-                className={`flex-shrink-0 transition-colors ${active ? 'text-white' : item.color}`}
+                className={`flex-shrink-0 transition-colors ${active ? 'text-slate-950' : 'text-slate-400'}`}
               />
               {open && (
-                <span className={`truncate ${active ? 'text-white font-bold' : 'text-slate-300 font-medium'}`}>
+                <span className={`truncate ${active ? 'text-slate-950 font-extrabold' : 'text-slate-300 font-medium'}`}>
                   {item.label}
                 </span>
               )}
@@ -100,15 +105,16 @@ export default function Sidebar({ open }) {
       >
         <Link
           to="/settings"
+          onClick={handleNavClick}
           title={!open ? 'Settings' : undefined}
           className={`sidebar-nav-item mb-2 ${isActive('/settings') ? 'active' : ''}`}
         >
           <Settings
             size={18}
-            className={`flex-shrink-0 ${isActive('/settings') ? 'text-white' : 'text-slate-400'}`}
+            className={`flex-shrink-0 ${isActive('/settings') ? 'text-slate-950' : 'text-slate-400'}`}
           />
           {open && (
-            <span className={`truncate ${isActive('/settings') ? 'text-white font-bold' : 'text-slate-300 font-medium'}`}>
+            <span className={`truncate ${isActive('/settings') ? 'text-slate-950 font-extrabold' : 'text-slate-300 font-medium'}`}>
               Settings
             </span>
           )}
@@ -123,8 +129,8 @@ export default function Sidebar({ open }) {
             }}
           >
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-black flex-shrink-0 shadow-sm"
-              style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)' }}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-amber-400 text-xs font-black flex-shrink-0 shadow-sm border border-amber-500/30"
+              style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)' }}
             >
               {(user?.username || user?.email || 'U').charAt(0).toUpperCase()}
             </div>
@@ -132,7 +138,7 @@ export default function Sidebar({ open }) {
               <p className="text-xs font-bold text-slate-200 truncate capitalize">
                 {user?.username || user?.email}
               </p>
-              <p className="text-[10px] text-amber-400/90 font-semibold truncate capitalize mt-1">
+              <p className="text-[10px] text-amber-400 font-semibold truncate capitalize mt-1">
                 {user?.role} · {user?.branch || 'IGH'}
               </p>
             </div>

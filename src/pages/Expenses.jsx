@@ -135,7 +135,7 @@ export default function Expenses() {
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Expenses Management</h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60">
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50">
               {activeBranch} Branch
             </span>
           </div>
@@ -268,7 +268,7 @@ export default function Expenses() {
                       </thead>
                       <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                         {group.expenses.map((expense) => (
-                          <tr key={expense.id} className="hover:bg-gray-50/70 dark:hover:bg-gray-700/50 transition-colors">
+                          <tr key={expense.id} className="hover:bg-amber-50/30 dark:hover:bg-slate-800/60 transition-colors">
                             <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-800 dark:text-gray-200">{expense.date}</td>
                             <td className="px-6 py-4 text-sm whitespace-nowrap">
                               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">

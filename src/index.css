@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────
-   GLOBAL ROOT TOKENS (Orange, Gold, Obsidian, White)
+   GLOBAL ROOT TOKENS (White, Warm Gold & Charcoal)
 ───────────────────────────────────────────── */
 *, *::before, *::after {
   margin: 0;
@@ -12,17 +12,17 @@
 }
 
 :root {
-  /* Brand Tokens matching IGH logo */
-  --brand-orange:      #f97316;
-  --brand-orange-dark: #ea580c;
+  /* Brand Accent Tokens */
   --brand-gold:        #f59e0b;
+  --brand-gold-dark:   #d97706;
+  --brand-gold-light:  #fef3c7;
   --brand-yellow:      #eab308;
-  --brand-glow:        rgba(249, 115, 22, 0.25);
+  --brand-glow:        rgba(245, 158, 11, 0.25);
 
-  /* Light Theme Surfaces */
-  --bg-page:           #f4f6fa;
+  /* Clean Light Theme Surfaces */
+  --bg-page:           #f8fafc;
   --bg-card:           #ffffff;
-  --bg-card-hover:     #fafbfe;
+  --bg-card-hover:     #fefdfb;
   --bg-subtle:         #f1f5f9;
   --border:            rgba(226, 232, 240, 0.85);
   --border-subtle:     rgba(241, 245, 249, 0.9);
@@ -30,10 +30,10 @@
   --text-secondary:    #475569;
   --text-muted:        #94a3b8;
 
-  /* Executive Dark Surfaces */
-  --dark-bg-page:      #0a0f1d;
-  --dark-bg-card:      #10172a;
-  --dark-bg-card-hover:#141d33;
+  /* Executive Charcoal Dark Surfaces */
+  --dark-bg-page:      #0b101d;
+  --dark-bg-card:      #111827;
+  --dark-bg-card-hover:#162035;
   --dark-bg-subtle:    #0e1424;
   --dark-border:       rgba(255, 255, 255, 0.08);
   --dark-border-subtle:rgba(255, 255, 255, 0.04);
@@ -50,9 +50,10 @@ html {
 }
 
 body {
-  @apply bg-[#f4f6fa] text-slate-900 dark:bg-[#0a0f1d] dark:text-slate-100;
+  @apply bg-[#f8fafc] text-slate-900 dark:bg-[#0b101d] dark:text-slate-100;
   min-height: 100vh;
   line-height: 1.6;
+  overflow-x: hidden;
 }
 
 /* ─────────────────────────────────────────────
@@ -80,18 +81,18 @@ body {
 ───────────────────────────────────────────── */
 @layer components {
 
-  /* ── Buttons ── */
+  /* ── Primary Gold Button ── */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2
-           px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white
-           transition-all duration-200 shadow-md select-none whitespace-nowrap
+           px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold text-slate-950
+           transition-all duration-200 shadow-sm select-none whitespace-nowrap
            hover:-translate-y-0.5 active:translate-y-0;
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #d97706 100%);
-    box-shadow: 0 4px 14px 0 rgba(249, 115, 22, 0.35);
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+    box-shadow: 0 4px 14px 0 rgba(245, 158, 11, 0.28);
   }
   .btn-primary:hover {
-    background: linear-gradient(135deg, #fb923c 0%, #f97316 50%, #ea580c 100%);
-    box-shadow: 0 6px 20px 0 rgba(249, 115, 22, 0.45);
+    background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%);
+    box-shadow: 0 6px 20px 0 rgba(245, 158, 11, 0.38);
   }
   .btn-primary:disabled {
     @apply opacity-50 cursor-not-allowed pointer-events-none;
@@ -153,31 +154,32 @@ body {
     @apply form-input cursor-pointer pr-8;
   }
 
-  /* ── Modern Cards ── */
+  /* ── Modern Cards with Captivating Hover ── */
   .card {
-    @apply bg-white dark:bg-[#10172a]
+    @apply bg-white dark:bg-[#111827]
            text-slate-900 dark:text-slate-100
-           rounded-2xl border border-slate-100 dark:border-slate-800/80
+           rounded-2xl border border-slate-200/70 dark:border-slate-800/80
            shadow-card dark:shadow-card-dark
-           transition-all duration-200 p-5 sm:p-6;
+           transition-all duration-300 p-5 sm:p-6;
   }
 
   .card:hover {
-    @apply border-slate-200/80 dark:border-slate-700/80;
+    @apply border-amber-200/60 dark:border-amber-500/30 -translate-y-0.5;
+    box-shadow: 0 12px 28px -4px rgba(245, 158, 11, 0.10), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
   }
 
   .card-glass {
-    @apply bg-white/80 dark:bg-slate-900/80
+    @apply bg-white/85 dark:bg-slate-900/85
            backdrop-blur-xl border border-white/60 dark:border-slate-700/50
            rounded-2xl shadow-card dark:shadow-card-dark
            text-slate-900 dark:text-slate-100
-           transition-all duration-200 p-5 sm:p-6;
+           transition-all duration-300 p-5 sm:p-6;
   }
 
   /* ── Executive KPI Card ── */
   .kpi-card {
     @apply card flex items-start justify-between p-5 gap-4
-           hover:shadow-card-hover hover:-translate-y-0.5;
+           hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300;
   }
 
   /* ── Badges ── */
@@ -186,6 +188,7 @@ body {
            text-xs font-bold rounded-full;
   }
 
+  .badge-gold    { @apply badge bg-amber-50  text-amber-800  dark:bg-amber-950/40  dark:text-amber-300  border border-amber-200/70 dark:border-amber-800/50; }
   .badge-success { @apply badge bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/50; }
   .badge-warning { @apply badge bg-amber-50  text-amber-700  dark:bg-amber-950/40  dark:text-amber-300  border border-amber-200/60 dark:border-amber-800/50; }
   .badge-danger  { @apply badge bg-rose-50   text-rose-700   dark:bg-rose-950/40   dark:text-rose-300   border border-rose-200/60 dark:border-rose-800/50; }
@@ -195,7 +198,7 @@ body {
 
   /* ── Section Title ── */
   .section-title {
-    @apply text-sm sm:text-base font-extrabold text-slate-800 dark:text-white mb-4 tracking-tight;
+    @apply text-sm sm:text-base font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight;
   }
 
   /* ── Divider ── */
@@ -230,7 +233,7 @@ body {
 }
 
 /* ─────────────────────────────────────────────
-   SIDEBAR STYLES (Clean Charcoal Obsidian Blend)
+   SIDEBAR STYLES (Clean Matte Charcoal Obsidian)
 ───────────────────────────────────────────── */
 .sidebar-nav-item {
   @apply flex items-center gap-3 px-3.5 py-2.5 rounded-xl
@@ -240,13 +243,14 @@ body {
 
 .sidebar-nav-item:hover {
   color: #f8fafc;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(245, 158, 11, 0.08);
 }
 
 .sidebar-nav-item.active {
-  color: #ffffff;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+  color: #0f172a;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+  font-weight: 700;
 }
 
 /* ─────────────────────────────────────────────
@@ -254,8 +258,8 @@ body {
 ───────────────────────────────────────────── */
 .topbar-btn {
   @apply p-2 rounded-xl text-slate-500 dark:text-slate-400
-         hover:bg-slate-100 dark:hover:bg-slate-800
-         hover:text-slate-800 dark:hover:text-slate-200
+         hover:bg-amber-50 dark:hover:bg-slate-800
+         hover:text-amber-600 dark:hover:text-amber-400
          transition-all duration-150;
 }
 
