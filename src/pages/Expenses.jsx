@@ -129,58 +129,58 @@ export default function Expenses() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6 rounded-2xl text-white shadow-xl">
+    <div className="space-y-6 animate-fade-in">
+      {/* Executive Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Expenses Management</h1>
-            <span className="px-3 py-1 text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/30 rounded-full">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Expenses Management</h1>
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60">
               {activeBranch} Branch
             </span>
           </div>
-          <p className="text-sm text-gray-300 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             Track operational costs, overhead expenditures, and categorical spending.
           </p>
         </div>
-        <button onClick={() => handleOpenModal()} className="btn-primary flex items-center gap-2 py-3 px-5 text-sm font-bold shadow-lg hover:shadow-primary-gold/20 transition-all">
-          <Plus size={18} />
-          Add Expense
+        <button onClick={() => handleOpenModal()} className="btn-primary flex items-center gap-2">
+          <Plus size={17} />
+          Add Expense Voucher
         </button>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Operational Expenses</p>
-            <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mt-1">KSh {stats.totalExpenditure.toLocaleString()}</h3>
-            <p className="text-xs text-gray-500 mt-1">{stats.count} recorded expense vouchers</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Expenditure</p>
+            <h3 className="text-2xl font-extrabold text-rose-500 dark:text-rose-400 mt-1.5 tracking-tight">KSh {stats.totalExpenditure.toLocaleString()}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">{stats.count} recorded expense vouchers</p>
           </div>
-          <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 rounded-xl">
-            <TrendingDown size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-500 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+            <TrendingDown size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Average Expense Voucher</p>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-1">KSh {Math.round(stats.avgExpense).toLocaleString()}</h3>
-            <p className="text-xs text-gray-500 mt-1">Average payout per entry</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Average Voucher</p>
+            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {Math.round(stats.avgExpense).toLocaleString()}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Average payout per entry</p>
           </div>
-          <div className="p-3 bg-purple-50 dark:bg-purple-900/30 text-purple-600 rounded-xl">
-            <Receipt size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
+            <Receipt size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Expense Categories</p>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-1">{categories.length} Active</h3>
-            <p className="text-xs text-gray-500 mt-1">Categorical cost centers</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Categories</p>
+            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">{categories.length} Cost Centers</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Categorical spending breakdown</p>
           </div>
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl">
-            <PieChart size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+            <PieChart size={20} />
           </div>
         </div>
       </div>
@@ -202,7 +202,7 @@ export default function Expenses() {
             <option value="">All Categories</option>
             {categories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-750 rounded-lg">
+          <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <span className="text-xs font-semibold text-gray-500 uppercase">Filtered Total:</span>
             <span className="font-extrabold text-red-600">KSh {stats.totalExpenditure.toLocaleString()}</span>
           </div>
@@ -238,7 +238,7 @@ export default function Expenses() {
               <div key={month} className="space-y-2">
                 <button
                   onClick={() => toggleMonth(month)}
-                  className="w-full flex justify-between items-center px-5 py-3.5 bg-white dark:bg-gray-800 rounded-xl border-l-4 border-red-500 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-750 transition-all group"
+                  className="w-full flex justify-between items-center px-5 py-3.5 bg-white dark:bg-gray-800 rounded-xl border-l-4 border-red-500 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group"
                 >
                   <div className="flex items-center gap-3">
                     <div className="text-gray-400 group-hover:text-red-500 transition-colors">

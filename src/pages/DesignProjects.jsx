@@ -173,42 +173,56 @@ export default function DesignProjects() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Design Projects</h1>
-        {noClientsWarning && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-lg text-sm">
-            <AlertCircle size={16} />
-            Add clients first
+    <div className="space-y-6 animate-fade-in">
+      {/* Executive Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Design Projects</h1>
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 border border-purple-200/60 dark:border-purple-800/60">
+              {activeBranch} Branch
+            </span>
           </div>
-        )}
-        <button
-          onClick={() => handleOpenModal()}
-          disabled={noClientsWarning}
-          title={noClientsWarning ? 'Add clients first' : ''}
-          className={`btn-primary flex items-center gap-2 ${noClientsWarning ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          <Plus size={20} />
-          Add Design
-        </button>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Track graphic design jobs, assign creators, and monitor milestone deliveries.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {noClientsWarning && (
+            <div className="flex items-center gap-2 px-3.5 py-2 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 rounded-xl text-xs font-bold border border-amber-200/60">
+              <AlertCircle size={15} />
+              Add clients first
+            </div>
+          )}
+          <button
+            onClick={() => handleOpenModal()}
+            disabled={noClientsWarning}
+            title={noClientsWarning ? 'Add clients first' : ''}
+            className={`btn-primary flex items-center gap-2 ${noClientsWarning ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <Plus size={17} />
+            Create Design Project
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="card grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="card p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
         <input
           type="text"
-          placeholder="Search by project type or client..."
+          placeholder="Search by project type, client or designer..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="form-input"
         />
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="form-input">
-          <option value="">All Statuses</option>
+          <option value="">All Project Statuses</option>
           {statuses.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Total Projects:</span>
-          <span className="font-bold text-blue-600">{filteredDesigns.length}</span>
+        <div className="flex items-center justify-between px-4 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Filtered Projects:</span>
+          <span className="font-extrabold text-purple-600 dark:text-purple-400">{filteredDesigns.length}</span>
         </div>
       </div>
 
@@ -216,23 +230,23 @@ export default function DesignProjects() {
       <div className="card overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700">
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Date</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Type</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Client</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Designer</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Amount</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Completion</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Payment Status</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Payment Amount</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Handover</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
+            <tr className="border-b border-slate-200 dark:border-slate-700">
+              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Date</th>
+              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Type</th>
+              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Client</th>
+              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Designer</th>
+              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Amount</th>
+              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Completion</th>
+              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Payment Status</th>
+              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Payment Amount</th>
+              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Handover</th>
+              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredDesigns.map((design, idx) => (
-              <tr key={design.id} className={`border-b border-gray-200 dark:border-gray-700 ${idx % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : ''} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}>
+              <tr key={design.id} className={`border-b border-slate-100 dark:border-slate-800 ${idx % 2 === 0 ? 'bg-slate-50/50 dark:bg-slate-800/30' : ''} hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors`}>
                 <td className="px-6 py-3 text-sm">{design.date}</td>
                 <td className="px-6 py-3 text-sm font-medium">{design.type}</td>
                 <td className="px-6 py-3 text-sm">{design.client}</td>

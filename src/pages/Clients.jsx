@@ -157,69 +157,71 @@ export default function Clients() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6 rounded-2xl text-white shadow-xl">
+    <div className="space-y-6 animate-fade-in">
+      {/* Executive Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Clients Directory</h1>
-            <span className="px-3 py-1 text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-full">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Clients Directory</h1>
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60">
               {activeBranch} Branch
             </span>
           </div>
-          <p className="text-sm text-gray-300 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             Manage customer relationships, track purchase histories, and issue statements of accounts.
           </p>
         </div>
-        <button onClick={() => handleOpenModal()} className="btn-primary flex items-center gap-2 py-3 px-5 text-sm font-bold shadow-lg hover:shadow-primary-gold/20 transition-all">
-          <Plus size={18} />
-          Add Client
+        <button onClick={() => handleOpenModal()} className="btn-primary flex items-center gap-2">
+          <Plus size={17} />
+          Add Client Record
         </button>
       </div>
 
       {/* KPI Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered Clients</p>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-1">{metrics.totalClients}</h3>
-            <p className="text-xs text-gray-500 mt-1">Total client portfolio</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Accounts</p>
+            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">{metrics.totalClients}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Registered accounts</p>
           </div>
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl">
-            <Users size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+            <Users size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Purchasing Clients</p>
-            <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">{metrics.activeClientsCount}</h3>
-            <p className="text-xs text-gray-500 mt-1">Clients with recorded sales</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Gross Client Invoicing</p>
+            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {metrics.totalVolume.toLocaleString()}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Historical billings</p>
           </div>
-          <div className="p-3 bg-green-50 dark:bg-green-900/30 text-green-600 rounded-xl">
-            <UserCheck size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
+            <DollarSign size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Client Revenue Generated</p>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-1">KSh {metrics.totalRevenue.toLocaleString()}</h3>
-            <p className="text-xs text-gray-500 mt-1">Lifetime total revenue</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Collected Receivables</p>
+            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">KSh {metrics.totalPaid.toLocaleString()}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Settled client payments</p>
           </div>
-          <div className="p-3 bg-purple-50 dark:bg-purple-900/30 text-purple-600 rounded-xl">
-            <DollarSign size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+            <CheckCircle2 size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Avg Lifetime Value</p>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-1">KSh {Math.round(metrics.avgSpend).toLocaleString()}</h3>
-            <p className="text-xs text-gray-500 mt-1">Average spend per client</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Pending Receivables</p>
+            <h3 className={`text-2xl font-extrabold mt-1.5 tracking-tight ${metrics.totalPending > 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
+              KSh {metrics.totalPending.toLocaleString()}
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">Outstanding client balances</p>
           </div>
-          <div className="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 rounded-xl">
-            <ShoppingBag size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-500 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+            <CreditCard size={20} />
           </div>
         </div>
       </div>

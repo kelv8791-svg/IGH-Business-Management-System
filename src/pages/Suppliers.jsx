@@ -195,99 +195,101 @@ export default function Suppliers() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6 rounded-2xl text-white shadow-xl">
+    <div className="space-y-6 animate-fade-in">
+      {/* Executive Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Suppliers Management</h1>
-            <span className="px-3 py-1 text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Suppliers Management</h1>
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60">
               {activeBranch} Branch
             </span>
           </div>
-          <p className="text-sm text-gray-300 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             Manage vendor details, track supplier purchases, credit balances, and payments.
           </p>
         </div>
-        <button onClick={() => handleOpenSupplierModal()} className="btn-primary flex items-center gap-2 py-3 px-5 text-sm font-bold shadow-lg hover:shadow-primary-gold/20 transition-all">
-          <Plus size={18} />
-          Add Supplier
+        <button onClick={() => handleOpenSupplierModal()} className="btn-primary flex items-center gap-2">
+          <Plus size={17} />
+          Add Supplier Record
         </button>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Active Suppliers</p>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-1">{metrics.totalSuppliers}</h3>
-            <p className="text-xs text-gray-500 mt-1">Registered vendors</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Vendors</p>
+            <h3 className="text-2xl font-extrabold text-amber-500 dark:text-amber-400 mt-1.5 tracking-tight">{metrics.totalSuppliers}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Registered suppliers</p>
           </div>
-          <div className="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 rounded-xl">
-            <Truck size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+            <Truck size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Purchases Volume</p>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-1">KSh {metrics.totalPurchases.toLocaleString()}</h3>
-            <p className="text-xs text-gray-500 mt-1">Supplier expenses logged</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Purchases Volume</p>
+            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">KSh {metrics.totalPurchases.toLocaleString()}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Supplier expenses logged</p>
           </div>
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl">
-            <Receipt size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+            <Receipt size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Outstanding Credit Balance</p>
-            <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mt-1">KSh {metrics.totalOutstanding.toLocaleString()}</h3>
-            <p className="text-xs text-gray-500 mt-1">Total pending credit owed</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Pending Credit Owed</p>
+            <h3 className={`text-2xl font-extrabold mt-1.5 tracking-tight ${metrics.totalOutstanding > 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
+              KSh {metrics.totalOutstanding.toLocaleString()}
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">Total credit balance pending</p>
           </div>
-          <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 rounded-xl">
-            <CreditCard size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-500 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+            <CreditCard size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Payments Settled</p>
-            <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">KSh {metrics.totalPaymentsMade.toLocaleString()}</h3>
-            <p className="text-xs text-gray-500 mt-1">Disbursed supplier payments</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Payments Settled</p>
+            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">KSh {metrics.totalPaymentsMade.toLocaleString()}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Disbursed supplier payments</p>
           </div>
-          <div className="p-3 bg-green-50 dark:bg-green-900/30 text-green-600 rounded-xl">
-            <CheckCircle2 size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+            <CheckCircle2 size={20} />
           </div>
         </div>
       </div>
 
       {/* Navigation Tabs & Filter Bar */}
-      <div className="card p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-4">
+      <div className="card space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-750 rounded-xl">
+          <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800/60 rounded-2xl">
             <button
               onClick={() => setTab('directory')}
-              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${tab === 'directory' ? 'bg-white dark:bg-gray-800 text-gray-800 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`px-5 py-2 text-xs font-bold rounded-xl transition-all duration-200 ${tab === 'directory' ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
             >
               Supplier Directory ({filteredSuppliers.length})
             </button>
             <button
               onClick={() => setTab('purchases')}
-              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${tab === 'purchases' ? 'bg-white dark:bg-gray-800 text-gray-800 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`px-5 py-2 text-xs font-bold rounded-xl transition-all duration-200 ${tab === 'purchases' ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
             >
               Purchases Log ({(data.supplierExpenses || []).length})
             </button>
             <button
               onClick={() => setTab('payments')}
-              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${tab === 'payments' ? 'bg-white dark:bg-gray-800 text-gray-800 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`px-5 py-2 text-xs font-bold rounded-xl transition-all duration-200 ${tab === 'payments' ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
             >
               Payments Log ({(data.supplierPayments || []).length})
             </button>
           </div>
 
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-3 text-gray-400" size={16} />
+            <Search className="absolute left-3 top-3 text-slate-400" size={16} />
             <input
               type="text"
               placeholder="Search suppliers..."
@@ -301,25 +303,25 @@ export default function Suppliers() {
 
       {/* Directory Tab View */}
       {tab === 'directory' && (
-        <div className="card overflow-x-auto p-0 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="card overflow-x-auto p-0">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-800/80">
-                <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Supplier Name</th>
-                <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Contact Person & Phone</th>
-                <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">KRA PIN</th>
-                <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Total Purchases</th>
-                <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Outstanding Credit Balance</th>
-                <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+              <tr className="border-b border-slate-200 dark:border-slate-700">
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Supplier Name</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Contact Person & Phone</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">KRA PIN</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Purchases</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Outstanding Credit</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredSuppliers.map((supplier) => {
                 const totalPurchases = getSupplierTotalExpenses(supplier.id)
                 const balance = getSupplierBalance(supplier.id)
 
                 return (
-                  <tr key={supplier.id} className="hover:bg-gray-50/70 dark:hover:bg-gray-700/50 transition-colors">
+                  <tr key={supplier.id} className="hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors">
                     <td className="px-6 py-4 text-sm font-bold text-gray-800 dark:text-white">
                       {supplier.name}
                     </td>

@@ -205,77 +205,77 @@ export default function Inventory() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6 rounded-2xl text-white shadow-xl">
+    <div className="space-y-6 animate-fade-in">
+      {/* Executive Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Inventory Management</h1>
-            <span className="px-3 py-1 text-xs font-semibold bg-primary-gold/20 text-primary-gold border border-primary-gold/30 rounded-full">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Inventory Management</h1>
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60">
               {activeBranch} Branch
             </span>
           </div>
-          <p className="text-sm text-gray-300 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             Monitor stock levels, manage reorder thresholds, and track stock movements.
           </p>
         </div>
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex gap-2.5 flex-wrap">
           {(user?.branch === 'iGift' || user?.role === 'admin') && (
-            <button onClick={() => setIsCategoryModalOpen(true)} className="btn-secondary flex items-center gap-2 py-3 px-4 text-sm font-bold shadow">
-              <Plus size={18} />
+            <button onClick={() => setIsCategoryModalOpen(true)} className="btn-secondary">
+              <Plus size={16} />
               Add Category
             </button>
           )}
-          <button onClick={() => handleOpenModal()} className="btn-primary flex items-center gap-2 py-3 px-5 text-sm font-bold shadow-lg hover:shadow-primary-gold/20 transition-all">
-            <Plus size={18} />
-            Add Item
+          <button onClick={() => handleOpenModal()} className="btn-primary">
+            <Plus size={16} />
+            Add Inventory Item
           </button>
         </div>
       </div>
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Stock Valuation</p>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-1">KSh {metrics.totalValuation.toLocaleString()}</h3>
-            <p className="text-xs text-gray-500 mt-1">{metrics.totalCount} active items</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Stock Valuation</p>
+            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {metrics.totalValuation.toLocaleString()}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">{metrics.totalCount} active inventory items</p>
           </div>
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl">
-            <Boxes size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+            <Boxes size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">In Stock SKUs</p>
-            <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">{metrics.inStock}</h3>
-            <p className="text-xs text-gray-500 mt-1">Sufficient inventory levels</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">In Stock SKUs</p>
+            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">{metrics.inStock}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Sufficient inventory levels</p>
           </div>
-          <div className="p-3 bg-green-50 dark:bg-green-900/30 text-green-600 rounded-xl">
-            <CheckCircle size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+            <CheckCircle size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Low Stock Alerts</p>
-            <h3 className="text-xl font-bold text-amber-600 dark:text-amber-400 mt-1">{metrics.lowStock}</h3>
-            <p className="text-xs text-gray-500 mt-1">At or below reorder level</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Low Stock Alerts</p>
+            <h3 className="text-2xl font-extrabold text-amber-500 dark:text-amber-400 mt-1.5 tracking-tight">{metrics.lowStock}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">At or below reorder level</p>
           </div>
-          <div className="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 rounded-xl">
-            <AlertCircle size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+            <AlertCircle size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Out of Stock</p>
-            <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mt-1">{metrics.outOfStock}</h3>
-            <p className="text-xs text-gray-500 mt-1">Needs urgent restock</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Out of Stock</p>
+            <h3 className="text-2xl font-extrabold text-rose-500 dark:text-rose-400 mt-1.5 tracking-tight">{metrics.outOfStock}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Needs immediate restock</p>
           </div>
-          <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 rounded-xl">
-            <AlertTriangle size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-500 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+            <AlertTriangle size={20} />
           </div>
         </div>
       </div>
@@ -303,7 +303,7 @@ export default function Inventory() {
             <option value="Low Stock">Low Stock</option>
             <option value="Out of Stock">Out of Stock</option>
           </select>
-          <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-750 rounded-lg">
+          <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <span className="text-xs font-semibold text-gray-500 uppercase">Filtered Items:</span>
             <span className="font-extrabold text-primary-gold">{filteredItems.length}</span>
           </div>

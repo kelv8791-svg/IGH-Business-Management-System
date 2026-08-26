@@ -33,20 +33,20 @@ export default function Sidebar({ open }) {
 
   return (
     <aside
-      className="h-screen overflow-y-auto z-40 flex flex-col text-white flex-shrink-0"
+      className="h-screen overflow-y-auto z-40 flex flex-col text-white flex-shrink-0 select-none"
       style={{
-        background: 'linear-gradient(180deg, #0d1627 0%, #0f172a 50%, #140c2e 100%)',
-        boxShadow: '4px 0 32px rgba(0,0,0,0.35)',
-        borderRight: '1px solid rgba(255,255,255,0.04)',
+        background: '#0d1322',
+        borderRight: '1px solid rgba(255, 255, 255, 0.07)',
+        boxShadow: '4px 0 24px rgba(0, 0, 0, 0.25)',
       }}
     >
       {/* ── Logo / Branding ── */}
       <div
         className="flex flex-col items-center justify-center py-5 px-3"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+        style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}
       >
         <div
-          className={`rounded-2xl overflow-hidden transition-all duration-300 shadow-gold-glow ring-1 ring-amber-500/20 ${open ? 'w-16 h-16' : 'w-11 h-11'}`}
+          className={`rounded-2xl overflow-hidden transition-all duration-300 shadow-md ring-2 ring-amber-500/30 ${open ? 'w-14 h-14' : 'w-10 h-10'}`}
           style={{ background: 'white' }}
         >
           <img
@@ -56,19 +56,19 @@ export default function Sidebar({ open }) {
           />
         </div>
         {open && (
-          <div className="mt-3 text-center">
-            <p className="text-xs font-extrabold text-amber-400 uppercase tracking-widest leading-none">
-              IGH · iGift
+          <div className="mt-2.5 text-center">
+            <p className="text-xs font-black text-amber-400 uppercase tracking-widest leading-tight">
+              IGH · iGIFT
             </p>
-            <p className="text-[10px] text-slate-500 mt-1 leading-tight">
-              Where Creativity<br />Meets Excellence
+            <p className="text-[10px] text-slate-400 font-medium mt-0.5 leading-tight">
+              Where Creativity Meets Excellence
             </p>
           </div>
         )}
       </div>
 
       {/* ── Navigation ── */}
-      <nav className="flex-1 py-4 px-2.5 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
         {navItems.map(item => {
           const Icon = item.icon
           const active = isActive(item.path)
@@ -80,11 +80,11 @@ export default function Sidebar({ open }) {
               className={`sidebar-nav-item ${active ? 'active' : ''}`}
             >
               <Icon
-                size={20}
-                className={`flex-shrink-0 transition-colors ${active ? 'text-amber-300' : item.color} opacity-${active ? '100' : '75'}`}
+                size={18}
+                className={`flex-shrink-0 transition-colors ${active ? 'text-white' : item.color}`}
               />
               {open && (
-                <span className={`text-sm font-semibold truncate transition-colors ${active ? 'text-amber-300' : 'text-slate-300'}`}>
+                <span className={`truncate ${active ? 'text-white font-bold' : 'text-slate-300 font-medium'}`}>
                   {item.label}
                 </span>
               )}
@@ -93,37 +93,49 @@ export default function Sidebar({ open }) {
         })}
       </nav>
 
-      {/* ── Settings ── */}
+      {/* ── Settings & User Info ── */}
       <div
-        className="px-2.5 pb-4"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
+        className="px-3 pb-4 pt-2"
+        style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}
       >
-        <div className="pt-3">
-          <Link
-            to="/settings"
-            title={!open ? 'Settings' : undefined}
-            className={`sidebar-nav-item ${isActive('/settings') ? 'active' : ''}`}
-          >
-            <Settings
-              size={20}
-              className={`flex-shrink-0 ${isActive('/settings') ? 'text-amber-300' : 'text-slate-500'}`}
-            />
-            {open && (
-              <span className={`text-sm font-semibold truncate ${isActive('/settings') ? 'text-amber-300' : 'text-slate-400'}`}>
-                Settings
-              </span>
-            )}
-          </Link>
-        </div>
+        <Link
+          to="/settings"
+          title={!open ? 'Settings' : undefined}
+          className={`sidebar-nav-item mb-2 ${isActive('/settings') ? 'active' : ''}`}
+        >
+          <Settings
+            size={18}
+            className={`flex-shrink-0 ${isActive('/settings') ? 'text-white' : 'text-slate-400'}`}
+          />
+          {open && (
+            <span className={`truncate ${isActive('/settings') ? 'text-white font-bold' : 'text-slate-300 font-medium'}`}>
+              Settings
+            </span>
+          )}
+        </Link>
+
         {open && (
-          <div className="mt-3 mx-2 p-2.5 rounded-xl" style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.12)' }}>
-            <div className="flex items-center gap-2">
-              <Sparkles size={12} className="text-amber-400 flex-shrink-0" />
-              <p className="text-[10px] text-amber-400/70 font-semibold leading-tight">
-                {user?.username} · {user?.role}
+          <div
+            className="flex items-center gap-2.5 p-2 rounded-xl"
+            style={{
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.08)'
+            }}
+          >
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-black flex-shrink-0 shadow-sm"
+              style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)' }}
+            >
+              {(user?.username || user?.email || 'U').charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1 leading-none">
+              <p className="text-xs font-bold text-slate-200 truncate capitalize">
+                {user?.username || user?.email}
+              </p>
+              <p className="text-[10px] text-amber-400/90 font-semibold truncate capitalize mt-1">
+                {user?.role} · {user?.branch || 'IGH'}
               </p>
             </div>
-            <p className="text-[10px] text-slate-600 mt-0.5 pl-4">{user?.branch}</p>
           </div>
         )}
       </div>

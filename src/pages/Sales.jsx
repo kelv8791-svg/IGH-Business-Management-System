@@ -184,69 +184,69 @@ export default function Sales() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6 rounded-2xl text-white shadow-xl">
+    <div className="space-y-6 animate-fade-in">
+      {/* Executive Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Sales Management</h1>
-            <span className="px-3 py-1 text-xs font-semibold bg-primary-gold/20 text-primary-gold border border-primary-gold/30 rounded-full">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Sales Management</h1>
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60">
               {activeBranch} Branch
             </span>
           </div>
-          <p className="text-sm text-gray-300 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             Record, track, and monitor real-time sales transactions for {activeBranch === 'iGift' ? 'iGift Shop' : 'IGH'}.
           </p>
         </div>
-        <button onClick={() => handleOpenModal()} className="btn-primary flex items-center gap-2 py-3 px-5 text-sm font-bold shadow-lg hover:shadow-primary-gold/20 transition-all">
-          <Plus size={18} />
-          Add Sale
+        <button onClick={() => handleOpenModal()} className="btn-primary flex items-center gap-2">
+          <Plus size={17} />
+          Add Sale Record
         </button>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Sales Volume</p>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-1">KSh {stats.totalRev.toLocaleString()}</h3>
-            <p className="text-xs text-gray-500 mt-1">{stats.count} recorded sales</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Sales Volume</p>
+            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">KSh {stats.totalRev.toLocaleString()}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">{stats.count} recorded sales</p>
           </div>
-          <div className="p-3 bg-green-50 dark:bg-green-900/30 text-green-600 rounded-xl">
-            <TrendingUp size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+            <TrendingUp size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Collected Revenue</p>
-            <h3 className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">KSh {stats.paidRev.toLocaleString()}</h3>
-            <p className="text-xs text-gray-500 mt-1">Fully paid transactions</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Settled Revenue</p>
+            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">KSh {stats.paidRev.toLocaleString()}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Fully collected payments</p>
           </div>
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl">
-            <CheckCircle2 size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+            <CheckCircle2 size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Avg Sale Ticket</p>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-1">KSh {Math.round(stats.avgSale).toLocaleString()}</h3>
-            <p className="text-xs text-gray-500 mt-1">Per transaction average</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Pending Collections</p>
+            <h3 className="text-2xl font-extrabold text-amber-500 dark:text-amber-400 mt-1.5 tracking-tight">{stats.pendingCount} invoices</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Awaiting customer payout</p>
           </div>
-          <div className="p-3 bg-purple-50 dark:bg-purple-900/30 text-purple-600 rounded-xl">
-            <DollarSign size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+            <Clock size={20} />
           </div>
         </div>
 
-        <div className="card bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-750 shadow-sm flex items-center justify-between">
+        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Pending Status</p>
-            <h3 className="text-xl font-bold text-amber-600 dark:text-amber-400 mt-1">{stats.pendingCount}</h3>
-            <p className="text-xs text-gray-500 mt-1">Awaiting completion</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Average Transaction</p>
+            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {Math.round(stats.avgSale).toLocaleString()}</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Average checkout value</p>
           </div>
-          <div className="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 rounded-xl">
-            <Clock size={24} />
+          <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
+            <DollarSign size={20} />
           </div>
         </div>
       </div>
@@ -298,7 +298,7 @@ export default function Sales() {
               <div key={month} className="space-y-2">
                 <button
                   onClick={() => toggleMonth(month)}
-                  className="w-full flex justify-between items-center px-5 py-3.5 bg-white dark:bg-gray-800 rounded-xl border-l-4 border-primary-gold shadow-sm hover:bg-gray-50 dark:hover:bg-gray-750 transition-all group"
+                  className="w-full flex justify-between items-center px-5 py-3.5 bg-white dark:bg-gray-800 rounded-xl border-l-4 border-primary-gold shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group"
                 >
                   <div className="flex items-center gap-3">
                     <div className="text-gray-400 group-hover:text-primary-gold transition-colors">
