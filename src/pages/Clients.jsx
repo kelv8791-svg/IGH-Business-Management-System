@@ -15,7 +15,9 @@ import {
   ShoppingBag, 
   RotateCcw, 
   Sparkles,
-  UserCheck
+  UserCheck,
+  CheckCircle2,
+  CreditCard
 } from 'lucide-react'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'

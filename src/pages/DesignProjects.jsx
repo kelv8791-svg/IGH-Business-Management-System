@@ -7,6 +7,7 @@ import { Plus, Edit2, Trash2, AlertCircle, Package, X } from 'lucide-react'
 export default function DesignProjects() {
   const { data, addDesign, updateDesign, deleteDesign, addDesignMaterial, getDesignMaterials, deleteDesignMaterial, addExpense, deleteExpense, selectedBranch } = useData()
   const { user } = useAuth()
+  const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
   const [isOpen, setIsOpen] = useState(false)
   const [editId, setEditId] = useState(null)
   const [search, setSearch] = useState('')
