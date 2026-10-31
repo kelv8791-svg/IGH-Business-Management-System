@@ -189,12 +189,12 @@ export default function Sales() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Sales Management</h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] tracking-tight">Sales Management</h1>
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 text-amber-900 border border-amber-300">
               {activeBranch} Branch
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-[#334155] font-semibold mt-1">
             Record, track, and monitor real-time sales transactions for {activeBranch === 'iGift' ? 'iGift Shop' : 'IGH'}.
           </p>
         </div>
@@ -206,56 +206,56 @@ export default function Sales() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Sales Volume</p>
-            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">KSh {(stats.totalRev || 0).toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">{(stats.count || 0)} recorded sales</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Total Sales Volume</p>
+            <h3 className="text-2xl font-black text-blue-700 mt-1.5 tracking-tight">KSh {(stats.totalRev || 0).toLocaleString()}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">{(stats.count || 0)} recorded sales</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center flex-shrink-0">
             <TrendingUp size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Settled Revenue</p>
-            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">KSh {(stats.paidRev || 0).toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Fully collected payments</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Settled Revenue</p>
+            <h3 className="text-2xl font-black text-emerald-700 mt-1.5 tracking-tight">KSh {(stats.paidRev || 0).toLocaleString()}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Fully collected payments</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center flex-shrink-0">
             <CheckCircle2 size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Pending Collections</p>
-            <h3 className="text-2xl font-extrabold text-amber-500 dark:text-amber-400 mt-1.5 tracking-tight">{(stats.pendingCount || 0)} invoices</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Awaiting customer payout</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Pending Collections</p>
+            <h3 className="text-2xl font-black text-amber-600 mt-1.5 tracking-tight">{(stats.pendingCount || 0)} invoices</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Awaiting customer payout</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
             <Clock size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Average Transaction</p>
-            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {Math.round(stats.avgSale || 0).toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Average checkout value</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Average Transaction</p>
+            <h3 className="text-2xl font-black text-[#0F172A] mt-1.5 tracking-tight">KSh {Math.round(stats.avgSale || 0).toLocaleString()}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Average checkout value</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center flex-shrink-0">
             <DollarSign size={20} />
           </div>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="card p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-3">
+      <div className="card p-4 bg-white rounded-xl border border-[#CBD5E1] shadow-sm space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div className="relative">
-            <Search className="absolute left-3 top-3 text-gray-400" size={16} />
+            <Search className="absolute left-3 top-3 text-[#334155]" size={16} />
             <input
               type="text"
               placeholder="Search description, client..."
@@ -279,9 +279,9 @@ export default function Sales() {
         </div>
 
         {hasActiveFilters && (
-          <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-500">
+          <div className="flex justify-between items-center pt-2 border-t border-[#E2E8F0] text-xs font-semibold text-[#334155]">
             <span>Showing filtered results ({filteredSales.length} records)</span>
-            <button onClick={resetFilters} className="text-primary-gold hover:underline flex items-center gap-1 font-semibold">
+            <button onClick={resetFilters} className="text-[#F97316] hover:underline flex items-center gap-1 font-bold">
               <RotateCcw size={12} />
               Reset Filters
             </button>
@@ -298,98 +298,98 @@ export default function Sales() {
               <div key={month} className="space-y-2">
                 <button
                   onClick={() => toggleMonth(month)}
-                  className="w-full flex justify-between items-center px-5 py-3.5 bg-white dark:bg-gray-800 rounded-xl border-l-4 border-primary-gold shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group"
+                  className="w-full flex justify-between items-center px-5 py-3.5 bg-white rounded-xl border-l-4 border-[#F97316] border border-[#CBD5E1] shadow-sm hover:bg-[#FFF7ED] transition-all group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="text-gray-400 group-hover:text-primary-gold transition-colors">
+                    <div className="text-[#69778A] group-hover:text-[#F97316] transition-colors">
                       {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                     </div>
-                    <h2 className="text-lg font-bold text-gray-800 dark:text-white">{month}</h2>
-                    <span className="px-2.5 py-0.5 text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
+                    <h2 className="text-lg font-black text-[#0F172A] group-hover:text-[#F97316] transition-colors">{month}</h2>
+                    <span className="px-2.5 py-0.5 text-xs font-bold bg-[#F1F5F9] text-[#14243B] border border-[#CBD5E1] rounded-full">
                       {group.sales.length} sales
                     </span>
                   </div>
-                  <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
+                  <span className="text-sm font-black text-emerald-700">
                     KSh {Number(group.total || 0).toLocaleString()}
                   </span>
                 </button>
                 
                 {isExpanded && (
-                  <div className="card overflow-x-auto p-0 rounded-xl border border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="card overflow-x-auto p-0 rounded-xl border border-[#CBD5E1] animate-in fade-in slide-in-from-top-1 duration-200">
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-800/80">
-                          <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
-                          <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Sale Type</th>
-                          <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Description / Ref</th>
-                          <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Status & Payment</th>
+                        <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+                          <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Date</th>
+                          <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Sale Type</th>
+                          <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Description / Ref</th>
+                          <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Status & Payment</th>
                           {isIGH ? (
-                             <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Handed Over</th>
+                             <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Handed Over</th>
                           ) : (
-                             <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Qty Sold</th>
+                             <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Qty Sold</th>
                           )}
-                          <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Amount</th>
-                          <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                          <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Amount</th>
+                          <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                      <tbody className="divide-y divide-[#E2E8F0]">
                         {group.sales.map((sale) => (
-                          <tr key={sale.id} className="hover:bg-amber-50/30 dark:hover:bg-slate-800/60 transition-colors">
-                            <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-800 dark:text-gray-200">{sale.date}</td>
+                          <tr key={sale.id} className="transition-all">
+                            <td className="px-6 py-4 text-sm font-bold whitespace-nowrap text-[#0F172A]">{sale.date}</td>
                             <td className="px-6 py-4 text-sm">
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                                <Tag size={12} className="text-gray-400" />
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold bg-[#EEF3FA] text-[#14243B] border border-[#CBD5E1]">
+                                <Tag size={12} className="text-[#F97316]" />
                                 {sale.dept}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs truncate">
-                              <div className="font-semibold text-gray-800 dark:text-white truncate">{sale.desc || 'No description'}</div>
-                              {sale.client && <div className="text-xs text-gray-400">Client: {sale.client}</div>}
-                              {sale.paymentRef && <div className="text-xs text-blue-500 font-mono">Ref: {sale.paymentRef}</div>}
+                            <td className="px-6 py-4 text-sm text-[#334155] max-w-xs truncate">
+                              <div className="font-bold text-[#0F172A] truncate">{sale.desc || 'No description'}</div>
+                              {sale.client && <div className="text-xs font-semibold text-[#475569] mt-0.5">Client: {sale.client}</div>}
+                              {sale.paymentRef && <div className="text-xs text-blue-700 font-mono font-bold mt-0.5">Ref: {sale.paymentRef}</div>}
                             </td>
                             <td className="px-6 py-4 text-sm whitespace-nowrap">
                               <div className="flex flex-col gap-1">
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold w-fit ${
                                   sale.paymentStatus === 'Paid'
-                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                                     : sale.paymentStatus === 'Pending'
-                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
-                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300'
+                                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                    : 'bg-blue-100 text-blue-800 border border-blue-300'
                                 }`}>
                                   {sale.paymentStatus || 'Pending'}
                                 </span>
-                                <span className="text-xs text-gray-400">{sale.paymentMethod}</span>
+                                <span className="text-xs font-semibold text-[#475569]">{sale.paymentMethod}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4 text-sm whitespace-nowrap">
                               {isIGH ? (
                                 sale.handed_over ? (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                                     <PackageCheck size={13} />
                                     Handed Over
                                   </span>
                                 ) : (
-                                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-[#334155] border border-slate-300">
                                     Pending Handover
                                   </span>
                                 )
                               ) : (
                                 sale.qty_sold ? (
-                                  <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                  <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">
                                     {sale.qty_sold} units
                                   </span>
                                 ) : (
-                                  <span className="text-gray-400 text-xs">-</span>
+                                  <span className="text-[#64748B] text-xs font-bold">-</span>
                                 )
                               )}
                             </td>
-                            <td className="px-6 py-4 text-sm font-extrabold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                            <td className="px-6 py-4 text-sm font-black text-emerald-700 whitespace-nowrap">
                               KSh {Number(sale.amount || 0).toLocaleString()}
                             </td>
                             <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
                               <div className="flex justify-end gap-2">
                                 {user?.role === 'admin' && (
-                                  <button onClick={() => handleOpenModal(sale)} title="Edit Sale (Admin Only)" className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
+                                  <button onClick={() => handleOpenModal(sale)} title="Edit Sale (Admin Only)" className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-all hover:scale-110">
                                     <Edit2 size={16} />
                                   </button>
                                 )}
@@ -401,7 +401,7 @@ export default function Sales() {
                                       }
                                     }}
                                     title="Delete Sale (Admin Only)"
-                                    className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                    className="p-1.5 text-red-600 hover:bg-red-100 rounded-lg transition-all hover:scale-110"
                                   >
                                     <Trash2 size={16} />
                                   </button>

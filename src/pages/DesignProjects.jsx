@@ -179,19 +179,19 @@ export default function DesignProjects() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Design Projects</h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] tracking-tight">Design Projects</h1>
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 text-amber-900 border border-amber-300">
               {activeBranch} Branch
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-[#334155] font-semibold mt-1">
             Track graphic design jobs, assign creators, and monitor milestone deliveries.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {noClientsWarning && (
-            <div className="flex items-center gap-2 px-3.5 py-2 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 rounded-xl text-xs font-bold border border-amber-200/60">
+            <div className="flex items-center gap-2 px-3.5 py-2 bg-amber-50 text-amber-800 rounded-xl text-xs font-bold border border-amber-300">
               <AlertCircle size={15} />
               Add clients first
             </div>
@@ -209,7 +209,7 @@ export default function DesignProjects() {
       </div>
 
       {/* Filters */}
-      <div className="card p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="card p-4 bg-white rounded-xl border border-[#CBD5E1] shadow-sm grid grid-cols-1 md:grid-cols-3 gap-3">
         <input
           type="text"
           placeholder="Search by project type, client or designer..."
@@ -221,82 +221,115 @@ export default function DesignProjects() {
           <option value="">All Project Statuses</option>
           {statuses.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <div className="flex items-center justify-between px-4 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Filtered Projects:</span>
-          <span className="font-extrabold text-purple-600 dark:text-purple-400">{filteredDesigns.length}</span>
+        <div className="flex items-center justify-between px-4 py-2 bg-[#F1F5F9] border border-[#E2E8F0] rounded-xl">
+          <span className="text-xs font-bold text-[#334155] uppercase">Filtered Projects:</span>
+          <span className="font-black text-[#F97316]">{filteredDesigns.length}</span>
         </div>
       </div>
 
       {/* Table */}
-      <div className="card overflow-x-auto">
+      <div className="card overflow-x-auto p-0 rounded-xl border border-[#CBD5E1]">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-700">
-              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Date</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Type</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Client</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Designer</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Amount</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Completion</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Payment Status</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Payment Amount</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Handover</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold text-slate-400 uppercase tracking-widest">Actions</th>
+            <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Date</th>
+              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Type</th>
+              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Client</th>
+              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Designer</th>
+              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Amount</th>
+              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Completion</th>
+              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Payment Status</th>
+              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Payment Amount</th>
+              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Handover</th>
+              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {filteredDesigns.map((design, idx) => (
-              <tr key={design.id} className={`border-b border-slate-100 dark:border-slate-800 ${idx % 2 === 0 ? 'bg-slate-50/50 dark:bg-slate-800/30' : ''} hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors`}>
-                <td className="px-6 py-3 text-sm">{design.date}</td>
-                <td className="px-6 py-3 text-sm font-medium">{design.type}</td>
-                <td className="px-6 py-3 text-sm">{design.client}</td>
-                <td className="px-6 py-3 text-sm">{(data.users.find(u => u.username === design.assignedTo)?.username) || design.assignedTo}</td>
-                <td className="px-6 py-3 text-sm font-semibold text-emerald-600 dark:text-emerald-400">KSh {Number(design.amount || 0).toLocaleString()}</td>
-                <td className="px-6 py-3 text-sm text-slate-600 dark:text-slate-400">{design.completion}</td>
-                <td className="px-6 py-3 text-sm">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    design.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
-                    design.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                    design.status === 'Pending' ? 'bg-amber-100 text-amber-800' :
-                    'bg-purple-100 text-purple-800'
+          <tbody className="divide-y divide-[#E2E8F0]">
+            {filteredDesigns.map((design) => (
+              <tr key={design.id} className="transition-all hover:bg-orange-50/40 cursor-default">
+                <td className="px-5 py-3.5 text-sm font-bold text-[#0F172A] whitespace-nowrap">{design.date}</td>
+                <td className="px-5 py-3.5 text-sm font-bold text-[#0F172A]">{design.type}</td>
+                <td className="px-5 py-3.5 text-sm text-[#0F172A] font-semibold">{design.client}</td>
+                <td className="px-5 py-3.5 text-sm text-[#334155] font-semibold">{(data.users.find(u => u.username === design.assignedTo)?.username) || design.assignedTo || '—'}</td>
+                <td className="px-5 py-3.5 text-sm font-black text-emerald-700 whitespace-nowrap">KSh {Number(design.amount || 0).toLocaleString()}</td>
+                <td className="px-5 py-3.5 text-sm font-semibold text-[#334155] whitespace-nowrap">{design.completion || '—'}</td>
+
+                {/* Status badge */}
+                <td className="px-5 py-3.5 text-sm">
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-extrabold tracking-wide border ${
+                    design.status === 'Completed'
+                      ? 'bg-emerald-600 text-white border-emerald-700'
+                      : design.status === 'In Progress'
+                      ? 'bg-blue-600 text-white border-blue-700'
+                      : design.status === 'Pending'
+                      ? 'bg-amber-500 text-white border-amber-600'
+                      : 'bg-purple-600 text-white border-purple-700'
                   }`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/70 flex-shrink-0" />
                     {design.status}
                   </span>
                 </td>
-                <td className="px-6 py-3 text-sm">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    design.paymentStatus === 'Full' ? 'bg-emerald-100 text-emerald-800' :
-                    design.paymentStatus === 'Partial' ? 'bg-amber-100 text-amber-800' :
-                    'bg-slate-100 text-slate-800'
+
+                {/* Payment Status badge */}
+                <td className="px-5 py-3.5 text-sm">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-extrabold tracking-wide border ${
+                    design.paymentStatus === 'Full'
+                      ? 'bg-emerald-600 text-white border-emerald-700'
+                      : design.paymentStatus === 'Partial'
+                      ? 'bg-amber-500 text-white border-amber-600'
+                      : 'bg-[#64748B] text-white border-[#475569]'
                   }`}>
                     {design.paymentStatus || 'Not Started'}
                   </span>
                 </td>
-                <td className="px-6 py-3 text-sm font-semibold text-amber-600 dark:text-amber-400">KSh {Number(design.paymentAmount || 0).toLocaleString()}</td>
-                <td className="px-6 py-3 text-sm">
+
+                <td className="px-5 py-3.5 text-sm font-black text-[#0F172A] whitespace-nowrap">KSh {Number(design.paymentAmount || 0).toLocaleString()}</td>
+
+                {/* Handover badge */}
+                <td className="px-5 py-3.5 text-sm">
                   {design.handedOver ? (
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">Handed</span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-emerald-600 text-white border border-emerald-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white/70" />Handed
+                    </span>
                   ) : (
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">Not handed</span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-[#64748B] text-white border border-[#475569]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white/40" />Pending
+                    </span>
                   )}
                 </td>
-                <td className="px-6 py-3 text-sm flex gap-2">
-                  {(user?.role === 'admin' || user?.role === 'designer') && (
-                    <button onClick={() => handleOpenModal(design)} className="btn-secondary p-2">
-                      <Edit2 size={16} />
-                    </button>
-                  )}
-                  {(user?.role === 'admin' || user?.role === 'designer') && (
-                    <button onClick={() => handleOpenMaterials(design)} className="btn-secondary p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100" title="Manage Materials">
-                      <Package size={16} />
-                    </button>
-                  )}
-                  {user?.role === 'admin' && (
-                    <button onClick={() => deleteDesign(design.id)} className="btn-danger p-2">
-                      <Trash2 size={16} />
-                    </button>
-                  )}
+
+                {/* Action buttons */}
+                <td className="px-5 py-3.5">
+                  <div className="flex items-center gap-2">
+                    {(user?.role === 'admin' || user?.role === 'designer') && (
+                      <button
+                        onClick={() => handleOpenModal(design)}
+                        title="Edit Project"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all"
+                      >
+                        <Edit2 size={13} /> Edit
+                      </button>
+                    )}
+                    {(user?.role === 'admin' || user?.role === 'designer') && (
+                      <button
+                        onClick={() => handleOpenMaterials(design)}
+                        title="Manage Materials"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all"
+                      >
+                        <Package size={13} /> Materials
+                      </button>
+                    )}
+                    {user?.role === 'admin' && (
+                      <button
+                        onClick={() => deleteDesign(design.id)}
+                        title="Delete Project"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all"
+                      >
+                        <Trash2 size={13} /> Delete
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

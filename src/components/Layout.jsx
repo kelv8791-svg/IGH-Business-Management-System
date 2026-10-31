@@ -28,11 +28,15 @@ export default function Layout({ children }) {
   }, [])
 
   return (
-    <div className={`flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0b101d] ${compactMode ? 'compact' : ''}`}>
+    <div
+      className={`flex h-screen overflow-hidden ${compactMode ? 'compact' : ''}`}
+      style={{ background: 'var(--igh-bg)' }}
+    >
       {/* Mobile Drawer Overlay Backdrop */}
       {isMobile && sidebarOpen && (
         <div
-          className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 transition-opacity duration-300 animate-fade-in"
+          className="fixed inset-0 z-40 transition-opacity duration-300 animate-fade-in"
+          style={{ background: 'rgba(0,0,0,0.70)', backdropFilter: 'blur(4px)' }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -58,7 +62,10 @@ export default function Layout({ children }) {
       {/* Main content Area */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Topbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 md:p-6 animate-fade-in">
+        <main
+          className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 md:p-6 animate-fade-in"
+          style={{ background: 'var(--igh-bg)' }}
+        >
           <SessionManager />
           <div className="max-w-7xl mx-auto w-full space-y-6">
             {children}

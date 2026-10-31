@@ -688,14 +688,14 @@ export default function Reports() {
             <button
               key={report.value}
               onClick={() => setReportType(report.value)}
-              className={`group flex flex-col p-5 card border-l-4 ${report.color} hover:shadow-lg hover:-translate-y-1 transition-all duration-200 text-left`}
+              className={`group flex flex-col p-5 card border-l-4 ${report.color} hover:border-[#F97316] hover:-translate-y-1 transition-all duration-200 text-left`}
             >
-              <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl group-hover:scale-110 transition-transform duration-200 w-fit">
+              <div className="mb-4 p-3 bg-slate-50 rounded-2xl group-hover:scale-110 group-hover:bg-amber-50 transition-all duration-200 w-fit">
                 {report.icon}
               </div>
-              <h3 className="text-base font-extrabold text-slate-800 dark:text-white mb-1.5">{report.label}</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed flex-1">{report.desc}</p>
-              <div className="mt-4 flex items-center text-amber-600 dark:text-amber-400 font-bold text-xs gap-1">
+              <h3 className="text-base font-black text-[#0F172A] group-hover:text-[#F97316] transition-colors mb-1.5">{report.label}</h3>
+              <p className="text-xs text-[#334155] font-semibold leading-relaxed flex-1">{report.desc}</p>
+              <div className="mt-4 flex items-center text-[#F97316] font-black text-xs gap-1">
                 View Report <Eye size={14} className="group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
@@ -705,20 +705,20 @@ export default function Reports() {
         {/* Global Summary Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
            <div className="card text-center py-5">
-              <p className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Total Sales</p>
-              <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">KSh {(data.sales || []).reduce((sum, s) => sum + (Number(s.amount) || 0), 0).toLocaleString()}</p>
+              <p className="text-xs font-extrabold text-[#334155] uppercase tracking-wider mb-1.5">Total Sales</p>
+              <p className="text-2xl font-black text-emerald-700">KSh {(data.sales || []).reduce((sum, s) => sum + (Number(s.amount) || 0), 0).toLocaleString()}</p>
            </div>
            <div className="card text-center py-5">
-              <p className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Total Expenses</p>
-              <p className="text-2xl font-extrabold text-rose-600 dark:text-rose-400">KSh {(data.expenses || []).reduce((sum, e) => sum + (Number(e.amount) || 0), 0).toLocaleString()}</p>
+              <p className="text-xs font-extrabold text-[#334155] uppercase tracking-wider mb-1.5">Total Expenses</p>
+              <p className="text-2xl font-black text-rose-600">KSh {(data.expenses || []).reduce((sum, e) => sum + (Number(e.amount) || 0), 0).toLocaleString()}</p>
            </div>
            <div className="card text-center py-5">
-              <p className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Stock Value</p>
-              <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">KSh {(data.inventory || []).reduce((sum, i) => sum + ((Number(i.quantity) || 0) * (Number(i.unitPrice) || 0)), 0).toLocaleString()}</p>
+              <p className="text-xs font-extrabold text-[#334155] uppercase tracking-wider mb-1.5">Stock Value</p>
+              <p className="text-2xl font-black text-blue-700">KSh {(data.inventory || []).reduce((sum, i) => sum + ((Number(i.quantity) || 0) * (Number(i.unitPrice) || 0)), 0).toLocaleString()}</p>
            </div>
            <div className="card text-center py-5">
-              <p className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5">Active Branch</p>
-              <p className="text-2xl font-extrabold text-amber-500 dark:text-amber-400">{activeBranch}</p>
+              <p className="text-xs font-extrabold text-[#334155] uppercase tracking-wider mb-1.5">Active Branch</p>
+              <p className="text-2xl font-black text-[#F97316]">{activeBranch}</p>
            </div>
         </div>
       </div>

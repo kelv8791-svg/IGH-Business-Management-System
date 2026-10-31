@@ -200,12 +200,12 @@ export default function Suppliers() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Suppliers Management</h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] tracking-tight">Suppliers Management</h1>
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 text-amber-900 border border-amber-300">
               {activeBranch} Branch
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-[#334155] font-semibold mt-1">
             Manage vendor details, track supplier purchases, credit balances, and payments.
           </p>
         </div>
@@ -217,79 +217,79 @@ export default function Suppliers() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Vendors</p>
-            <h3 className="text-2xl font-extrabold text-amber-500 dark:text-amber-400 mt-1.5 tracking-tight">{(metrics.totalSuppliers || 0)}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Registered suppliers</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Active Vendors</p>
+            <h3 className="text-2xl font-black text-amber-600 mt-1.5 tracking-tight">{(metrics.totalSuppliers || 0)}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Registered suppliers</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
             <Truck size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Purchases Volume</p>
-            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">KSh {(metrics.totalPurchases || 0).toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Supplier expenses logged</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Purchases Volume</p>
+            <h3 className="text-2xl font-black text-blue-700 mt-1.5 tracking-tight">KSh {(metrics.totalPurchases || 0).toLocaleString()}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Supplier expenses logged</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center flex-shrink-0">
             <Receipt size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Pending Credit Owed</p>
-            <h3 className={`text-2xl font-extrabold mt-1.5 tracking-tight ${(metrics.totalOutstanding || 0) > 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Pending Credit Owed</p>
+            <h3 className={`text-2xl font-black mt-1.5 tracking-tight ${(metrics.totalOutstanding || 0) > 0 ? 'text-rose-600' : 'text-emerald-700'}`}>
               KSh {(metrics.totalOutstanding || 0).toLocaleString()}
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">Total credit balance pending</p>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Total credit balance pending</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-500 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
             <CreditCard size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Payments Settled</p>
-            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">KSh {(metrics.totalPaymentsMade || 0).toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Disbursed supplier payments</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Payments Settled</p>
+            <h3 className="text-2xl font-black text-emerald-700 mt-1.5 tracking-tight">KSh {(metrics.totalPaymentsMade || 0).toLocaleString()}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Disbursed supplier payments</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center flex-shrink-0">
             <CheckCircle2 size={20} />
           </div>
         </div>
       </div>
 
       {/* Navigation Tabs & Filter Bar */}
-      <div className="card space-y-4">
+      <div className="card p-4 bg-white rounded-xl border border-[#CBD5E1] shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800/60 rounded-2xl">
+          <div className="flex gap-1.5 p-1 bg-[#F1F5F9] border border-[#CBD5E1] rounded-2xl">
             <button
               onClick={() => setTab('directory')}
-              className={`px-5 py-2 text-xs font-bold rounded-xl transition-all duration-200 ${tab === 'directory' ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+              className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all duration-200 ${tab === 'directory' ? 'bg-[#F97316] text-white shadow-md' : 'text-[#334155] hover:text-[#0F172A] hover:bg-white'}`}
             >
               Supplier Directory ({filteredSuppliers.length})
             </button>
             <button
               onClick={() => setTab('purchases')}
-              className={`px-5 py-2 text-xs font-bold rounded-xl transition-all duration-200 ${tab === 'purchases' ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+              className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all duration-200 ${tab === 'purchases' ? 'bg-[#F97316] text-white shadow-md' : 'text-[#334155] hover:text-[#0F172A] hover:bg-white'}`}
             >
               Purchases Log ({(data.supplierExpenses || []).length})
             </button>
             <button
               onClick={() => setTab('payments')}
-              className={`px-5 py-2 text-xs font-bold rounded-xl transition-all duration-200 ${tab === 'payments' ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+              className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all duration-200 ${tab === 'payments' ? 'bg-[#F97316] text-white shadow-md' : 'text-[#334155] hover:text-[#0F172A] hover:bg-white'}`}
             >
               Payments Log ({(data.supplierPayments || []).length})
             </button>
           </div>
 
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-3 text-slate-400" size={16} />
+            <Search className="absolute left-3 top-3 text-[#334155]" size={16} />
             <input
               type="text"
               placeholder="Search suppliers..."
@@ -303,43 +303,43 @@ export default function Suppliers() {
 
       {/* Directory Tab View */}
       {tab === 'directory' && (
-        <div className="card overflow-x-auto p-0">
+        <div className="card overflow-x-auto p-0 rounded-xl border border-[#CBD5E1]">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-700">
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Supplier Name</th>
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Contact Person & Phone</th>
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">KRA PIN</th>
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Purchases</th>
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Outstanding Credit</th>
-                <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+              <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+                <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Supplier Name</th>
+                <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Contact Person & Phone</th>
+                <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">KRA PIN</th>
+                <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Total Purchases</th>
+                <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Outstanding Credit</th>
+                <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-[#E2E8F0]">
               {filteredSuppliers.map((supplier) => {
                 const totalPurchases = getSupplierTotalExpenses(supplier.id) || 0
                 const balance = getSupplierBalance(supplier.id) || 0
 
                 return (
-                  <tr key={supplier.id} className="hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors">
-                    <td className="px-6 py-4 text-sm font-bold text-slate-800 dark:text-white">
+                  <tr key={supplier.id} className="transition-all">
+                    <td className="px-6 py-4 text-sm font-bold text-[#0F172A]">
                       {supplier.name}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
-                      <div>{supplier.contact || 'No contact person'}</div>
-                      <div className="text-xs text-slate-400 font-mono">{supplier.phone}</div>
+                    <td className="px-6 py-4 text-sm text-[#334155]">
+                      <div className="font-semibold text-[#0F172A]">{supplier.contact || 'No contact person'}</div>
+                      <div className="text-xs text-[#475569] font-mono font-bold mt-0.5">{supplier.phone}</div>
                     </td>
-                    <td className="px-6 py-4 text-sm font-mono text-slate-500 dark:text-slate-400">
+                    <td className="px-6 py-4 text-sm font-mono font-bold text-[#334155]">
                       {supplier.kra || '-'}
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-blue-600 dark:text-blue-400">
+                    <td className="px-6 py-4 text-sm font-black text-blue-700">
                       KSh {Number(totalPurchases || 0).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-sm font-bold whitespace-nowrap">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
                         balance > 0 
-                          ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300' 
-                          : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
+                          ? 'bg-rose-100 text-rose-800 border-rose-300' 
+                          : 'bg-emerald-100 text-emerald-800 border-emerald-300'
                       }`}>
                         KSh {Number(balance || 0).toLocaleString()}
                       </span>

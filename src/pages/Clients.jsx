@@ -171,12 +171,12 @@ export default function Clients() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Clients Directory</h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] tracking-tight">Clients Directory</h1>
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 text-amber-900 border border-amber-300">
               {activeBranch} Branch
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-[#334155] font-semibold mt-1">
             Manage customer relationships, track purchase histories, and issue statements of accounts.
           </p>
         </div>
@@ -188,58 +188,58 @@ export default function Clients() {
 
       {/* KPI Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Accounts</p>
-            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">{(metrics.totalClients || 0)}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Registered accounts</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Active Accounts</p>
+            <h3 className="text-2xl font-black text-blue-700 mt-1.5 tracking-tight">{(metrics.totalClients || 0)}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Registered accounts</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center flex-shrink-0">
             <Users size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Gross Client Invoicing</p>
-            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {(metrics.totalVolume || 0).toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Historical billings</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Gross Client Invoicing</p>
+            <h3 className="text-2xl font-black text-[#0F172A] mt-1.5 tracking-tight">KSh {(metrics.totalVolume || 0).toLocaleString()}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Historical billings</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center flex-shrink-0">
             <DollarSign size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Collected Receivables</p>
-            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">KSh {(metrics.totalPaid || 0).toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Settled client payments</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Collected Receivables</p>
+            <h3 className="text-2xl font-black text-emerald-700 mt-1.5 tracking-tight">KSh {(metrics.totalPaid || 0).toLocaleString()}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Settled client payments</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center flex-shrink-0">
             <CheckCircle2 size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Pending Receivables</p>
-            <h3 className={`text-2xl font-extrabold mt-1.5 tracking-tight ${(metrics.totalPending || 0) > 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Pending Receivables</p>
+            <h3 className={`text-2xl font-black mt-1.5 tracking-tight ${(metrics.totalPending || 0) > 0 ? 'text-rose-600' : 'text-emerald-700'}`}>
               KSh {(metrics.totalPending || 0).toLocaleString()}
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">Outstanding client balances</p>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Outstanding client balances</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-500 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
             <CreditCard size={20} />
           </div>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="card p-4 space-y-3">
+      <div className="card p-4 bg-white rounded-xl border border-[#CBD5E1] shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row gap-3 justify-between items-center">
           <div className="relative w-full sm:w-96">
-            <Search className="absolute left-3 top-3 text-slate-400" size={16} />
+            <Search className="absolute left-3 top-3 text-[#334155]" size={16} />
             <input
               type="text"
               placeholder="Search by client name, phone, or location..."
@@ -249,7 +249,7 @@ export default function Clients() {
             />
           </div>
           {search && (
-            <button onClick={() => setSearch('')} className="text-xs text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 font-semibold">
+            <button onClick={() => setSearch('')} className="text-xs text-[#F97316] hover:underline flex items-center gap-1 font-bold">
               <RotateCcw size={12} />
               Reset Search
             </button>
@@ -258,58 +258,58 @@ export default function Clients() {
       </div>
 
       {/* Client Table */}
-      <div className="card overflow-x-auto p-0">
+      <div className="card overflow-x-auto p-0 rounded-xl border border-[#CBD5E1]">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-700">
-              <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Client Name</th>
-              <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Phone & Contact</th>
-              <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Location / Address</th>
-              <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Lifetime Sales</th>
-              <th className="px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+            <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+              <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Client Name</th>
+              <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Phone & Contact</th>
+              <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Location / Address</th>
+              <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Lifetime Sales</th>
+              <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          <tbody className="divide-y divide-[#E2E8F0]">
             {filteredClients.map((client) => {
               const totalSpent = getClientTotalSales(client.name) || 0
               const ordersCount = getClientSalesCount(client.name) || 0
 
               return (
-                <tr key={client.id} className="hover:bg-amber-50/40 dark:hover:bg-amber-950/20 transition-colors">
+                <tr key={client.id} className="transition-all">
                   <td className="px-6 py-4 text-sm">
-                    <div className="font-bold text-slate-800 dark:text-white">{client.name}</div>
-                    <div className="text-xs text-slate-400 mt-0.5">{ordersCount} recorded purchases</div>
+                    <div className="font-bold text-[#0F172A]">{client.name}</div>
+                    <div className="text-xs font-semibold text-[#475569] mt-0.5">{ordersCount} recorded purchases</div>
                   </td>
                   <td className="px-6 py-4 text-sm">
                     {client.phone ? (
-                      <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
-                        <Phone size={14} className="text-blue-500" />
+                      <div className="flex items-center gap-1.5 text-[#0F172A] font-bold">
+                        <Phone size={14} className="text-[#F97316]" />
                         {client.phone}
                       </div>
                     ) : (
-                      <span className="text-slate-400 text-xs">-</span>
+                      <span className="text-[#64748B] text-xs font-semibold">-</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm">
                     {client.location || client.address ? (
-                      <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
-                        <MapPin size={14} className="text-amber-500" />
+                      <div className="flex items-center gap-1 text-[#334155] font-semibold">
+                        <MapPin size={14} className="text-[#F97316]" />
                         {client.location || client.address}
                       </div>
                     ) : (
-                      <span className="text-slate-400 text-xs">-</span>
+                      <span className="text-[#64748B] text-xs font-semibold">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
+                  <td className="px-6 py-4 text-sm font-black text-emerald-700">
                     KSh {Number(totalSpent || 0).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
                     <div className="flex justify-end gap-1.5">
-                      <button onClick={() => handleExportSOA(client)} title="Export Statement of Account" className="p-1.5 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold px-2.5">
+                      <button onClick={() => handleExportSOA(client)} title="Export Statement of Account" className="p-1.5 text-purple-700 hover:bg-purple-100 rounded-lg transition-all flex items-center gap-1 text-xs font-bold px-2.5 border border-purple-200">
                         <FileText size={15} />
                         SOA PDF
                       </button>
-                      <button onClick={() => handleOpenModal(client)} title="Edit Client" className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
+                      <button onClick={() => handleOpenModal(client)} title="Edit Client" className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-all hover:scale-110">
                         <Edit2 size={16} />
                       </button>
                       {user?.role === 'admin' && (
@@ -320,7 +320,7 @@ export default function Clients() {
                             }
                           }}
                           title="Delete Client"
-                          className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                          className="p-1.5 text-red-600 hover:bg-red-100 rounded-lg transition-all hover:scale-110"
                         >
                           <Trash2 size={16} />
                         </button>

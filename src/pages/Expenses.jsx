@@ -134,12 +134,12 @@ export default function Expenses() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Expenses Management</h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] tracking-tight">Expenses Management</h1>
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 text-amber-900 border border-amber-300">
               {activeBranch} Branch
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-[#334155] font-semibold mt-1">
             Track operational costs, overhead expenditures, and categorical spending.
           </p>
         </div>
@@ -151,45 +151,45 @@ export default function Expenses() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Expenditure</p>
-            <h3 className="text-2xl font-extrabold text-rose-500 dark:text-rose-400 mt-1.5 tracking-tight">KSh {(stats.totalExpenditure || 0).toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">{(stats.count || 0)} recorded expense vouchers</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Total Expenditure</p>
+            <h3 className="text-2xl font-black text-rose-600 mt-1.5 tracking-tight">KSh {(stats.totalExpenditure || 0).toLocaleString()}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">{(stats.count || 0)} recorded expense vouchers</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-500 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
             <TrendingDown size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Average Voucher</p>
-            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {Math.round(stats.avgExpense || 0).toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Average payout per entry</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Average Voucher</p>
+            <h3 className="text-2xl font-black text-[#0F172A] mt-1.5 tracking-tight">KSh {Math.round(stats.avgExpense || 0).toLocaleString()}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Average payout per entry</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center flex-shrink-0">
             <Receipt size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Active Categories</p>
-            <h3 className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5 tracking-tight">{categories.length} Cost Centers</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Categorical spending breakdown</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Active Categories</p>
+            <h3 className="text-2xl font-black text-blue-700 mt-1.5 tracking-tight">{categories.length} Cost Centers</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Categorical spending breakdown</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center flex-shrink-0">
             <PieChart size={20} />
           </div>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="card p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-3">
+      <div className="card p-4 bg-white rounded-xl border border-[#CBD5E1] shadow-sm space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="relative">
-            <Search className="absolute left-3 top-3 text-gray-400" size={16} />
+            <Search className="absolute left-3 top-3 text-[#334155]" size={16} />
             <input
               type="text"
               placeholder="Search description or category..."
@@ -202,16 +202,16 @@ export default function Expenses() {
             <option value="">All Categories</option>
             {categories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <span className="text-xs font-semibold text-gray-500 uppercase">Filtered Total:</span>
-            <span className="font-extrabold text-rose-600">KSh {(stats.totalExpenditure || 0).toLocaleString()}</span>
+          <div className="flex items-center justify-between px-4 py-2 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg">
+            <span className="text-xs font-bold text-[#334155] uppercase">Filtered Total:</span>
+            <span className="font-black text-rose-600">KSh {(stats.totalExpenditure || 0).toLocaleString()}</span>
           </div>
         </div>
 
         {(search || filterCat) && (
-          <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-500">
+          <div className="flex justify-between items-center pt-2 border-t border-[#E2E8F0] text-xs font-semibold text-[#334155]">
             <span>Showing filtered expense records</span>
-            <button onClick={resetFilters} className="text-primary-gold hover:underline flex items-center gap-1 font-semibold">
+            <button onClick={resetFilters} className="text-[#F97316] hover:underline flex items-center gap-1 font-bold">
               <RotateCcw size={12} />
               Reset Filters
             </button>
@@ -222,9 +222,9 @@ export default function Expenses() {
       {/* Category Breakdown Pills */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3">
         {categories.map(cat => (
-          <div key={cat} className="card p-3 text-center bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-            <p className="text-[11px] font-semibold text-gray-500 truncate">{cat}</p>
-            <p className="text-sm font-extrabold text-red-600 dark:text-red-400 mt-0.5">KSh {(categoryTotals[cat] || 0).toLocaleString()}</p>
+          <div key={cat} className="card p-3 text-center bg-white rounded-xl border border-[#CBD5E1] shadow-sm hover:border-[#F97316] hover:scale-105 transition-all">
+            <p className="text-[11px] font-bold text-[#334155] truncate uppercase">{cat}</p>
+            <p className="text-sm font-black text-rose-600 mt-0.5">KSh {(categoryTotals[cat] || 0).toLocaleString()}</p>
           </div>
         ))}
       </div>
@@ -238,53 +238,53 @@ export default function Expenses() {
               <div key={month} className="space-y-2">
                 <button
                   onClick={() => toggleMonth(month)}
-                  className="w-full flex justify-between items-center px-5 py-3.5 bg-white dark:bg-gray-800 rounded-xl border-l-4 border-red-500 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group"
+                  className="w-full flex justify-between items-center px-5 py-3.5 bg-white rounded-xl border-l-4 border-rose-500 border border-[#CBD5E1] shadow-sm hover:bg-[#FFF7ED] transition-all group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="text-gray-400 group-hover:text-red-500 transition-colors">
+                    <div className="text-[#69778A] group-hover:text-rose-600 transition-colors">
                       {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                     </div>
-                    <h2 className="text-lg font-bold text-gray-800 dark:text-white">{month}</h2>
-                    <span className="px-2.5 py-0.5 text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
+                    <h2 className="text-lg font-black text-[#0F172A] group-hover:text-rose-600 transition-colors">{month}</h2>
+                    <span className="px-2.5 py-0.5 text-xs font-bold bg-[#F1F5F9] text-[#14243B] border border-[#CBD5E1] rounded-full">
                       {group.expenses.length} expenses
                     </span>
                   </div>
-                  <span className="text-sm font-extrabold text-rose-600 dark:text-rose-400">
+                  <span className="text-sm font-black text-rose-600">
                     KSh {Number(group.total || 0).toLocaleString()}
                   </span>
                 </button>
                 
                 {isExpanded && (
-                  <div className="card overflow-x-auto p-0 rounded-xl border border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="card overflow-x-auto p-0 rounded-xl border border-[#CBD5E1] animate-in fade-in slide-in-from-top-1 duration-200">
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-800/80">
-                          <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
-                          <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Category</th>
-                          <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Description</th>
-                          <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Amount</th>
-                          <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                        <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+                          <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Date</th>
+                          <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Category</th>
+                          <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Description</th>
+                          <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Amount</th>
+                          <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                      <tbody className="divide-y divide-[#E2E8F0]">
                         {group.expenses.map((expense) => (
-                          <tr key={expense.id} className="hover:bg-amber-50/30 dark:hover:bg-slate-800/60 transition-colors">
-                            <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-800 dark:text-gray-200">{expense.date}</td>
+                          <tr key={expense.id} className="transition-all">
+                            <td className="px-6 py-4 text-sm font-bold whitespace-nowrap text-[#0F172A]">{expense.date}</td>
                             <td className="px-6 py-4 text-sm whitespace-nowrap">
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                                <Tag size={12} className="text-gray-400" />
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold bg-[#EEF3FA] text-[#14243B] border border-[#CBD5E1]">
+                                <Tag size={12} className="text-[#F97316]" />
                                 {expense.cat}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs truncate">
+                            <td className="px-6 py-4 text-sm text-[#0F172A] font-semibold max-w-xs truncate">
                               {expense.desc || 'No description provided'}
                             </td>
-                            <td className="px-6 py-4 text-sm font-extrabold text-rose-600 dark:text-rose-400 whitespace-nowrap">
+                            <td className="px-6 py-4 text-sm font-black text-rose-600 whitespace-nowrap">
                               KSh {Number(expense.amount || 0).toLocaleString()}
                             </td>
                             <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
                               <div className="flex justify-end gap-1.5">
-                                <button onClick={() => handleOpenModal(expense)} title="Edit Expense" className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
+                                <button onClick={() => handleOpenModal(expense)} title="Edit Expense" className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-all hover:scale-110">
                                   <Edit2 size={16} />
                                 </button>
                                 {user?.role === 'admin' && (
@@ -295,7 +295,7 @@ export default function Expenses() {
                                       }
                                     }}
                                     title="Delete Expense"
-                                    className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"
+                                    className="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg transition-all hover:scale-110"
                                   >
                                     <Trash2 size={16} />
                                   </button>

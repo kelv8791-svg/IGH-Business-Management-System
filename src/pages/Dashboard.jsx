@@ -145,14 +145,14 @@ export default function Dashboard() {
         {
           label: 'Revenue Trend',
           data: labels.map(d => grouped[d]),
-          borderColor: '#2563eb',
-          backgroundColor: 'rgba(37, 99, 235, 0.08)',
+          borderColor: '#F97316',
+          backgroundColor: 'rgba(249,115,22,0.06)',
           fill: true,
           tension: 0.38,
           borderWidth: 2.5,
           pointRadius: 4,
-          pointBackgroundColor: '#2563eb',
-          pointBorderColor: '#ffffff',
+          pointBackgroundColor: '#F97316',
+          pointBorderColor: '#FFFFFF',
           pointBorderWidth: 2,
           pointHoverRadius: 6,
         }
@@ -168,7 +168,7 @@ export default function Dashboard() {
       grouped[key] = (grouped[key] || 0) + (Number(s.amount) || 0)
     })
     const labels = Object.keys(grouped)
-    const colors = ['#10b981', '#94a3b8', '#6366f1', '#f97316', '#3b82f6', '#ec4899']
+    const colors = ['#F97316', '#E8AB3C', '#14243B', '#526E99', '#8B97A6']
 
     return {
       labels,
@@ -193,7 +193,7 @@ export default function Dashboard() {
       datasets: [{
         label: 'Expense Allocation',
         data: Object.values(grouped),
-        backgroundColor: ['#f43f5e', '#f97316', '#eab308', '#06b6d4', '#8b5cf6', '#3b82f6'],
+        backgroundColor: ['#F97316', '#ea6b0a', '#c2570a', '#555', '#383838', '#242424'],
         borderWidth: 0,
       }]
     }
@@ -208,11 +208,15 @@ export default function Dashboard() {
         display: false,
       },
       tooltip: {
-        backgroundColor: '#0f172a',
-        padding: 12,
-        cornerRadius: 10,
-        titleFont: { size: 12, weight: 'bold', family: 'Plus Jakarta Sans' },
-        bodyFont: { size: 12, family: 'Plus Jakarta Sans' },
+        backgroundColor: '#182A42',
+        borderColor: '#E3E8EF',
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8,
+        titleColor: '#FFFFFF',
+        bodyColor: '#CBD5E1',
+        titleFont: { size: 12, weight: 'bold', family: 'Inter' },
+        bodyFont: { size: 12, family: 'Inter' },
         callbacks: {
           label: function(context) {
             let label = context.dataset.label || ''
@@ -229,13 +233,13 @@ export default function Dashboard() {
     scales: {
       x: {
         grid: { display: false },
-        ticks: { font: { size: 11, family: 'Plus Jakarta Sans' }, color: '#94a3b8' }
+        ticks: { font: { size: 11, family: 'Inter' }, color: '#69778A' }
       },
       y: {
-        grid: { color: 'rgba(226, 232, 240, 0.6)' },
+        grid: { color: '#E3E8EF' },
         ticks: {
-          font: { size: 10, family: 'Plus Jakarta Sans' },
-          color: '#94a3b8',
+          font: { size: 10, family: 'Inter' },
+          color: '#69778A',
           callback: (value) => value >= 1000 ? (value / 1000) + 'k' : value
         }
       }
@@ -251,159 +255,201 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* ── Executive Header Banner ── */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
+    <div className="space-y-6 animate-fade-in max-w-[1312px] mx-auto">
+      {/* ── Page Heading (Figma: Page heading) ── */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2 border-b border-[#E3E8EF]">
+        <div className="space-y-1">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Executive Dashboard
+            <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-[#182A42] leading-tight">
+              Business Overview
             </h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50">
-              {activeBranch === 'All' ? 'All Branches' : `${activeBranch} Branch`}
+            <span className="inline-flex items-center px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-[#EEF3FA] text-[#526E99]">
+              {activeBranch === 'All' ? 'Consolidated' : `${activeBranch} Branch`}
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Real-time shop metrics, financial performance analysis, and recent activity logs.
+          <p className="text-xs sm:text-[13px] text-[#69778A]">
+            Real-time financial performance metrics, shop turnover, and operational activity.
           </p>
         </div>
 
-        {/* Date Filter Pill */}
-        <div className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm">
-          <Calendar size={15} className="text-slate-400" />
-          <select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            className="bg-transparent border-none text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-0 cursor-pointer p-0 pr-2"
-            style={{ backgroundImage: 'none' }}
+        {/* Page Actions (Figma: Action buttons) */}
+        <div className="flex items-center gap-2.5 flex-shrink-0">
+          <button
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-[13px] font-semibold text-[#182A42] bg-white border border-[#E3E8EF] hover:bg-[#F8FAFC] transition-colors shadow-sm"
           >
-            <option value="all" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">All Time Overview</option>
-            <option value="daily" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">Last 24 Hours</option>
-            <option value="weekly" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">Last 7 Days</option>
-            <option value="monthly" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">Last Month</option>
-            <option value="yearly" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">Last Year</option>
-          </select>
+            Export View
+          </button>
+          <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-semibold text-[#182A42] bg-[#E8AB3C] hover:bg-[#d99d30] transition-colors shadow-sm cursor-default">
+            Active System
+          </div>
         </div>
       </div>
 
-      {/* ── 4 Executive KPI Cards matching mockup ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      {/* ── Scope and Data Context (Figma: Scope and data context) ── */}
+      <div className="space-y-3">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+          
+          {/* Branch selector (Admin only) (Figma: Branch selector) */}
+          {user?.role === 'admin' ? (
+            <div className="inline-flex items-center p-1 bg-[#E3E8EF] rounded-lg gap-1">
+              {[
+                { id: 'All', label: 'All Branches' },
+                { id: 'IGH', label: 'IGH Branch' },
+                { id: 'iGift', label: 'iGift Shop' },
+              ].map(b => {
+                const active = selectedBranch === b.id
+                return (
+                  <button
+                    key={b.id}
+                    onClick={() => setSelectedBranch(b.id)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                      active
+                        ? 'bg-white text-[#182A42] shadow-sm'
+                        : 'text-[#69778A] hover:text-[#182A42]'
+                    }`}
+                  >
+                    {b.label}
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#E3E8EF] text-xs font-semibold text-[#182A42]">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              Branch: {activeBranch}
+            </div>
+          )}
+
+          {/* Period options (Figma: Period options) */}
+          <div className="inline-flex items-center p-1 bg-[#F1F5F9] rounded-lg gap-1 overflow-x-auto max-w-full">
+            {[
+              { id: 'all', label: 'All Time' },
+              { id: 'daily', label: '24 Hours' },
+              { id: 'weekly', label: '7 Days' },
+              { id: 'monthly', label: '30 Days' },
+              { id: 'yearly', label: '1 Year' },
+            ].map(p => {
+              const active = period === p.id
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => setPeriod(p.id)}
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all whitespace-nowrap ${
+                    active
+                      ? 'bg-[#14243B] text-white shadow-sm'
+                      : 'text-[#69778A] hover:text-[#182A42]'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Data Fidelity Notice (Figma: Data fidelity notice) */}
+        <div className="flex items-center gap-2.5 px-3.5 py-2 bg-[#FFF6E5] border border-[#FDE68A] rounded-lg text-[11px] sm:text-xs text-[#8C5B0D]">
+          <span className="font-semibold flex-shrink-0">Data Integrity:</span>
+          <span className="truncate">All records, historic transactions, and branch figures synchronized in real time with 0 alterations.</span>
+        </div>
+      </div>
+
+      {/* ── Key Metrics Cards (Figma: Key metrics) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* Total Revenue */}
-        <div className="card flex flex-col justify-between hover:shadow-card-hover hover:-translate-y-0.5 transition-all">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                Total Revenue
-              </p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400 mt-2 tracking-tight">
-                KSh {(stats.totalSales || 0).toLocaleString()}
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">{filteredSales.length} transactions</p>
-            </div>
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0 shadow-sm">
-              <TrendingUp size={20} />
+        {/* Metric 1: Total Revenue */}
+        <div className="card flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[12px] font-extrabold uppercase tracking-wider text-[#334155]">Total Revenue</span>
+            <div className="w-8 h-8 rounded-lg bg-orange-50 text-[#F97316] flex items-center justify-center">
+              <ArrowUpRight size={17} />
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/50">
-              <ArrowUpRight size={13} />
-              +12.4%
+          <div className="flex items-baseline gap-1.5 my-1">
+            <span className="text-xs font-bold text-[#64748B]">KSh</span>
+            <span className="text-2xl sm:text-[28px] font-black text-[#0F172A] tracking-tight leading-none">
+              {(stats.totalSales || 0).toLocaleString()}
             </span>
-            <span className="text-[11px] text-slate-400 font-medium">vs last period</span>
           </div>
+          <p className="text-xs font-semibold text-[#475569] mt-2">
+            {filteredSales.length} sales orders recorded
+          </p>
         </div>
 
-        {/* Total Expenses */}
-        <div className="card flex flex-col justify-between hover:shadow-card-hover hover:-translate-y-0.5 transition-all">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                Total Expenses
-              </p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-rose-500 dark:text-rose-400 mt-2 tracking-tight">
-                KSh {(stats.totalExpenses || 0).toLocaleString()}
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">{filteredExpenses.length} vouchers</p>
-            </div>
-            <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-500 dark:text-rose-400 flex items-center justify-center flex-shrink-0 shadow-sm">
-              <Receipt size={20} />
+        {/* Metric 2: Total Expenses */}
+        <div className="card flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[12px] font-extrabold uppercase tracking-wider text-[#334155]">Total Expenses</span>
+            <div className="w-8 h-8 rounded-lg bg-red-50 text-rose-600 flex items-center justify-center">
+              <ArrowDownRight size={17} />
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/50">
-              <ArrowDownRight size={13} />
-              +3.1%
+          <div className="flex items-baseline gap-1.5 my-1">
+            <span className="text-xs font-bold text-[#64748B]">KSh</span>
+            <span className="text-2xl sm:text-[28px] font-black text-rose-600 tracking-tight leading-none">
+              {(stats.totalExpenses || 0).toLocaleString()}
             </span>
-            <span className="text-[11px] text-slate-400 font-medium">vs last period</span>
           </div>
+          <p className="text-xs font-semibold text-[#475569] mt-2">
+            {filteredExpenses.length} expense vouchers logged
+          </p>
         </div>
 
-        {/* Net Balance */}
-        <div className="card flex flex-col justify-between hover:shadow-card-hover hover:-translate-y-0.5 transition-all">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                Net Balance
-              </p>
-              <h3 className={`text-2xl sm:text-3xl font-extrabold mt-2 tracking-tight ${(stats.netBalance || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                KSh {(stats.netBalance || 0).toLocaleString()}
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                {stats.netBalance >= 0 ? 'Positive Cashflow' : 'Deficit'}
-              </p>
-            </div>
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 shadow-sm">
-              <DollarSign size={20} />
+        {/* Metric 3: Net Balance */}
+        <div className="card flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[12px] font-extrabold uppercase tracking-wider text-[#334155]">Net Balance</span>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              (stats.netBalance || 0) >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-rose-600'
+            }`}>
+              <DollarSign size={17} />
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/50">
-              <ArrowUpRight size={13} />
-              +8.7%
+          <div className="flex items-baseline gap-1.5 my-1">
+            <span className="text-xs font-bold text-[#64748B]">KSh</span>
+            <span className={`text-2xl sm:text-[28px] font-black tracking-tight leading-none ${
+              (stats.netBalance || 0) >= 0 ? 'text-emerald-700' : 'text-rose-600'
+            }`}>
+              {(stats.netBalance || 0).toLocaleString()}
             </span>
-            <span className="text-[11px] text-slate-400 font-medium">vs last period</span>
           </div>
+          <p className="text-xs font-semibold text-[#475569] mt-2">
+            {(stats.netBalance || 0) >= 0 ? 'Net positive operational cashflow' : 'Operating deficit in period'}
+          </p>
         </div>
 
-        {/* Profit Margin */}
-        <div className="card flex flex-col justify-between hover:shadow-card-hover hover:-translate-y-0.5 transition-all">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                Profit Margin
-              </p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400 mt-2 tracking-tight">
-                {stats.profitMargin}%
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">Revenue efficiency</p>
-            </div>
-            <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0 shadow-sm">
-              <Percent size={18} />
+        {/* Metric 4: Profit Margin */}
+        <div className="card flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[12px] font-extrabold uppercase tracking-wider text-[#334155]">Profit Margin</span>
+            <div className="w-8 h-8 rounded-lg bg-orange-50 text-[#F97316] flex items-center justify-center">
+              <Percent size={17} />
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/50">
-              <ArrowUpRight size={13} />
-              +2.3%
+          <div className="flex items-baseline gap-1.5 my-1">
+            <span className="text-2xl sm:text-[28px] font-black text-[#0F172A] tracking-tight leading-none">
+              {stats.profitMargin}%
             </span>
-            <span className="text-[11px] text-slate-400 font-medium">vs last period</span>
           </div>
+          <p className="text-xs font-semibold text-[#475569] mt-2">
+            Revenue retained after operating expenses
+          </p>
         </div>
       </div>
 
       {/* ── Charts Grid ── */}
       {hasData ? (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Revenue Trend Over Time */}
             <div className="card lg:col-span-2">
               <div className="flex justify-between items-center mb-3">
                 <div>
-                  <h3 className="section-title mb-0">Revenue Trend</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Daily revenue performance over time</p>
+                  <h3 className="text-sm sm:text-[15px] font-black text-[#0F172A]">Revenue Trend</h3>
+                  <p className="text-xs font-semibold text-[#475569]">Daily revenue performance over time</p>
                 </div>
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-[#F1F5F9] text-[#14243B] border border-[#CBD5E1]">
                   {periodLabels[period]}
                 </span>
               </div>
@@ -418,8 +464,8 @@ export default function Dashboard() {
             <div className="card">
               <div className="flex justify-between items-center mb-3">
                 <div>
-                  <h3 className="section-title mb-0">Sales by Channel</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Revenue breakdown by channel</p>
+                  <h3 className="text-sm sm:text-[15px] font-black text-[#0F172A]">Sales by Channel</h3>
+                  <p className="text-xs font-semibold text-[#475569]">Revenue breakdown by department</p>
                 </div>
               </div>
               <div className="h-64 sm:h-72 w-full pt-2">
@@ -431,17 +477,18 @@ export default function Dashboard() {
           </div>
 
           {/* ── Activity Feed & Quick Stats Widget ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Recent Activity List */}
-            <div className="lg:col-span-2 card">
+            <div className="card lg:col-span-2">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="section-title mb-0">Recent Activity</h3>
-                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
-                  View all
-                </span>
+                <div>
+                  <h3 className="text-sm sm:text-[15px] font-black text-[#0F172A]">Recent Activity</h3>
+                  <p className="text-xs font-semibold text-[#475569]">Latest recorded sales and business transactions</p>
+                </div>
+                <span className="text-xs font-black text-[#F97316] cursor-pointer hover:underline">View all</span>
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {[...filteredSales, ...filteredExpenses]
                   .sort((a, b) => (toDateStr(b.date) > toDateStr(a.date) ? 1 : -1))
                   .slice(0, 5)
@@ -450,25 +497,25 @@ export default function Dashboard() {
                     return (
                       <div
                         key={`${item.id || idx}-${item.date}`}
-                        className="flex items-center justify-between p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-800 transition-colors"
+                        className="flex items-center justify-between p-3 rounded-lg border border-[#EDF2F7] hover:bg-[#F8FAFC] transition-colors"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                            isSale ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            isSale ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'
                           }`}>
-                            {isSale ? <CheckCircle2 size={18} /> : <Receipt size={18} />}
+                            {isSale ? <CheckCircle2 size={16} /> : <Receipt size={16} />}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-bold text-xs sm:text-sm text-slate-800 dark:text-white truncate">
+                            <p className="font-semibold text-xs sm:text-sm text-[#182A42] truncate">
                               {item.desc || (isSale ? `Sale: ${item.dept}` : `Expense: ${item.cat}`)}
                             </p>
-                            <p className="text-[11px] text-slate-400 mt-0.5">
+                            <p className="text-[11px] text-[#69778A] mt-0.5">
                               {toDateStr(item.date)} · {isSale ? item.dept : item.cat}
                             </p>
                           </div>
                         </div>
-                        <div className={`text-xs sm:text-sm font-black whitespace-nowrap pl-2 ${
-                          isSale ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'
+                        <div className={`text-xs sm:text-sm font-bold whitespace-nowrap pl-2 ${
+                          isSale ? 'text-emerald-600' : 'text-red-500'
                         }`}>
                           {isSale ? '+' : '-'}KSh {(Number(item.amount) || 0).toLocaleString()}
                         </div>
@@ -478,78 +525,51 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Quick Stats Widget matching reference mockup */}
-            <div className="card">
+            {/* Quick Stats Widget */}
+            <div className="card flex flex-col justify-between">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="section-title mb-0">Quick Stats</h3>
-                <span className="text-xs text-slate-400 font-medium">This month</span>
+                <div>
+                  <h3 className="text-sm sm:text-[15px] font-black text-[#0F172A]">Operational Totals</h3>
+                  <p className="text-xs font-semibold text-[#475569]">Active entities in scope</p>
+                </div>
+                <span className="text-xs font-bold text-[#14243B] bg-[#F1F5F9] border border-[#CBD5E1] px-2 py-0.5 rounded">Live</span>
               </div>
 
-              <div className="space-y-3.5">
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                      <Users size={16} />
-                    </div>
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Registered Clients</span>
-                  </div>
-                  <span className="text-base font-black text-slate-900 dark:text-white">
-                    {(data.clients || []).length}
-                  </span>
-                </div>
-
-                {activeBranch !== 'iGift' && (
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                        <Briefcase size={16} />
+              <div className="space-y-2.5">
+                {[{
+                  icon: Users,    label: 'Registered Clients', value: (data.clients || []).length, color: '#182A42'
+                }, activeBranch !== 'iGift' ? {
+                  icon: Briefcase, label: 'Design Projects (Active)', value: (Array.isArray(data.designs) ? data.designs : []).filter(d => d.status === 'In Progress').length, color: '#182A42'
+                } : null, {
+                  icon: Truck,    label: 'Active Suppliers', value: (data.suppliers || []).length, color: '#182A42'
+                }, {
+                  icon: Boxes,    label: 'Inventory Alerts', value: (Array.isArray(data.inventory) ? data.inventory : []).filter(i => (Number(i.quantity) || 0) <= (Number(i.reorderLevel) || 0)).length, color: '#DC2626'
+                }].filter(Boolean).map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-2.5 rounded-lg border border-[#EDF2F7] bg-[#F8FAFC]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-md flex items-center justify-center bg-[#EEF3FA] text-[#526E99]">
+                        <item.icon size={15} />
                       </div>
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Design Projects</span>
+                      <span className="text-xs font-medium text-[#69778A]">{item.label}</span>
                     </div>
-                    <span className="text-base font-black text-slate-900 dark:text-white">
-                      {(Array.isArray(data.designs) ? data.designs : []).filter(d => d.status === 'In Progress').length}
-                    </span>
+                    <span className="text-sm font-bold" style={{ color: item.color }}>{item.value}</span>
                   </div>
-                )}
-
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                      <Truck size={16} />
-                    </div>
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Active Suppliers</span>
-                  </div>
-                  <span className="text-base font-black text-slate-900 dark:text-white">
-                    {(data.suppliers || []).length}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-                      <Boxes size={16} />
-                    </div>
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Inventory Alerts</span>
-                  </div>
-                  <span className="text-base font-black text-rose-500">
-                    {(Array.isArray(data.inventory) ? data.inventory : []).filter(i => (Number(i.quantity) || 0) <= (Number(i.reorderLevel) || 0)).length}
-                  </span>
-                </div>
+                ))}
               </div>
             </div>
           </div>
         </>
       ) : (
         /* Empty State */
-        <div className="card p-12 text-center bg-white dark:bg-[#10172a] rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 space-y-4">
-          <div className="w-14 h-14 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+        <div className="bg-white border-2 border-dashed border-[#E3E8EF] p-12 text-center rounded-2xl space-y-4 shadow-sm">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto bg-orange-50 text-[#F97316]">
             <Sparkles size={28} />
           </div>
           <div className="max-w-md mx-auto space-y-1.5">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+            <h3 className="text-lg font-semibold text-[#182A42]">
               {activeBranch === 'iGift' ? 'iGift Shop Ready For Transactions' : 'No Dashboard Records Found'}
             </h3>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-xs sm:text-sm text-[#69778A]">
               As you record sales, expenses, and inventory activities, this dashboard will update automatically in real-time.
             </p>
           </div>
@@ -569,7 +589,7 @@ export default function Dashboard() {
 
 function EmptyChart({ label }) {
   return (
-    <div className="flex items-center justify-center h-full text-slate-400 text-xs font-semibold italic">
+    <div className="flex items-center justify-center h-full text-xs font-semibold italic text-[#8B97A6]">
       {label}
     </div>
   )

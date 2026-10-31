@@ -2,9 +2,8 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useData } from '../context/DataContext'
 import {
-  BarChart3, Users, Package, Settings, 
+  BarChart3, Users, Package, Settings,
   DollarSign, Layers, Briefcase, ShoppingCart, LayoutDashboard,
-  Sparkles
 } from 'lucide-react'
 
 export default function Sidebar({ open, onCloseMobile }) {
@@ -37,21 +36,26 @@ export default function Sidebar({ open, onCloseMobile }) {
 
   return (
     <aside
-      className="h-full overflow-y-auto z-40 flex flex-col text-white flex-shrink-0 select-none"
+      className="h-full overflow-y-auto z-40 flex flex-col flex-shrink-0 select-none"
       style={{
-        background: '#111827',
-        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: '4px 0 24px rgba(0, 0, 0, 0.25)',
+        background: 'var(--igh-surface-0)',
+        borderRight: '1px solid var(--igh-border)',
+        boxShadow: '4px 0 24px rgba(0,0,0,0.5)',
       }}
     >
       {/* ── Logo / Branding ── */}
       <div
         className="flex flex-col items-center justify-center py-5 px-3"
-        style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}
+        style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}
       >
+        {/* Logo lockup */}
         <div
-          className={`rounded-2xl overflow-hidden transition-all duration-300 shadow-md ring-2 ring-amber-500/40 ${open ? 'w-14 h-14' : 'w-10 h-10'}`}
-          style={{ background: 'white' }}
+          className={`rounded-2xl overflow-hidden transition-all duration-300 shadow-lg ${open ? 'w-14 h-14' : 'w-10 h-10'}`}
+          style={{
+            background: '#0d0d0d',
+            border: '2px solid rgba(249,115,22,0.40)',
+            boxShadow: '0 0 16px rgba(249,115,22,0.25)',
+          }}
         >
           <img
             src="/logo.jpg"
@@ -59,12 +63,16 @@ export default function Sidebar({ open, onCloseMobile }) {
             className="w-full h-full object-contain p-0.5"
           />
         </div>
+
         {open && (
-          <div className="mt-2.5 text-center">
-            <p className="text-xs font-black text-amber-400 uppercase tracking-widest leading-tight">
+          <div className="mt-3 text-center">
+            <p
+              className="text-xs font-black uppercase tracking-widest leading-tight"
+              style={{ color: 'var(--igh-orange)' }}
+            >
               IGH · iGIFT
             </p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5 leading-tight">
+            <p className="text-[10px] font-medium mt-0.5 leading-tight" style={{ color: '#8B97A6' }}>
               Where Creativity Meets Excellence
             </p>
           </div>
@@ -72,7 +80,7 @@ export default function Sidebar({ open, onCloseMobile }) {
       </div>
 
       {/* ── Navigation ── */}
-      <nav className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto">
+      <nav className="flex-1 py-4 px-2.5 space-y-1 overflow-y-auto">
         {navItems.map(item => {
           const Icon = item.icon
           const active = isActive(item.path)
@@ -86,10 +94,14 @@ export default function Sidebar({ open, onCloseMobile }) {
             >
               <Icon
                 size={18}
-                className={`flex-shrink-0 transition-colors ${active ? 'text-slate-950' : 'text-slate-400'}`}
+                className="flex-shrink-0"
+                style={{ color: active ? '#fff' : '#8B97A6' }}
               />
               {open && (
-                <span className={`truncate ${active ? 'text-slate-950 font-extrabold' : 'text-slate-300 font-medium'}`}>
+                <span
+                  className="truncate text-xs sm:text-sm"
+                  style={{ color: active ? '#fff' : '#CBD5E1', fontWeight: active ? 700 : 500 }}
+                >
                   {item.label}
                 </span>
               )}
@@ -100,8 +112,8 @@ export default function Sidebar({ open, onCloseMobile }) {
 
       {/* ── Settings & User Info ── */}
       <div
-        className="px-3 pb-4 pt-2"
-        style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}
+        className="px-2.5 pb-4 pt-2"
+        style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}
       >
         <Link
           to="/settings"
@@ -111,10 +123,14 @@ export default function Sidebar({ open, onCloseMobile }) {
         >
           <Settings
             size={18}
-            className={`flex-shrink-0 ${isActive('/settings') ? 'text-slate-950' : 'text-slate-400'}`}
+            className="flex-shrink-0"
+            style={{ color: isActive('/settings') ? '#fff' : '#8B97A6' }}
           />
           {open && (
-            <span className={`truncate ${isActive('/settings') ? 'text-slate-950 font-extrabold' : 'text-slate-300 font-medium'}`}>
+            <span
+              className="truncate text-xs sm:text-sm"
+              style={{ color: isActive('/settings') ? '#fff' : '#CBD5E1', fontWeight: isActive('/settings') ? 700 : 500 }}
+            >
               Settings
             </span>
           )}
@@ -124,21 +140,26 @@ export default function Sidebar({ open, onCloseMobile }) {
           <div
             className="flex items-center gap-2.5 p-2 rounded-xl"
             style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.08)'
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.08)',
             }}
           >
+            {/* Avatar */}
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-amber-400 text-xs font-black flex-shrink-0 shadow-sm border border-amber-500/30"
-              style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)' }}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0"
+              style={{
+                background: 'linear-gradient(135deg, #F97316, #ea6b0a)',
+                color: '#ffffff',
+                boxShadow: '0 0 12px rgba(249,115,22,0.35)',
+              }}
             >
               {(user?.username || user?.email || 'U').charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1 leading-none">
-              <p className="text-xs font-bold text-slate-200 truncate capitalize">
+              <p className="text-xs font-bold truncate capitalize" style={{ color: '#FFFFFF' }}>
                 {user?.username || user?.email}
               </p>
-              <p className="text-[10px] text-amber-400 font-semibold truncate capitalize mt-1">
+              <p className="text-[10px] font-semibold truncate capitalize mt-1" style={{ color: 'var(--igh-orange)' }}>
                 {user?.role} · {user?.branch || 'IGH'}
               </p>
             </div>

@@ -82,9 +82,8 @@ function App() {
       return null
     }
   })
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('darkMode') === 'true'
-  })
+  // Design is now clean white executive workspace — disable legacy dark mode class
+  const [darkMode, setDarkMode] = useState(false)
   const [compactMode, setCompactMode] = useState(() => {
     return localStorage.getItem('compactMode') === 'true'
   })
@@ -101,13 +100,17 @@ function App() {
   }, [user])
 
   useEffect(() => {
-    localStorage.setItem('darkMode', darkMode)
-    if (darkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }, [darkMode])
+    localStorage.setItem('darkMode', 'false')
+    document.documentElement.classList.remove('dark')
+
+    const observer = new MutationObserver(() => {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark')
+      }
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     localStorage.setItem('compactMode', compactMode)

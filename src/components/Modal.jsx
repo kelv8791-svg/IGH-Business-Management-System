@@ -13,29 +13,53 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
   return (
     <div
       className="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
-      style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(6px)' }}
+      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className={`modal-content ${sizeClass} w-full max-h-[90vh] flex flex-col rounded-2xl sm:rounded-3xl shadow-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 overflow-hidden`}
+        className={`modal-content ${sizeClass} w-full max-h-[90vh] flex flex-col rounded-2xl overflow-hidden`}
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid #E3E8EF',
+          boxShadow: '0 20px 50px rgba(24, 42, 66, 0.18)',
+        }}
       >
         {/* ── Header ── */}
         <div
-          className="flex items-center justify-between px-5 sm:px-6 py-4 flex-shrink-0 bg-slate-50/70 dark:bg-slate-900/70 border-b border-slate-100 dark:border-slate-800"
+          className="flex items-center justify-between px-5 sm:px-6 py-4 flex-shrink-0"
+          style={{
+            background: '#F8FAFC',
+            borderBottom: '1px solid #E3E8EF',
+          }}
         >
-          <h2 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h2
+            className="text-base sm:text-lg font-semibold tracking-tight"
+            style={{ color: '#182A42' }}
+          >
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-all"
+            className="p-1.5 rounded-lg transition-all"
+            style={{ color: '#69778A' }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = '#EDF2F7'
+              e.currentTarget.style.color = '#182A42'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'transparent'
+              e.currentTarget.style.color = '#69778A'
+            }}
           >
-            <X size={19} />
+            <X size={18} />
           </button>
         </div>
 
         {/* ── Body ── */}
-        <div className="p-4 sm:p-6 flex-1 overflow-y-auto bg-white dark:bg-[#111827]">
+        <div
+          className="p-4 sm:p-6 flex-1 overflow-y-auto"
+          style={{ background: 'var(--igh-surface-1)' }}
+        >
           {children}
         </div>
       </div>

@@ -210,12 +210,12 @@ export default function Inventory() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Inventory Management</h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] tracking-tight">Inventory Management</h1>
+            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 text-amber-900 border border-amber-300">
               {activeBranch} Branch
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-[#334155] font-semibold mt-1">
             Monitor stock levels, manage reorder thresholds, and track stock movements.
           </p>
         </div>
@@ -235,56 +235,56 @@ export default function Inventory() {
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Total Stock Valuation</p>
-            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white mt-1.5 tracking-tight">KSh {(metrics.totalValuation || 0).toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">{(metrics.totalCount || 0)} active inventory items</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Total Stock Valuation</p>
+            <h3 className="text-2xl sm:text-[26px] font-black text-[#0F172A] mt-1.5 tracking-tight">KSh {(metrics.totalValuation || 0).toLocaleString()}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">{(metrics.totalCount || 0)} active inventory items</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center flex-shrink-0">
             <Boxes size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">In Stock SKUs</p>
-            <h3 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">{metrics.inStock}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Sufficient inventory levels</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">In Stock SKUs</p>
+            <h3 className="text-2xl sm:text-[26px] font-black text-emerald-700 mt-1.5 tracking-tight">{metrics.inStock}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Sufficient inventory levels</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center flex-shrink-0">
             <CheckCircle size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Low Stock Alerts</p>
-            <h3 className="text-2xl font-extrabold text-amber-500 dark:text-amber-400 mt-1.5 tracking-tight">{metrics.lowStock}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">At or below reorder level</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Low Stock Alerts</p>
+            <h3 className="text-2xl sm:text-[26px] font-black text-amber-600 mt-1.5 tracking-tight">{metrics.lowStock}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">At or below reorder level</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
             <AlertCircle size={20} />
           </div>
         </div>
 
-        <div className="card flex items-start justify-between hover:shadow-card-hover transition-all">
+        <div className="card flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Out of Stock</p>
-            <h3 className="text-2xl font-extrabold text-rose-500 dark:text-rose-400 mt-1.5 tracking-tight">{metrics.outOfStock}</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Needs immediate restock</p>
+            <p className="text-[12px] font-extrabold text-[#334155] uppercase tracking-wider">Out of Stock</p>
+            <h3 className="text-2xl sm:text-[26px] font-black text-rose-600 mt-1.5 tracking-tight">{metrics.outOfStock}</h3>
+            <p className="text-xs font-semibold text-[#475569] mt-0.5">Needs immediate restock</p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-500 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
             <AlertTriangle size={20} />
           </div>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="card p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-3">
+      <div className="card p-4 bg-white rounded-xl border border-[#CBD5E1] shadow-sm space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div className="relative">
-            <Search className="absolute left-3 top-3 text-gray-400" size={16} />
+            <Search className="absolute left-3 top-3 text-[#334155]" size={16} />
             <input
               type="text"
               placeholder="Search item name or SKU..."
@@ -303,16 +303,16 @@ export default function Inventory() {
             <option value="Low Stock">Low Stock</option>
             <option value="Out of Stock">Out of Stock</option>
           </select>
-          <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <span className="text-xs font-semibold text-gray-500 uppercase">Filtered Items:</span>
-            <span className="font-extrabold text-primary-gold">{filteredItems.length}</span>
+          <div className="flex items-center justify-between px-4 py-2 bg-[#F1F5F9] border border-[#E2E8F0] rounded-lg">
+            <span className="text-xs font-bold text-[#334155] uppercase">Filtered Items:</span>
+            <span className="font-black text-[#F97316]">{filteredItems.length}</span>
           </div>
         </div>
 
         {(search || filterCat || filterStatus) && (
-          <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-500">
+          <div className="flex justify-between items-center pt-2 border-t border-[#E2E8F0] text-xs font-semibold text-[#334155]">
             <span>Showing filtered results</span>
-            <button onClick={resetFilters} className="text-primary-gold hover:underline flex items-center gap-1 font-semibold">
+            <button onClick={resetFilters} className="text-[#F97316] hover:underline flex items-center gap-1 font-bold">
               <RotateCcw size={12} />
               Reset Filters
             </button>
@@ -321,49 +321,49 @@ export default function Inventory() {
       </div>
 
       {/* Inventory Table */}
-      <div className="card overflow-x-auto p-0 rounded-xl border border-gray-200 dark:border-gray-700">
+      <div className="card overflow-x-auto p-0 rounded-xl border border-[#CBD5E1]">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-800/80">
-              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Item Details</th>
-              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Category</th>
-              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Quantity</th>
-              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Reorder Level</th>
-              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Unit Price</th>
-              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Stock Valuation</th>
-              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+            <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+              <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Item Details</th>
+              <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Category</th>
+              <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Quantity</th>
+              <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Reorder Level</th>
+              <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Unit Price</th>
+              <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Stock Valuation</th>
+              <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+          <tbody className="divide-y divide-[#E2E8F0]">
             {filteredItems.map((item) => {
               const badge = getStatusBadge(item.id)
               const StatusIcon = badge.icon
               const itemValue = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)
 
               return (
-                <tr key={item.id} className="hover:bg-amber-50/30 dark:hover:bg-slate-800/60 transition-colors">
+                <tr key={item.id} className="transition-all">
                   <td className="px-6 py-4 text-sm">
-                    <div className="font-bold text-gray-800 dark:text-white">{item.name}</div>
-                    {item.sku && <div className="text-xs font-mono text-gray-400">SKU: {item.sku}</div>}
-                    <div className="text-xs text-gray-400 mt-0.5">Supplier: {getSupplierName(item.supplier)}</div>
+                    <div className="font-bold text-[#0F172A] text-sm">{item.name}</div>
+                    {item.sku && <div className="text-xs font-mono font-bold text-[#334155] mt-0.5">SKU: {item.sku}</div>}
+                    <div className="text-xs font-semibold text-[#475569] mt-0.5">Supplier: {getSupplierName(item.supplier)}</div>
                   </td>
                   <td className="px-6 py-4 text-sm">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                      <Tag size={12} className="text-gray-400" />
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold bg-[#EEF3FA] text-[#14243B] border border-[#CBD5E1]">
+                      <Tag size={12} className="text-[#F97316]" />
                       {item.category || 'General'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-extrabold text-gray-800 dark:text-gray-200">
+                  <td className="px-6 py-4 text-sm font-black text-[#0F172A]">
                     {item.quantity} units
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  <td className="px-6 py-4 text-sm font-semibold text-[#334155]">
                     {item.reorderLevel ? `${item.reorderLevel} units` : '-'}
                   </td>
-                  <td className="px-6 py-4 text-sm font-semibold text-gray-800 dark:text-gray-200">
+                  <td className="px-6 py-4 text-sm font-bold text-[#0F172A]">
                     KSh {Number(item.unitPrice || 0).toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 text-sm font-bold text-blue-600 dark:text-blue-400">
+                  <td className="px-6 py-4 text-sm font-black text-blue-700">
                     KSh {Number(itemValue || 0).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 text-sm whitespace-nowrap">
