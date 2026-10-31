@@ -232,53 +232,61 @@ export default function DesignProjects() {
         <table className="w-full">
           <thead>
             <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
-              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Date</th>
-              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Type</th>
-              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Client</th>
-              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Designer</th>
-              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Amount</th>
-              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Completion</th>
-              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Payment Status</th>
-              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Payment Amount</th>
-              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Handover</th>
-              <th className="px-6 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider">Actions</th>
+              <th className="px-5 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider whitespace-nowrap">Date</th>
+              <th className="px-5 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider whitespace-nowrap">Type</th>
+              <th className="px-5 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider whitespace-nowrap">Client</th>
+              <th className="px-5 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider whitespace-nowrap">Designer</th>
+              <th className="px-5 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider whitespace-nowrap">Amount</th>
+              <th className="px-5 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider whitespace-nowrap">Completion</th>
+              <th className="px-5 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider whitespace-nowrap">Status</th>
+              <th className="px-5 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider whitespace-nowrap">Payment Status</th>
+              <th className="px-5 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider whitespace-nowrap">Payment Amount</th>
+              <th className="px-5 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider whitespace-nowrap">Handover</th>
+              <th className="px-5 py-3.5 text-left text-xs font-black text-[#0F172A] uppercase tracking-wider whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E2E8F0]">
             {filteredDesigns.map((design) => (
               <tr key={design.id} className="transition-all hover:bg-orange-50/40 cursor-default">
                 <td className="px-5 py-3.5 text-sm font-bold text-[#0F172A] whitespace-nowrap">{design.date}</td>
-                <td className="px-5 py-3.5 text-sm font-bold text-[#0F172A]">{design.type}</td>
-                <td className="px-5 py-3.5 text-sm text-[#0F172A] font-semibold">{design.client}</td>
-                <td className="px-5 py-3.5 text-sm text-[#334155] font-semibold">{(data.users.find(u => u.username === design.assignedTo)?.username) || design.assignedTo || '—'}</td>
+                <td className="px-5 py-3.5 text-sm font-bold text-[#0F172A] whitespace-nowrap">{design.type}</td>
+                <td className="px-5 py-3.5 text-sm text-[#0F172A] font-semibold whitespace-nowrap">{design.client}</td>
+                <td className="px-5 py-3.5 text-sm text-[#334155] font-semibold whitespace-nowrap">{(data.users.find(u => u.username === design.assignedTo)?.username) || design.assignedTo || '—'}</td>
                 <td className="px-5 py-3.5 text-sm font-black text-emerald-700 whitespace-nowrap">KSh {Number(design.amount || 0).toLocaleString()}</td>
                 <td className="px-5 py-3.5 text-sm font-semibold text-[#334155] whitespace-nowrap">{design.completion || '—'}</td>
 
                 {/* Status badge */}
-                <td className="px-5 py-3.5 text-sm">
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-extrabold tracking-wide border ${
+                <td className="px-5 py-3.5 text-sm whitespace-nowrap">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold tracking-wide whitespace-nowrap border ${
                     design.status === 'Completed'
-                      ? 'bg-emerald-600 text-white border-emerald-700'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
                       : design.status === 'In Progress'
-                      ? 'bg-blue-600 text-white border-blue-700'
+                      ? 'bg-blue-50 text-blue-700 border-blue-300'
                       : design.status === 'Pending'
-                      ? 'bg-amber-500 text-white border-amber-600'
-                      : 'bg-purple-600 text-white border-purple-700'
+                      ? 'bg-amber-50 text-amber-800 border-amber-300'
+                      : 'bg-purple-50 text-purple-700 border-purple-300'
                   }`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/70 flex-shrink-0" />
+                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                      design.status === 'Completed'
+                        ? 'bg-emerald-500'
+                        : design.status === 'In Progress'
+                        ? 'bg-blue-500 animate-pulse'
+                        : design.status === 'Pending'
+                        ? 'bg-amber-500'
+                        : 'bg-purple-500'
+                    }`} />
                     {design.status}
                   </span>
                 </td>
 
                 {/* Payment Status badge */}
-                <td className="px-5 py-3.5 text-sm">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-extrabold tracking-wide border ${
+                <td className="px-5 py-3.5 text-sm whitespace-nowrap">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-extrabold tracking-wide whitespace-nowrap border ${
                     design.paymentStatus === 'Full'
-                      ? 'bg-emerald-600 text-white border-emerald-700'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
                       : design.paymentStatus === 'Partial'
-                      ? 'bg-amber-500 text-white border-amber-600'
-                      : 'bg-[#64748B] text-white border-[#475569]'
+                      ? 'bg-amber-50 text-amber-800 border-amber-300'
+                      : 'bg-slate-100 text-slate-700 border-slate-300'
                   }`}>
                     {design.paymentStatus || 'Not Started'}
                   </span>
@@ -287,46 +295,55 @@ export default function DesignProjects() {
                 <td className="px-5 py-3.5 text-sm font-black text-[#0F172A] whitespace-nowrap">KSh {Number(design.paymentAmount || 0).toLocaleString()}</td>
 
                 {/* Handover badge */}
-                <td className="px-5 py-3.5 text-sm">
+                <td className="px-5 py-3.5 text-sm whitespace-nowrap">
                   {design.handedOver ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-emerald-600 text-white border border-emerald-700">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white/70" />Handed
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-300 whitespace-nowrap">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                      Handed Over
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-[#64748B] text-white border border-[#475569]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white/40" />Pending
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-slate-100 text-slate-700 border border-slate-300 whitespace-nowrap">
+                      <span className="w-2 h-2 rounded-full bg-slate-400 flex-shrink-0" />
+                      Not Handed
                     </span>
                   )}
                 </td>
 
                 {/* Action buttons */}
-                <td className="px-5 py-3.5">
-                  <div className="flex items-center gap-2">
+                <td className="px-5 py-3.5 text-sm whitespace-nowrap">
+                  <div className="flex items-center gap-2 whitespace-nowrap">
                     {(user?.role === 'admin' || user?.role === 'designer') && (
                       <button
                         onClick={() => handleOpenModal(design)}
-                        title="Edit Project"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all"
+                        title="Edit Project Details"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-300 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
                       >
-                        <Edit2 size={13} /> Edit
+                        <Edit2 size={13} className="stroke-[2.5]" />
+                        <span>Edit</span>
                       </button>
                     )}
                     {(user?.role === 'admin' || user?.role === 'designer') && (
                       <button
                         onClick={() => handleOpenMaterials(design)}
-                        title="Manage Materials"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all"
+                        title="Manage Materials & Direct Expenses"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-purple-50 text-purple-700 border border-purple-300 hover:bg-purple-600 hover:text-white transition-all shadow-sm"
                       >
-                        <Package size={13} /> Materials
+                        <Package size={13} className="stroke-[2.5]" />
+                        <span>Materials</span>
                       </button>
                     )}
                     {user?.role === 'admin' && (
                       <button
-                        onClick={() => deleteDesign(design.id)}
+                        onClick={() => {
+                          if (window.confirm(`Delete project "${design.type}" for ${design.client}?`)) {
+                            deleteDesign(design.id)
+                          }
+                        }}
                         title="Delete Project"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-300 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
                       >
-                        <Trash2 size={13} /> Delete
+                        <Trash2 size={13} className="stroke-[2.5]" />
+                        <span>Delete</span>
                       </button>
                     )}
                   </div>

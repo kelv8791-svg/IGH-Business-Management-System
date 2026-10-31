@@ -7,37 +7,44 @@ import Modal from '../components/Modal'
 import { Lock, Key, User, Save, ShieldCheck, Eye, EyeOff, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
 
 /* ── Branded slides for the right panel ── */
-/* Services offered by IGH — sourced from identitygraphics.co.ke */
+/* Services offered by IGH & iGIFT — sourced directly from identitygraphics.co.ke */
 const ighServices = [
-  'Signage & Displays', 'Large Format Printing', 'Digital Printing',
-  'Garment Printing', 'Business Cards', 'Brochures & Flyers',
-  'Banners & Backdrops', 'T-Shirt Printing', 'Gift Cards',
+  '3D & 2D Signages', 'Large Format Printing', 'Digital Printing',
+  'Garment & T-Shirt Printing', 'Rollup & Teardrop Banners', 'Gazebos & Tent Printing',
+  'Lightbox & Pylon Signs', 'Brochures & Flyers', 'Business Cards',
+  'iGIFT Custom Merchandise', 'Gift Cards & Bags', 'Custom Packaging',
 ]
 
 const slides = [
   {
-    tagline: 'Identity Graphics Houz — Nakuru',
-    quote: '"We specialize in creating visually striking and impactful branding solutions that help businesses stand out and connect with their audiences."',
-    author: 'Identity Graphics Houz',
-    role: 'Design · Print · Brand · Since 2015',
+    tagline: 'Top Quality Graphics Design, Printing & Branding',
+    quote: '"We specialize in creating visually striking and impactful branding solutions that help businesses stand out and connect with their audiences. Based in Nakuru, we pride ourselves on being a creative hub where design meets strategy."',
+    author: 'Identity Graphics Houz — Nakuru',
+    role: 'Official Portal · identitygraphics.co.ke',
   },
   {
-    tagline: 'Your Creative Partner in Nakuru',
-    quote: '"From eye-catching signages to professional printing and custom graphics — we transform ideas into powerful visuals that bring brands to life."',
+    tagline: 'Empowering Businesses with Tools to Succeed',
+    quote: '"From eye-catching signages to professional printing and custom graphics — our mission is to empower businesses with tools that boost visibility, enhance credibility, and drive growth."',
     author: 'identitygraphics.co.ke',
-    role: 'Signage · Garments · Large Format Printing',
+    role: 'Signages · Garments · Large Format · Digital Print',
+  },
+  {
+    tagline: 'Trusted by Businesses Across Kenya',
+    quote: '"The best graphics design and printing company around Nakuru. Loved the overall experience branding my shop. Excellent customer service, timely delivery at friendly costs."',
+    author: 'Verified Google Review',
+    role: 'Rated 5 Stars by Valued Clients',
   },
   {
     tagline: 'iGIFT Shop — Gift the Extraordinary',
-    quote: '"Gift cards, custom merchandise, branded packaging and more. iGIFT is your one-stop destination for memorable, branded gifts."',
-    author: 'iGIFT Shop',
-    role: 'Part of the Identity Graphics Family',
+    quote: '"Custom corporate gift bags, branded gift cards, promotional hoodies, caps, jerseys, and memorable merchandise that keep your brand unforgettable."',
+    author: 'iGIFT Shop & Merchandise',
+    role: 'Corporate Gifting & Custom Merchandise Division',
   },
   {
-    tagline: 'Empowering Business with Clarity',
-    quote: '"Track every sale, project, expense and inventory item in real time — one system for IGH and iGIFT, zero guesswork."',
-    author: 'IGH Business Management System',
-    role: 'Precision · Speed · Control',
+    tagline: 'IGH Business Management System',
+    quote: '"Streamlining graphic design workflows, sales pipelines, branch inventory, and supplier accounts across IGH & iGIFT — real-time control, zero guesswork."',
+    author: 'IGH Operational Management',
+    role: 'Secure Enterprise Staff & Admin Portal',
   },
 ]
 
