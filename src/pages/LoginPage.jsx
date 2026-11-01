@@ -219,45 +219,64 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
-      style={{ background: '#0d0d0d' }}
+      className="min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 50%, #E2E8F0 100%)',
+      }}
     >
-      {/* Ambient background glow */}
+      {/* Ambient background accents tailored for the off-white canvas */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Soft warm orange ambient blur in top corner */}
         <div
-          className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full opacity-[0.07]"
-          style={{ background: 'radial-gradient(circle, #F97316 0%, transparent 70%)', filter: 'blur(80px)' }}
+          className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(249,115,22,0.09) 0%, transparent 65%)',
+            filter: 'blur(70px)',
+          }}
         />
+        {/* Soft executive navy blur in bottom corner */}
         <div
-          className="absolute -bottom-40 -right-20 w-96 h-96 rounded-full opacity-[0.05]"
-          style={{ background: 'radial-gradient(circle, #F97316 0%, transparent 70%)', filter: 'blur(100px)' }}
+          className="absolute -bottom-32 -right-32 w-[600px] h-[600px] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(20,36,59,0.08) 0%, transparent 65%)',
+            filter: 'blur(80px)',
+          }}
+        />
+        {/* Subtle geometric dot grid pattern for distinctive texture */}
+        <div
+          className="absolute inset-0 opacity-[0.40]"
+          style={{
+            backgroundImage: 'radial-gradient(#CBD5E1 1.2px, transparent 1.2px)',
+            backgroundSize: '24px 24px',
+          }}
         />
       </div>
 
       {/* ── Change Password Button (top right) ── */}
-      <div className="absolute top-4 right-4 z-20">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
         <button
           onClick={() => setShowPasswordModal(true)}
-          className="flex items-center gap-2 text-xs font-bold px-3.5 py-2 rounded-xl transition-all"
+          className="flex items-center gap-2 text-xs font-extrabold px-4 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
           style={{
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            color: '#888',
-            backdropFilter: 'blur(12px)',
+            background: '#FFFFFF',
+            border: '1.5px solid #CBD5E1',
+            color: '#1E293B',
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.color = 'var(--igh-orange)'
-            e.currentTarget.style.borderColor = 'rgba(249,115,22,0.30)'
-            e.currentTarget.style.background = 'rgba(249,115,22,0.07)'
+            e.currentTarget.style.color = '#EA580C'
+            e.currentTarget.style.borderColor = '#F97316'
+            e.currentTarget.style.boxShadow = '0 6px 16px rgba(249,115,22,0.18)'
+            e.currentTarget.style.transform = 'translateY(-1px)'
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.color = '#888'
-            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
-            e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+            e.currentTarget.style.color = '#1E293B'
+            e.currentTarget.style.borderColor = '#CBD5E1'
+            e.currentTarget.style.boxShadow = '0 1px 3px rgba(15,23,42,0.06)'
+            e.currentTarget.style.transform = 'translateY(0)'
           }}
         >
-          <Key size={14} style={{ color: 'var(--igh-orange)' }} />
-          Change Password
+          <Key size={14} className="text-[#F97316] stroke-[2.5]" />
+          <span>Change Password</span>
         </button>
       </div>
 
@@ -270,43 +289,42 @@ export default function LoginPage() {
           className="flex flex-col md:flex-row rounded-3xl overflow-hidden items-stretch"
           style={{
             minHeight: '660px',
-            background: 'var(--igh-surface-1)',
-            border: '1px solid var(--igh-border)',
-            boxShadow: '0 32px 80px rgba(0,0,0,0.70), 0 0 0 1px rgba(249,115,22,0.07) inset',
+            background: '#FFFFFF',
+            border: '1.5px solid #CBD5E1',
+            boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(15, 23, 42, 0.04)',
           }}
         >
           {/* ══ LEFT — Login Form ══ */}
-          <div className="flex-1 p-8 sm:p-10 lg:p-12 flex flex-col justify-between" style={{ minWidth: 0 }}>
+          <div className="flex-1 p-8 sm:p-10 lg:p-12 flex flex-col justify-between" style={{ minWidth: 0, background: '#FFFFFF' }}>
             <div>
               {/* Logo + Title */}
               <div className="mb-7">
                 <div className="flex items-center gap-3 mb-5">
                   <div
-                    className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0"
+                    className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 flex items-center justify-center p-1"
                     style={{
-                      background: '#0d0d0d',
-                      border: '2px solid rgba(249,115,22,0.40)',
-                      boxShadow: '0 0 18px rgba(249,115,22,0.25)',
+                      background: '#FFFFFF',
+                      border: '2px solid rgba(249,115,22,0.45)',
+                      boxShadow: '0 4px 14px rgba(249,115,22,0.20)',
                     }}
                   >
-                    <img src="/logo.jpg" alt="IGH Logo" className="w-full h-full object-contain p-0.5" />
+                    <img src="/logo.jpg" alt="IGH Logo" className="w-full h-full object-contain" />
                   </div>
                   <div>
                     <h1
-                      className="text-lg font-black tracking-tight leading-none"
-                      style={{ color: 'var(--igh-text-primary)' }}
+                      className="text-lg font-black tracking-tight leading-none text-[#0F172A]"
                     >
                       IGH · iGIFT
                     </h1>
-                    <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'var(--igh-orange)' }}>
+                    <p className="text-[11px] font-bold mt-1 text-[#EA580C]">
                       Business Management System
                     </p>
                   </div>
                 </div>
-                <h2 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--igh-text-primary)' }}>
+                <h2 className="text-2xl font-black tracking-tight text-[#0F172A]">
                   Welcome back
                 </h2>
-                <p className="text-sm mt-1" style={{ color: 'var(--igh-text-muted)' }}>
+                <p className="text-sm font-semibold mt-1 text-[#475569]">
                   Please enter your details to sign in.
                 </p>
               </div>
@@ -315,12 +333,11 @@ export default function LoginPage() {
               <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
                 {/* Username */}
                 <div>
-                  <label className="form-label">Username</label>
+                  <label className="form-label text-[#0F172A]">Username</label>
                   <div className="relative">
                     <User
-                      className="absolute left-3.5 top-1/2 -translate-y-1/2"
-                      size={15}
-                      style={{ color: 'var(--igh-text-faint)' }}
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#475569]"
+                      size={16}
                     />
                     <input
                       type="text"
@@ -337,21 +354,19 @@ export default function LoginPage() {
                 {/* Password */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="form-label mb-0">Password</label>
+                    <label className="form-label mb-0 text-[#0F172A]">Password</label>
                     <button
                       type="button"
                       onClick={() => setShowPasswordModal(true)}
-                      className="text-[11px] font-semibold transition-colors"
-                      style={{ color: 'var(--igh-orange)' }}
+                      className="text-[11px] font-bold transition-colors text-[#EA580C] hover:text-[#C2410C]"
                     >
                       Forgot password?
                     </button>
                   </div>
                   <div className="relative">
                     <Lock
-                      className="absolute left-3.5 top-1/2 -translate-y-1/2"
-                      size={15}
-                      style={{ color: 'var(--igh-text-faint)' }}
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#475569]"
+                      size={16}
                     />
                     <input
                       type={showPw ? 'text' : 'password'}
@@ -365,18 +380,17 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPw(!showPw)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors"
-                      style={{ color: 'var(--igh-text-faint)' }}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors text-[#64748B] hover:text-[#0F172A]"
                       tabIndex={-1}
                     >
-                      {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                      {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                 </div>
 
                 {/* Error */}
                 {error && (
-                  <div className="alert-danger text-xs">
+                  <div className="alert-danger text-xs font-bold">
                     <AlertTriangle size={14} className="shrink-0 mt-0.5" />
                     {error}
                   </div>
@@ -386,7 +400,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn-primary w-full py-3 text-sm font-extrabold uppercase tracking-wider mt-2"
+                  className="btn-primary w-full py-3.5 text-sm font-black uppercase tracking-wider mt-2 shadow-lg"
                 >
                   {loading ? 'Signing In…' : 'Log In'}
                 </button>
@@ -394,7 +408,7 @@ export default function LoginPage() {
             </div>
 
             {/* Footer */}
-            <p className="text-center text-[11px] mt-6" style={{ color: 'var(--igh-text-faint)' }}>
+            <p className="text-center text-[11px] font-semibold mt-6 text-[#64748B]">
               © {new Date().getFullYear()} IGH Business Management · Authorized Staff Only
             </p>
           </div>
@@ -406,20 +420,20 @@ export default function LoginPage() {
               width: '50%',
               minWidth: '460px',
               flexShrink: 0,
-              background: 'linear-gradient(170deg, #182A42 0%, #14243B 60%, #0d1726 100%)',
-              borderLeft: '1px solid rgba(255,255,255,0.08)',
+              background: 'linear-gradient(165deg, #182A42 0%, #111C2E 55%, #0B121F 100%)',
+              borderLeft: '1.5px solid #CBD5E1',
             }}
           >
             {/* Ambient orange glow overlay */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: 'radial-gradient(circle at 80% 20%, rgba(249,115,22,0.15) 0%, transparent 70%)',
+                background: 'radial-gradient(circle at 80% 20%, rgba(249,115,22,0.18) 0%, transparent 70%)',
               }}
             />
 
             {/* Branded visual showcase image replacing duplicate logo */}
-            <div className="relative mx-7 mt-7 rounded-2xl overflow-hidden border border-white/10 shadow-2xl group flex-shrink-0">
+            <div className="relative mx-7 mt-7 rounded-2xl overflow-hidden border border-white/20 shadow-2xl group flex-shrink-0">
               <img
                 src="/login-showcase.jpg"
                 alt="IGH Business Suite"
@@ -428,14 +442,14 @@ export default function LoginPage() {
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                  background: 'linear-gradient(to top, rgba(20,36,59,0.90) 0%, rgba(20,36,59,0.20) 60%, transparent 100%)',
+                  background: 'linear-gradient(to top, rgba(17,28,46,0.92) 0%, rgba(17,28,46,0.20) 60%, transparent 100%)',
                 }}
               />
               <div className="absolute bottom-3 left-3.5 right-3.5 flex items-center justify-between pointer-events-none">
-                <span className="text-[10px] font-bold text-white/95 bg-black/60 px-2.5 py-1 rounded-full backdrop-blur-sm border border-white/15">
+                <span className="text-[10px] font-black text-white bg-black/60 px-2.5 py-1 rounded-full backdrop-blur-sm border border-white/20">
                   Business Operations
                 </span>
-                <span className="text-[10px] font-bold text-orange-300 bg-orange-950/80 px-2.5 py-1 rounded-full border border-orange-500/40">
+                <span className="text-[10px] font-black text-orange-300 bg-orange-950/80 px-2.5 py-1 rounded-full border border-orange-500/50">
                   IGH · iGIFT
                 </span>
               </div>
@@ -447,15 +461,14 @@ export default function LoginPage() {
               <div>
                 {/* Orange accent bar */}
                 <div
-                  className="w-8 h-1 rounded-full mb-3"
+                  className="w-9 h-1 rounded-full mb-3"
                   style={{ background: 'var(--igh-orange)' }}
                 />
 
                 {/* Tagline with fixed height */}
                 <div className="min-h-[20px] mb-2">
                   <p
-                    className="text-[11px] font-bold uppercase tracking-widest leading-tight"
-                    style={{ color: 'var(--igh-orange)' }}
+                    className="text-[11px] font-black uppercase tracking-widest leading-tight text-[#FB923C]"
                   >
                     {slide.tagline}
                   </p>
@@ -464,8 +477,7 @@ export default function LoginPage() {
                 {/* Quote block with fixed height so card NEVER resizes */}
                 <div className="min-h-[76px] flex items-center mb-3">
                   <blockquote
-                    className="text-xs sm:text-[13px] font-medium leading-relaxed transition-opacity duration-300"
-                    style={{ color: '#E2E8F0' }}
+                    className="text-xs sm:text-[13.5px] font-semibold leading-relaxed transition-opacity duration-300 text-white"
                   >
                     {slide.quote}
                   </blockquote>
@@ -473,10 +485,10 @@ export default function LoginPage() {
 
                 {/* Author & Role with fixed height */}
                 <div className="min-h-[38px]">
-                  <p className="text-xs font-bold leading-tight" style={{ color: '#FFFFFF' }}>
+                  <p className="text-xs font-black leading-tight text-white">
                     {slide.author}
                   </p>
-                  <p className="text-[11px] mt-0.5 leading-tight" style={{ color: '#94A3B8' }}>
+                  <p className="text-[11px] font-semibold mt-0.5 leading-tight text-[#CBD5E1]">
                     {slide.role}
                   </p>
                 </div>
@@ -489,22 +501,22 @@ export default function LoginPage() {
                   <button
                     onClick={prevSlide}
                     aria-label="Previous Slide"
-                    className="w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer"
+                    className="w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm"
                     style={{
-                      background: 'rgba(255,255,255,0.08)',
-                      border: '1px solid rgba(255,255,255,0.12)',
-                      color: '#94A3B8',
+                      background: 'rgba(255,255,255,0.12)',
+                      border: '1px solid rgba(255,255,255,0.22)',
+                      color: '#FFFFFF',
                     }}
                     onMouseEnter={e => {
                       e.currentTarget.style.background = 'var(--igh-orange)'
-                      e.currentTarget.style.color = '#fff'
+                      e.currentTarget.style.borderColor = 'var(--igh-orange)'
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-                      e.currentTarget.style.color = '#94A3B8'
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'
                     }}
                   >
-                    <ChevronLeft size={13} />
+                    <ChevronLeft size={13} className="stroke-[2.5]" />
                   </button>
 
                   {/* Dots */}
@@ -518,7 +530,7 @@ export default function LoginPage() {
                         style={{
                           width: i === slideIdx ? '22px' : '6px',
                           height: '6px',
-                          background: i === slideIdx ? 'var(--igh-orange)' : 'rgba(255,255,255,0.18)',
+                          background: i === slideIdx ? 'var(--igh-orange)' : 'rgba(255,255,255,0.28)',
                         }}
                       />
                     ))}
@@ -527,32 +539,32 @@ export default function LoginPage() {
                   <button
                     onClick={nextSlide}
                     aria-label="Next Slide"
-                    className="w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer"
+                    className="w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm"
                     style={{
-                      background: 'rgba(255,255,255,0.08)',
-                      border: '1px solid rgba(255,255,255,0.12)',
-                      color: '#94A3B8',
+                      background: 'rgba(255,255,255,0.12)',
+                      border: '1px solid rgba(255,255,255,0.22)',
+                      color: '#FFFFFF',
                     }}
                     onMouseEnter={e => {
                       e.currentTarget.style.background = 'var(--igh-orange)'
-                      e.currentTarget.style.color = '#fff'
+                      e.currentTarget.style.borderColor = 'var(--igh-orange)'
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-                      e.currentTarget.style.color = '#94A3B8'
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'
                     }}
                   >
-                    <ChevronRight size={13} />
+                    <ChevronRight size={13} className="stroke-[2.5]" />
                   </button>
                 </div>
 
                 {/* IGH Services Strip — sourced from identitygraphics.co.ke */}
-                <div className="pt-3.5" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="pt-3.5" style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}>
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[#94A3B8]">
                       Our Core Services
                     </p>
-                    <span className="text-[9px] font-medium tracking-wide" style={{ color: 'rgba(249,115,22,0.8)' }}>
+                    <span className="text-[10px] font-black tracking-wide text-[#FB923C]">
                       identitygraphics.co.ke
                     </span>
                   </div>
@@ -560,11 +572,11 @@ export default function LoginPage() {
                     {ighServices.map((s) => (
                       <span
                         key={s}
-                        className="text-[10px] font-semibold px-2 py-0.5 rounded-md transition-colors hover:text-white"
+                        className="text-[10.5px] font-bold px-2.5 py-1 rounded-lg transition-colors hover:bg-orange-500/25 hover:text-white"
                         style={{
-                          background: 'rgba(255,255,255,0.06)',
-                          border: '1px solid rgba(255,255,255,0.09)',
-                          color: 'rgba(255,255,255,0.65)',
+                          background: 'rgba(255,255,255,0.08)',
+                          border: '1px solid rgba(255,255,255,0.16)',
+                          color: '#F8FAFC',
                         }}
                       >
                         {s}
