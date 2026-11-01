@@ -264,132 +264,134 @@ export default function LoginPage() {
       {/* ── SPLIT CARD ── */}
       <div
         className="w-full z-10 animate-slide-up"
-        style={{ maxWidth: '900px' }}
+        style={{ maxWidth: '1060px' }}
       >
         <div
-          className="flex rounded-3xl overflow-hidden"
+          className="flex flex-col md:flex-row rounded-3xl overflow-hidden items-stretch"
           style={{
+            minHeight: '660px',
             background: 'var(--igh-surface-1)',
             border: '1px solid var(--igh-border)',
             boxShadow: '0 32px 80px rgba(0,0,0,0.70), 0 0 0 1px rgba(249,115,22,0.07) inset',
           }}
         >
           {/* ══ LEFT — Login Form ══ */}
-          <div className="flex-1 p-8 sm:p-10 flex flex-col justify-center" style={{ minWidth: 0 }}>
-
-            {/* Logo + Title */}
-            <div className="mb-8">
-              <div className="flex items-center gap-3 mb-5">
-                <div
-                  className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0"
-                  style={{
-                    background: '#0d0d0d',
-                    border: '2px solid rgba(249,115,22,0.40)',
-                    boxShadow: '0 0 18px rgba(249,115,22,0.25)',
-                  }}
-                >
-                  <img src="/logo.jpg" alt="IGH Logo" className="w-full h-full object-contain p-0.5" />
+          <div className="flex-1 p-8 sm:p-10 lg:p-12 flex flex-col justify-between" style={{ minWidth: 0 }}>
+            <div>
+              {/* Logo + Title */}
+              <div className="mb-7">
+                <div className="flex items-center gap-3 mb-5">
+                  <div
+                    className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0"
+                    style={{
+                      background: '#0d0d0d',
+                      border: '2px solid rgba(249,115,22,0.40)',
+                      boxShadow: '0 0 18px rgba(249,115,22,0.25)',
+                    }}
+                  >
+                    <img src="/logo.jpg" alt="IGH Logo" className="w-full h-full object-contain p-0.5" />
+                  </div>
+                  <div>
+                    <h1
+                      className="text-lg font-black tracking-tight leading-none"
+                      style={{ color: 'var(--igh-text-primary)' }}
+                    >
+                      IGH · iGIFT
+                    </h1>
+                    <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'var(--igh-orange)' }}>
+                      Business Management System
+                    </p>
+                  </div>
                 </div>
+                <h2 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--igh-text-primary)' }}>
+                  Welcome back
+                </h2>
+                <p className="text-sm mt-1" style={{ color: 'var(--igh-text-muted)' }}>
+                  Please enter your details to sign in.
+                </p>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
+                {/* Username */}
                 <div>
-                  <h1
-                    className="text-lg font-black tracking-tight leading-none"
-                    style={{ color: 'var(--igh-text-primary)' }}
-                  >
-                    IGH · iGIFT
-                  </h1>
-                  <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'var(--igh-orange)' }}>
-                    Business Management System
-                  </p>
+                  <label className="form-label">Username</label>
+                  <div className="relative">
+                    <User
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2"
+                      size={15}
+                      style={{ color: 'var(--igh-text-faint)' }}
+                    />
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="form-input pl-10"
+                      placeholder="Enter your username"
+                      required
+                      autoComplete="off"
+                    />
+                  </div>
                 </div>
-              </div>
-              <h2 className="text-2xl font-extrabold tracking-tight" style={{ color: 'var(--igh-text-primary)' }}>
-                Welcome back
-              </h2>
-              <p className="text-sm mt-1" style={{ color: 'var(--igh-text-muted)' }}>
-                Please enter your details to sign in.
-              </p>
+
+                {/* Password */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="form-label mb-0">Password</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordModal(true)}
+                      className="text-[11px] font-semibold transition-colors"
+                      style={{ color: 'var(--igh-orange)' }}
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <Lock
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2"
+                      size={15}
+                      style={{ color: 'var(--igh-text-faint)' }}
+                    />
+                    <input
+                      type={showPw ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="form-input pl-10 pr-12"
+                      placeholder="••••••••"
+                      required
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPw(!showPw)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors"
+                      style={{ color: 'var(--igh-text-faint)' }}
+                      tabIndex={-1}
+                    >
+                      {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Error */}
+                {error && (
+                  <div className="alert-danger text-xs">
+                    <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                    {error}
+                  </div>
+                )}
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn-primary w-full py-3 text-sm font-extrabold uppercase tracking-wider mt-2"
+                >
+                  {loading ? 'Signing In…' : 'Log In'}
+                </button>
+              </form>
             </div>
-
-            {/* Form */}
-            <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
-              {/* Username */}
-              <div>
-                <label className="form-label">Username</label>
-                <div className="relative">
-                  <User
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2"
-                    size={15}
-                    style={{ color: 'var(--igh-text-faint)' }}
-                  />
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="form-input pl-10"
-                    placeholder="Enter your username"
-                    required
-                    autoComplete="off"
-                  />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="form-label mb-0">Password</label>
-                  <button
-                    type="button"
-                    onClick={() => setShowPasswordModal(true)}
-                    className="text-[11px] font-semibold transition-colors"
-                    style={{ color: 'var(--igh-orange)' }}
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-                <div className="relative">
-                  <Lock
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2"
-                    size={15}
-                    style={{ color: 'var(--igh-text-faint)' }}
-                  />
-                  <input
-                    type={showPw ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="form-input pl-10 pr-12"
-                    placeholder="••••••••"
-                    required
-                    autoComplete="new-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPw(!showPw)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors"
-                    style={{ color: 'var(--igh-text-faint)' }}
-                    tabIndex={-1}
-                  >
-                    {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Error */}
-              {error && (
-                <div className="alert-danger text-xs">
-                  <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-                  {error}
-                </div>
-              )}
-
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary w-full py-3 text-sm font-extrabold uppercase tracking-wider mt-2"
-              >
-                {loading ? 'Signing In…' : 'Log In'}
-              </button>
-            </form>
 
             {/* Footer */}
             <p className="text-center text-[11px] mt-6" style={{ color: 'var(--igh-text-faint)' }}>
@@ -401,10 +403,11 @@ export default function LoginPage() {
           <div
             className="hidden md:flex relative flex-col justify-between overflow-hidden"
             style={{
-              width: '44%',
+              width: '50%',
+              minWidth: '460px',
               flexShrink: 0,
               background: 'linear-gradient(170deg, #182A42 0%, #14243B 60%, #0d1726 100%)',
-              borderLeft: '1px solid #E3E8EF',
+              borderLeft: '1px solid rgba(255,255,255,0.08)',
             }}
           >
             {/* Ambient orange glow overlay */}
@@ -416,132 +419,158 @@ export default function LoginPage() {
             />
 
             {/* Branded visual showcase image replacing duplicate logo */}
-            <div className="relative mx-6 mt-6 rounded-2xl overflow-hidden border border-white/10 shadow-xl group flex-shrink-0">
+            <div className="relative mx-7 mt-7 rounded-2xl overflow-hidden border border-white/10 shadow-2xl group flex-shrink-0">
               <img
                 src="/login-showcase.jpg"
                 alt="IGH Business Suite"
-                className="w-full h-44 object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                className="w-full h-48 object-cover object-top transition-transform duration-700 group-hover:scale-105"
               />
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                  background: 'linear-gradient(to top, rgba(20,36,59,0.85) 0%, rgba(20,36,59,0.15) 55%, transparent 100%)',
+                  background: 'linear-gradient(to top, rgba(20,36,59,0.90) 0%, rgba(20,36,59,0.20) 60%, transparent 100%)',
                 }}
               />
-              <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between pointer-events-none">
-                <span className="text-[10px] font-bold text-white/95 bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm border border-white/10">
+              <div className="absolute bottom-3 left-3.5 right-3.5 flex items-center justify-between pointer-events-none">
+                <span className="text-[10px] font-bold text-white/95 bg-black/60 px-2.5 py-1 rounded-full backdrop-blur-sm border border-white/15">
                   Business Operations
                 </span>
-                <span className="text-[10px] font-bold text-orange-300 bg-orange-950/70 px-2 py-0.5 rounded-full border border-orange-500/30">
+                <span className="text-[10px] font-bold text-orange-300 bg-orange-950/80 px-2.5 py-1 rounded-full border border-orange-500/40">
                   IGH · iGIFT
                 </span>
               </div>
             </div>
 
-            {/* Slide content */}
-            <div className="relative z-10 p-6 pb-8">
-              {/* Orange accent bar */}
-              <div
-                className="w-8 h-1 rounded-full mb-3"
-                style={{ background: 'var(--igh-orange)' }}
-              />
-              <p
-                className="text-[11px] font-bold uppercase tracking-widest mb-2"
-                style={{ color: 'var(--igh-orange)' }}
-              >
-                {slide.tagline}
-              </p>
-              <blockquote
-                className="text-xs sm:text-sm font-medium leading-relaxed mb-4 transition-all duration-500"
-                style={{ color: '#E2E8F0' }}
-              >
-                {slide.quote}
-              </blockquote>
+            {/* Slide content with CONSTANT sizing to eliminate any layout shifting */}
+            <div className="relative z-10 px-7 pb-7 pt-4 flex-1 flex flex-col justify-between">
+              {/* Top: Tagline + Quote + Author */}
               <div>
-                <p className="text-xs font-bold" style={{ color: '#FFFFFF' }}>
-                  {slide.author}
-                </p>
-                <p className="text-[11px] mt-0.5" style={{ color: '#94A3B8' }}>
-                  {slide.role}
-                </p>
-              </div>
+                {/* Orange accent bar */}
+                <div
+                  className="w-8 h-1 rounded-full mb-3"
+                  style={{ background: 'var(--igh-orange)' }}
+                />
 
-              {/* Slide navigation */}
-              <div className="flex items-center gap-3 mt-5">
-                <button
-                  onClick={prevSlide}
-                  className="w-7 h-7 rounded-full flex items-center justify-center transition-all"
-                  style={{
-                    background: 'rgba(255,255,255,0.08)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    color: '#94A3B8',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = 'var(--igh-orange)'
-                    e.currentTarget.style.color = '#fff'
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-                    e.currentTarget.style.color = '#94A3B8'
-                  }}
-                >
-                  <ChevronLeft size={13} />
-                </button>
-                {/* Dots */}
-                <div className="flex gap-1.5">
-                  {slides.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setSlideIdx(i)}
-                      className="rounded-full transition-all duration-300"
-                      style={{
-                        width: i === slideIdx ? '20px' : '6px',
-                        height: '6px',
-                        background: i === slideIdx ? 'var(--igh-orange)' : 'var(--igh-surface-4)',
-                      }}
-                    />
-                  ))}
+                {/* Tagline with fixed height */}
+                <div className="min-h-[20px] mb-2">
+                  <p
+                    className="text-[11px] font-bold uppercase tracking-widest leading-tight"
+                    style={{ color: 'var(--igh-orange)' }}
+                  >
+                    {slide.tagline}
+                  </p>
                 </div>
-                <button
-                  onClick={nextSlide}
-                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
-                  style={{
-                    background: 'var(--igh-surface-3)',
-                    border: '1px solid var(--igh-border)',
-                    color: 'var(--igh-text-muted)',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = 'var(--igh-orange)'
-                    e.currentTarget.style.color = '#fff'
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'var(--igh-surface-3)'
-                    e.currentTarget.style.color = 'var(--igh-text-muted)'
-                  }}
-                >
-                  <ChevronRight size={14} />
-                </button>
+
+                {/* Quote block with fixed height so card NEVER resizes */}
+                <div className="min-h-[76px] flex items-center mb-3">
+                  <blockquote
+                    className="text-xs sm:text-[13px] font-medium leading-relaxed transition-opacity duration-300"
+                    style={{ color: '#E2E8F0' }}
+                  >
+                    {slide.quote}
+                  </blockquote>
+                </div>
+
+                {/* Author & Role with fixed height */}
+                <div className="min-h-[38px]">
+                  <p className="text-xs font-bold leading-tight" style={{ color: '#FFFFFF' }}>
+                    {slide.author}
+                  </p>
+                  <p className="text-[11px] mt-0.5 leading-tight" style={{ color: '#94A3B8' }}>
+                    {slide.role}
+                  </p>
+                </div>
               </div>
 
-              {/* IGH Services Strip — sourced from identitygraphics.co.ke */}
-              <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-                <p className="text-[10px] font-bold uppercase tracking-widest mb-2.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                  Our Services
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {ighServices.map((s) => (
-                    <span
-                      key={s}
-                      className="text-[10px] font-semibold px-2 py-0.5 rounded-md"
-                      style={{
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.09)',
-                        color: 'rgba(255,255,255,0.55)',
-                      }}
-                    >
-                      {s}
+              {/* Bottom: Navigation + Services */}
+              <div>
+                {/* Slide navigation */}
+                <div className="flex items-center gap-3 mb-4">
+                  <button
+                    onClick={prevSlide}
+                    aria-label="Previous Slide"
+                    className="w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer"
+                    style={{
+                      background: 'rgba(255,255,255,0.08)',
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      color: '#94A3B8',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'var(--igh-orange)'
+                      e.currentTarget.style.color = '#fff'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                      e.currentTarget.style.color = '#94A3B8'
+                    }}
+                  >
+                    <ChevronLeft size={13} />
+                  </button>
+
+                  {/* Dots */}
+                  <div className="flex gap-1.5 items-center">
+                    {slides.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setSlideIdx(i)}
+                        aria-label={`Go to slide ${i + 1}`}
+                        className="rounded-full transition-all duration-300 cursor-pointer"
+                        style={{
+                          width: i === slideIdx ? '22px' : '6px',
+                          height: '6px',
+                          background: i === slideIdx ? 'var(--igh-orange)' : 'rgba(255,255,255,0.18)',
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={nextSlide}
+                    aria-label="Next Slide"
+                    className="w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer"
+                    style={{
+                      background: 'rgba(255,255,255,0.08)',
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      color: '#94A3B8',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'var(--igh-orange)'
+                      e.currentTarget.style.color = '#fff'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                      e.currentTarget.style.color = '#94A3B8'
+                    }}
+                  >
+                    <ChevronRight size={13} />
+                  </button>
+                </div>
+
+                {/* IGH Services Strip — sourced from identitygraphics.co.ke */}
+                <div className="pt-3.5" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Our Core Services
+                    </p>
+                    <span className="text-[9px] font-medium tracking-wide" style={{ color: 'rgba(249,115,22,0.8)' }}>
+                      identitygraphics.co.ke
                     </span>
-                  ))}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ighServices.map((s) => (
+                      <span
+                        key={s}
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-md transition-colors hover:text-white"
+                        style={{
+                          background: 'rgba(255,255,255,0.06)',
+                          border: '1px solid rgba(255,255,255,0.09)',
+                          color: 'rgba(255,255,255,0.65)',
+                        }}
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
