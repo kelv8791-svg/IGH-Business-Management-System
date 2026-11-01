@@ -7,14 +7,8 @@ import Modal from '../components/Modal'
 import { Lock, Key, User, Save, ShieldCheck, Eye, EyeOff, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
 
 /* ── Branded slides for the right panel ── */
-/* Services offered by IGH & iGIFT — sourced directly from identitygraphics.co.ke */
-const ighServices = [
-  '3D & 2D Signages', 'Large Format Printing', 'Digital Printing',
-  'Garment & T-Shirt Printing', 'Rollup & Teardrop Banners', 'Gazebos & Tent Printing',
-  'Lightbox & Pylon Signs', 'Brochures & Flyers', 'Business Cards',
-  'iGIFT Custom Merchandise', 'Gift Cards & Bags', 'Custom Packaging',
-]
-
+/* ── Branded slides for the right panel ── */
+/* Sourced directly from identitygraphics.co.ke */
 const slides = [
   {
     tagline: 'Top Quality Graphics Design, Printing & Branding',
@@ -433,11 +427,11 @@ export default function LoginPage() {
             />
 
             {/* Branded visual showcase image replacing duplicate logo */}
-            <div className="relative mx-7 mt-7 rounded-2xl overflow-hidden border border-white/20 shadow-2xl group flex-shrink-0">
+            <div className="relative mx-8 mt-8 rounded-2xl overflow-hidden border border-white/20 shadow-2xl group flex-shrink-0">
               <img
                 src="/login-showcase.jpg"
                 alt="IGH Business Suite"
-                className="w-full h-48 object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                className="w-full h-56 object-cover object-top transition-transform duration-700 group-hover:scale-105"
               />
               <div
                 className="absolute inset-0 pointer-events-none"
@@ -445,7 +439,7 @@ export default function LoginPage() {
                   background: 'linear-gradient(to top, rgba(17,28,46,0.92) 0%, rgba(17,28,46,0.20) 60%, transparent 100%)',
                 }}
               />
-              <div className="absolute bottom-3 left-3.5 right-3.5 flex items-center justify-between pointer-events-none">
+              <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between pointer-events-none">
                 <span className="text-[10px] font-black text-white bg-black/60 px-2.5 py-1 rounded-full backdrop-blur-sm border border-white/20">
                   Business Operations
                 </span>
@@ -455,133 +449,114 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Slide content with CONSTANT sizing to eliminate any layout shifting */}
-            <div className="relative z-10 px-7 pb-7 pt-4 flex-1 flex flex-col justify-between">
+            {/* Slide content with generous, balanced vertical spacing & zero dead space */}
+            <div className="relative z-10 px-8 pb-8 pt-6 flex-1 flex flex-col justify-between">
               {/* Top: Tagline + Quote + Author */}
               <div>
                 {/* Orange accent bar */}
                 <div
-                  className="w-9 h-1 rounded-full mb-3"
+                  className="w-10 h-1 rounded-full mb-3.5"
                   style={{ background: 'var(--igh-orange)' }}
                 />
 
-                {/* Tagline with fixed height */}
+                {/* Tagline */}
                 <div className="min-h-[20px] mb-2">
                   <p
-                    className="text-[11px] font-black uppercase tracking-widest leading-tight text-[#FB923C]"
+                    className="text-xs font-black uppercase tracking-widest leading-tight text-[#FB923C]"
                   >
                     {slide.tagline}
                   </p>
                 </div>
 
-                {/* Quote block with fixed height so card NEVER resizes */}
-                <div className="min-h-[76px] flex items-center mb-3">
+                {/* Quote block */}
+                <div className="min-h-[88px] flex items-center mb-3">
                   <blockquote
-                    className="text-xs sm:text-[13.5px] font-semibold leading-relaxed transition-opacity duration-300 text-white"
+                    className="text-sm sm:text-[14.5px] font-medium leading-relaxed transition-opacity duration-300 text-white/95"
                   >
                     {slide.quote}
                   </blockquote>
                 </div>
 
-                {/* Author & Role with fixed height */}
-                <div className="min-h-[38px]">
-                  <p className="text-xs font-black leading-tight text-white">
+                {/* Author & Role */}
+                <div className="min-h-[42px]">
+                  <p className="text-sm font-black leading-tight text-white">
                     {slide.author}
                   </p>
-                  <p className="text-[11px] font-semibold mt-0.5 leading-tight text-[#CBD5E1]">
+                  <p className="text-xs font-semibold mt-1 leading-tight text-[#CBD5E1]">
                     {slide.role}
                   </p>
                 </div>
               </div>
 
-              {/* Bottom: Navigation + Services */}
-              <div>
-                {/* Slide navigation */}
-                <div className="flex items-center gap-3 mb-4">
-                  <button
-                    onClick={prevSlide}
-                    aria-label="Previous Slide"
-                    className="w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm"
-                    style={{
-                      background: 'rgba(255,255,255,0.12)',
-                      border: '1px solid rgba(255,255,255,0.22)',
-                      color: '#FFFFFF',
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = 'var(--igh-orange)'
-                      e.currentTarget.style.borderColor = 'var(--igh-orange)'
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
-                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'
-                    }}
-                  >
-                    <ChevronLeft size={13} className="stroke-[2.5]" />
-                  </button>
+              {/* Bottom: Navigation + Sleek Brand Signature */}
+              <div className="pt-5" style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}>
+                <div className="flex items-center justify-between">
+                  {/* Slide navigation controls */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={prevSlide}
+                      aria-label="Previous Slide"
+                      className="w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm"
+                      style={{
+                        background: 'rgba(255,255,255,0.12)',
+                        border: '1px solid rgba(255,255,255,0.22)',
+                        color: '#FFFFFF',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = 'var(--igh-orange)'
+                        e.currentTarget.style.borderColor = 'var(--igh-orange)'
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
+                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'
+                      }}
+                    >
+                      <ChevronLeft size={13} className="stroke-[2.5]" />
+                    </button>
 
-                  {/* Dots */}
-                  <div className="flex gap-1.5 items-center">
-                    {slides.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setSlideIdx(i)}
-                        aria-label={`Go to slide ${i + 1}`}
-                        className="rounded-full transition-all duration-300 cursor-pointer"
-                        style={{
-                          width: i === slideIdx ? '22px' : '6px',
-                          height: '6px',
-                          background: i === slideIdx ? 'var(--igh-orange)' : 'rgba(255,255,255,0.28)',
-                        }}
-                      />
-                    ))}
+                    {/* Dots */}
+                    <div className="flex gap-1.5 items-center">
+                      {slides.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setSlideIdx(i)}
+                          aria-label={`Go to slide ${i + 1}`}
+                          className="rounded-full transition-all duration-300 cursor-pointer"
+                          style={{
+                            width: i === slideIdx ? '22px' : '6px',
+                            height: '6px',
+                            background: i === slideIdx ? 'var(--igh-orange)' : 'rgba(255,255,255,0.28)',
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={nextSlide}
+                      aria-label="Next Slide"
+                      className="w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm"
+                      style={{
+                        background: 'rgba(255,255,255,0.12)',
+                        border: '1px solid rgba(255,255,255,0.22)',
+                        color: '#FFFFFF',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = 'var(--igh-orange)'
+                        e.currentTarget.style.borderColor = 'var(--igh-orange)'
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
+                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'
+                      }}
+                    >
+                      <ChevronRight size={13} className="stroke-[2.5]" />
+                    </button>
                   </div>
 
-                  <button
-                    onClick={nextSlide}
-                    aria-label="Next Slide"
-                    className="w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm"
-                    style={{
-                      background: 'rgba(255,255,255,0.12)',
-                      border: '1px solid rgba(255,255,255,0.22)',
-                      color: '#FFFFFF',
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = 'var(--igh-orange)'
-                      e.currentTarget.style.borderColor = 'var(--igh-orange)'
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
-                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'
-                    }}
-                  >
-                    <ChevronRight size={13} className="stroke-[2.5]" />
-                  </button>
-                </div>
-
-                {/* IGH Services Strip — sourced from identitygraphics.co.ke */}
-                <div className="pt-3.5" style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-[#94A3B8]">
-                      Our Core Services
-                    </p>
-                    <span className="text-[10px] font-black tracking-wide text-[#FB923C]">
-                      identitygraphics.co.ke
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {ighServices.map((s) => (
-                      <span
-                        key={s}
-                        className="text-[10.5px] font-bold px-2.5 py-1 rounded-lg transition-colors hover:bg-orange-500/25 hover:text-white"
-                        style={{
-                          background: 'rgba(255,255,255,0.08)',
-                          border: '1px solid rgba(255,255,255,0.16)',
-                          color: '#F8FAFC',
-                        }}
-                      >
-                        {s}
-                      </span>
-                    ))}
+                  {/* Security / Portal Signature */}
+                  <div className="flex items-center gap-1.5 text-xs text-[#94A3B8]">
+                    <ShieldCheck size={14} className="text-[#F97316] flex-shrink-0" />
+                    <span className="font-semibold text-white/80">Authorized Staff Portal</span>
                   </div>
                 </div>
               </div>
