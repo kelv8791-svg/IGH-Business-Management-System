@@ -314,27 +314,25 @@ export default function DesignProjects() {
                   )}
                 </td>
 
-                {/* Action buttons */}
-                <td className="px-5 py-3.5 text-sm whitespace-nowrap">
-                  <div className="flex items-center gap-2 whitespace-nowrap">
+                {/* Action buttons - icon-only to save space */}
+                <td className="px-4 py-3.5 text-sm whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
                     {(user?.role === 'admin' || user?.role === 'designer') && (
                       <button
                         onClick={() => handleOpenModal(design)}
                         title="Edit Project Details"
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-300 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                        className="p-2 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-600 hover:text-white hover:border-blue-600 hover:scale-110 transition-all duration-150 shadow-sm"
                       >
-                        <Edit2 size={13} className="stroke-[2.5]" />
-                        <span>Edit</span>
+                        <Edit2 size={14} className="stroke-[2.5]" />
                       </button>
                     )}
                     {(user?.role === 'admin' || user?.role === 'designer') && (
                       <button
                         onClick={() => handleOpenMaterials(design)}
                         title="Manage Materials & Direct Expenses"
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-purple-50 text-purple-700 border border-purple-300 hover:bg-purple-600 hover:text-white transition-all shadow-sm"
+                        className="p-2 rounded-lg bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-600 hover:text-white hover:border-purple-600 hover:scale-110 transition-all duration-150 shadow-sm"
                       >
-                        <Package size={13} className="stroke-[2.5]" />
-                        <span>Materials</span>
+                        <Package size={14} className="stroke-[2.5]" />
                       </button>
                     )}
                     {user?.role === 'admin' && (
@@ -345,10 +343,9 @@ export default function DesignProjects() {
                           }
                         }}
                         title="Delete Project"
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-300 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                        className="p-2 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-600 hover:text-white hover:border-rose-600 hover:scale-110 transition-all duration-150 shadow-sm"
                       >
-                        <Trash2 size={13} className="stroke-[2.5]" />
-                        <span>Delete</span>
+                        <Trash2 size={14} className="stroke-[2.5]" />
                       </button>
                     )}
                   </div>

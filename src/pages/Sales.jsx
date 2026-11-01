@@ -32,8 +32,6 @@ export default function Sales() {
   const [expandedMonth, setExpandedMonth] = useState(null)
 
   const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
-  const targetModalBranch = formData?.branch || (user?.role === 'admin' ? (selectedBranch === 'iGift' ? 'iGift' : 'IGH') : (user?.branch || 'IGH'))
-  const isModalIGH = targetModalBranch === 'IGH'
   const isIGH = activeBranch === 'IGH'
 
   const [formData, setFormData] = useState({
@@ -52,6 +50,9 @@ export default function Sales() {
     inventory_item_id: '',
     branch: user?.role === 'admin' ? (selectedBranch === 'iGift' ? 'iGift' : 'IGH') : (user?.branch || 'IGH')
   })
+
+  const targetModalBranch = formData?.branch || (user?.role === 'admin' ? (selectedBranch === 'iGift' ? 'iGift' : 'IGH') : (user?.branch || 'IGH'))
+  const isModalIGH = targetModalBranch === 'IGH'
 
   const departments = ['Walk-in', 'Online', 'Referal', 'Client', 'Reception']
   const paymentMethods = ['Cash', 'M-Pesa', 'Bank Transfer', 'Cheque', 'Credit']

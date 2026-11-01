@@ -15,7 +15,12 @@ import {
   BarChart3,
   ArrowLeft,
   Search,
-  Calendar
+  Calendar,
+  ChevronDown,
+  ChevronRight,
+  Tag,
+  Layers,
+  AlertTriangle
 } from 'lucide-react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -109,6 +114,20 @@ export default function Reports() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [filterDesigner, setFilterDesigner] = useState('')
+  const [expandedMonths, setExpandedMonths] = useState({})
+
+  const toggleMonth = (key) => {
+    setExpandedMonths(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }))
+  }
+
+  const setAllExpanded = (keys, expand) => {
+    const next = {}
+    keys.forEach(k => { next[k] = expand })
+    setExpandedMonths(next)
+  }
 
   const getFilteredData = () => {
     const dateFilter = (record) => {
@@ -331,321 +350,775 @@ export default function Reports() {
     }
   }
 
+  const groupRecordsByMonth = (records, dateFieldGetter, amountFieldGetter) => {
+    const groups = {}
+    ;(records || []).forEach((record) => {
+      const rawDate = dateFieldGetter ? dateFieldGetter(record) : (record.date || record.created_at)
+      let monthLabel = 'General / Undated'
+      let sortKey = '0000-00'
+      if (rawDate) {
+        const d = new Date(rawDate)
+        if (!isNaN(d.getTime())) {
+          monthLabel = d.toLocaleString('default', { month: 'long', year: 'numeric' })
+          sortKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+        }
+      }
+      if (!groups[sortKey]) {
+        groups[sortKey] = {
+          key: sortKey,
+          label: monthLabel,
+          items: [],
+          totalAmount: 0
+        }
+      }
+      groups[sortKey].items.push(record)
+      if (amountFieldGetter) {
+        groups[sortKey].totalAmount += Number(amountFieldGetter(record) || 0)
+      }
+    })
+
+    return Object.keys(groups)
+      .sort()
+      .reverse()
+      .map(key => groups[key])
+  }
+
+  const renderAccordionWrapper = (groups, renderGroupContent, options = {}) => {
+    if (!groups || groups.length === 0) {
+      return (
+        <div className="py-12 text-center text-[#64748B] font-semibold">
+          No records found for the selected period or filter criteria.
+        </div>
+      )
+    }
+
+    const allKeys = groups.map(g => g.key)
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#CBD5E1]">
+          <span className="text-xs font-black uppercase text-[#475569] tracking-wider">
+            {options.groupLabel || 'Monthly Breakdown'} ({groups.length} {groups.length === 1 ? 'Period' : 'Periods'})
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setAllExpanded(allKeys, true)}
+              className="text-xs font-bold text-[#F97316] hover:underline"
+            >
+              Expand All
+            </button>
+            <span className="text-[#94A3B8]">•</span>
+            <button
+              type="button"
+              onClick={() => setAllExpanded(allKeys, false)}
+              className="text-xs font-bold text-[#64748B] hover:underline"
+            >
+              Collapse All
+            </button>
+          </div>
+        </div>
+
+        {groups.map((group, idx) => {
+          const isExpanded = expandedMonths[group.key] ?? (idx === 0 || groups.length === 1)
+          const borderColor = options.borderColor || 'border-[#F97316]'
+          const countUnit = options.countUnit || 'records'
+          const totalFormatter = options.totalFormatter || ((val) => `KSh ${Number(val || 0).toLocaleString()}`)
+
+          return (
+            <div key={group.key} className="space-y-2">
+              <button
+                type="button"
+                onClick={() => toggleMonth(group.key)}
+                className={`w-full flex justify-between items-center px-5 py-3.5 bg-white rounded-xl border-l-4 ${borderColor} border border-[#CBD5E1] shadow-sm hover:bg-[#FFF7ED] transition-all group`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="text-[#69778A] group-hover:text-[#F97316] transition-colors">
+                    {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                  </div>
+                  <h2 className="text-base sm:text-lg font-black text-[#0F172A] group-hover:text-[#F97316] transition-colors">
+                    {group.label}
+                  </h2>
+                  <span className="px-2.5 py-0.5 text-xs font-bold bg-[#F1F5F9] text-[#14243B] border border-[#CBD5E1] rounded-full">
+                    {group.items.length} {countUnit}
+                  </span>
+                </div>
+                {options.showTotal !== false && (
+                  <span className={`text-sm font-black ${options.totalColor || 'text-emerald-700'}`}>
+                    {totalFormatter(group.totalAmount, group.items)}
+                  </span>
+                )}
+              </button>
+
+              {isExpanded && (
+                <div className="card overflow-x-auto p-0 rounded-xl border border-[#CBD5E1] animate-in fade-in slide-in-from-top-1 duration-200">
+                  {renderGroupContent(group)}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   const renderReportPreview = () => {
     const filteredData = getFilteredData()
 
     if (reportType === 'sales') {
-      return (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      const groups = groupRecordsByMonth(filteredData, s => s.date, s => s.amount)
+      return renderAccordionWrapper(
+        groups,
+        (group) => (
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                <th className="px-4 py-2 text-left">Date</th>
-                <th className="px-4 py-2 text-left">Client</th>
-                <th className="px-4 py-2 text-left">Department</th>
-                <th className="px-4 py-2 text-right">Amount</th>
-                <th className="px-4 py-2 text-left">Status</th>
+              <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Date</th>
+                {activeBranch === 'All' && (
+                  <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Branch</th>
+                )}
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Client</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Department</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Description</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Status & Method</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Amount</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredData.map(sale => (
-                <tr key={sale.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="px-4 py-2">{sale.date}</td>
-                  <td className="px-4 py-2">{sale.client}</td>
-                  <td className="px-4 py-2">{sale.dept}</td>
-                  <td className="px-4 py-2 text-right font-semibold">KSh {Number(sale.amount || 0).toLocaleString()}</td>
-                  <td className="px-4 py-2">{sale.paymentStatus}</td>
+            <tbody className="divide-y divide-[#E2E8F0]">
+              {group.items.map(sale => (
+                <tr key={sale.id} className="transition-all hover:bg-orange-50/30">
+                  <td className="px-5 py-3.5 font-bold whitespace-nowrap text-[#0F172A]">{sale.date}</td>
+                  {activeBranch === 'All' && (
+                    <td className="px-5 py-3.5 whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                        (sale.branch || 'IGH') === 'iGift'
+                          ? 'bg-purple-50 text-purple-800 border-purple-200'
+                          : 'bg-orange-50 text-orange-900 border-orange-200'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${(sale.branch || 'IGH') === 'iGift' ? 'bg-purple-500' : 'bg-orange-500'}`} />
+                        {(sale.branch || 'IGH') === 'iGift' ? 'iGift' : 'IGH'}
+                      </span>
+                    </td>
+                  )}
+                  <td className="px-5 py-3.5 font-bold text-[#0F172A]">{sale.client || '—'}</td>
+                  <td className="px-5 py-3.5">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#EEF3FA] text-[#14243B] border border-[#CBD5E1]">
+                      <Tag size={11} className="text-[#F97316]" />
+                      {sale.dept}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5 text-[#334155] max-w-xs truncate">
+                    <div className="font-semibold text-[#0F172A] truncate">{sale.desc || '—'}</div>
+                    {sale.paymentRef && <div className="text-xs text-blue-700 font-mono font-bold mt-0.5">Ref: {sale.paymentRef}</div>}
+                  </td>
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <div className="flex flex-col gap-0.5">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold w-fit ${
+                        sale.paymentStatus === 'Paid'
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                          : sale.paymentStatus === 'Pending'
+                          ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                          : 'bg-blue-100 text-blue-800 border border-blue-300'
+                      }`}>
+                        {sale.paymentStatus || 'Paid'}
+                      </span>
+                      <span className="text-xs font-semibold text-[#475569]">{sale.paymentMethod}</span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3.5 font-black text-emerald-700 whitespace-nowrap text-right">
+                    KSh {Number(sale.amount || 0).toLocaleString()}
+                  </td>
                 </tr>
               ))}
-              <tr className="border-t-2 border-gray-300 dark:border-gray-600 font-bold">
-                <td colSpan="3" className="px-4 py-2 text-right">Total Sales:</td>
-                <td className="px-4 py-2 text-right">KSh {filteredData.reduce((sum, s) => sum + (Number(s.amount) || 0), 0).toLocaleString()}</td>
+              <tr className="border-t-2 border-[#CBD5E1] bg-[#F8FAFC] font-black">
+                <td colSpan={activeBranch === 'All' ? 6 : 5} className="px-5 py-3 text-right text-xs uppercase tracking-wider text-[#334155]">
+                  {group.label} Subtotal:
+                </td>
+                <td className="px-5 py-3 text-right text-sm text-emerald-700 whitespace-nowrap">
+                  KSh {Number(group.totalAmount || 0).toLocaleString()}
+                </td>
               </tr>
             </tbody>
           </table>
-        </div>
+        ),
+        { borderColor: 'border-emerald-500', totalColor: 'text-emerald-700', countUnit: 'sales' }
       )
     }
 
     if (reportType === 'expenses') {
-      return (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      const groups = groupRecordsByMonth(filteredData, e => e.date, e => e.amount)
+      return renderAccordionWrapper(
+        groups,
+        (group) => (
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                <th className="px-4 py-2 text-left">Date</th>
-                <th className="px-4 py-2 text-left">Category</th>
-                <th className="px-4 py-2 text-left">Description</th>
-                <th className="px-4 py-2 text-right">Amount</th>
+              <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Date</th>
+                {activeBranch === 'All' && (
+                  <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Branch</th>
+                )}
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Category</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Description</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Amount</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredData.map(expense => (
-                <tr key={expense.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="px-4 py-2">{expense.date}</td>
-                  <td className="px-4 py-2">{expense.cat}</td>
-                  <td className="px-4 py-2">{expense.desc}</td>
-                  <td className="px-4 py-2 text-right font-semibold">KSh {Number(expense.amount || 0).toLocaleString()}</td>
+            <tbody className="divide-y divide-[#E2E8F0]">
+              {group.items.map(expense => (
+                <tr key={expense.id} className="transition-all hover:bg-orange-50/30">
+                  <td className="px-5 py-3.5 font-bold whitespace-nowrap text-[#0F172A]">{expense.date}</td>
+                  {activeBranch === 'All' && (
+                    <td className="px-5 py-3.5 whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                        (expense.branch || 'IGH') === 'iGift'
+                          ? 'bg-purple-50 text-purple-800 border-purple-200'
+                          : 'bg-orange-50 text-orange-900 border-orange-200'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${(expense.branch || 'IGH') === 'iGift' ? 'bg-purple-500' : 'bg-orange-500'}`} />
+                        {(expense.branch || 'IGH') === 'iGift' ? 'iGift' : 'IGH'}
+                      </span>
+                    </td>
+                  )}
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#EEF3FA] text-[#14243B] border border-[#CBD5E1]">
+                      <Tag size={11} className="text-[#F97316]" />
+                      {expense.cat}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5 text-[#0F172A] font-semibold max-w-sm truncate">
+                    {expense.desc || 'No description provided'}
+                  </td>
+                  <td className="px-5 py-3.5 font-black text-rose-600 whitespace-nowrap text-right">
+                    KSh {Number(expense.amount || 0).toLocaleString()}
+                  </td>
                 </tr>
               ))}
-              <tr className="border-t-2 border-gray-300 dark:border-gray-600 font-bold">
-                <td colSpan="3" className="px-4 py-2 text-right">Total Expenses:</td>
-                <td className="px-4 py-2 text-right">KSh {filteredData.reduce((sum, e) => sum + (Number(e.amount) || 0), 0).toLocaleString()}</td>
+              <tr className="border-t-2 border-[#CBD5E1] bg-[#F8FAFC] font-black">
+                <td colSpan={activeBranch === 'All' ? 4 : 3} className="px-5 py-3 text-right text-xs uppercase tracking-wider text-[#334155]">
+                  {group.label} Subtotal:
+                </td>
+                <td className="px-5 py-3 text-right text-sm text-rose-600 whitespace-nowrap">
+                  KSh {Number(group.totalAmount || 0).toLocaleString()}
+                </td>
               </tr>
             </tbody>
           </table>
-        </div>
+        ),
+        { borderColor: 'border-rose-500', totalColor: 'text-rose-600', countUnit: 'expenses' }
       )
     }
 
     if (reportType === 'clients') {
-      return (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      const groups = groupRecordsByMonth(filteredData, c => c.created_at || c.date, c => c.totalSales)
+      return renderAccordionWrapper(
+        groups,
+        (group) => (
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                <th className="px-4 py-2 text-left">Name</th>
-                <th className="px-4 py-2 text-left">Phone</th>
-                <th className="px-4 py-2 text-left">Location</th>
-                <th className="px-4 py-2 text-right">Total Sales</th>
+              <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Client Name</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Phone</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Location / Address</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Total Sales Volume</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredData.map(client => (
-                <tr key={client.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="px-4 py-2">{client.name}</td>
-                  <td className="px-4 py-2">{client.phone}</td>
-                  <td className="px-4 py-2">{client.location}</td>
-                  <td className="px-4 py-2 text-right font-semibold">KSh {Number(client.totalSales || 0).toLocaleString()}</td>
+            <tbody className="divide-y divide-[#E2E8F0]">
+              {group.items.map(client => (
+                <tr key={client.id} className="transition-all hover:bg-orange-50/30">
+                  <td className="px-5 py-3.5 font-bold text-[#0F172A] whitespace-nowrap">{client.name}</td>
+                  <td className="px-5 py-3.5 text-[#334155] font-semibold whitespace-nowrap">{client.phone || '—'}</td>
+                  <td className="px-5 py-3.5 text-[#334155]">{client.location || client.address || '—'}</td>
+                  <td className="px-5 py-3.5 font-black text-emerald-700 whitespace-nowrap text-right">
+                    KSh {Number(client.totalSales || 0).toLocaleString()}
+                  </td>
                 </tr>
               ))}
+              <tr className="border-t-2 border-[#CBD5E1] bg-[#F8FAFC] font-black">
+                <td colSpan={3} className="px-5 py-3 text-right text-xs uppercase tracking-wider text-[#334155]">
+                  {group.label} Sales Volume:
+                </td>
+                <td className="px-5 py-3 text-right text-sm text-emerald-700 whitespace-nowrap">
+                  KSh {Number(group.totalAmount || 0).toLocaleString()}
+                </td>
+              </tr>
             </tbody>
           </table>
-        </div>
+        ),
+        { borderColor: 'border-blue-500', totalColor: 'text-emerald-700', countUnit: 'clients' }
       )
     }
 
     if (reportType === 'designs') {
-      return (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      const groups = groupRecordsByMonth(filteredData, d => d.date, d => d.amount)
+      return renderAccordionWrapper(
+        groups,
+        (group) => (
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                <th className="px-4 py-2 text-left">Date</th>
-                <th className="px-4 py-2 text-left">Type</th>
-                <th className="px-4 py-2 text-left">Client</th>
-                <th className="px-4 py-2 text-left">Designer</th>
-                <th className="px-4 py-2 text-right">Amount</th>
-                <th className="px-4 py-2 text-left">Status</th>
+              <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Date</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Project Type</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Client</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Designer</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Target Date</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Status</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Amount</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredData.map(design => (
-                <tr key={design.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="px-4 py-2">{design.date}</td>
-                  <td className="px-4 py-2">{design.type}</td>
-                  <td className="px-4 py-2">{design.client}</td>
-                  <td className="px-4 py-2">{design.assignedTo}</td>
-                  <td className="px-4 py-2 text-right font-semibold">KSh {Number(design.amount || 0).toLocaleString()}</td>
-                  <td className="px-4 py-2">{design.status}</td>
+            <tbody className="divide-y divide-[#E2E8F0]">
+              {group.items.map(design => (
+                <tr key={design.id} className="transition-all hover:bg-orange-50/30">
+                  <td className="px-5 py-3.5 font-bold whitespace-nowrap text-[#0F172A]">{design.date}</td>
+                  <td className="px-5 py-3.5 font-bold text-[#0F172A] whitespace-nowrap">{design.type}</td>
+                  <td className="px-5 py-3.5 font-semibold text-[#0F172A]">{design.client}</td>
+                  <td className="px-5 py-3.5 text-[#334155] font-semibold whitespace-nowrap">{design.assignedTo || '—'}</td>
+                  <td className="px-5 py-3.5 text-[#334155] font-semibold whitespace-nowrap">{design.completion || '—'}</td>
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold border ${
+                      design.status === 'Completed'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                        : design.status === 'In Progress'
+                        ? 'bg-blue-50 text-blue-700 border-blue-300'
+                        : 'bg-amber-50 text-amber-800 border-amber-300'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        design.status === 'Completed' ? 'bg-emerald-500' : design.status === 'In Progress' ? 'bg-blue-500' : 'bg-amber-500'
+                      }`} />
+                      {design.status}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5 font-black text-emerald-700 whitespace-nowrap text-right">
+                    KSh {Number(design.amount || 0).toLocaleString()}
+                  </td>
                 </tr>
               ))}
+              <tr className="border-t-2 border-[#CBD5E1] bg-[#F8FAFC] font-black">
+                <td colSpan={6} className="px-5 py-3 text-right text-xs uppercase tracking-wider text-[#334155]">
+                  {group.label} Subtotal:
+                </td>
+                <td className="px-5 py-3 text-right text-sm text-emerald-700 whitespace-nowrap">
+                  KSh {Number(group.totalAmount || 0).toLocaleString()}
+                </td>
+              </tr>
             </tbody>
           </table>
-        </div>
+        ),
+        { borderColor: 'border-cyan-500', totalColor: 'text-emerald-700', countUnit: 'projects' }
       )
     }
 
     if (reportType === 'suppliers') {
-      return (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      const groups = groupRecordsByMonth(filteredData, s => s.created_at || s.date, s => s.totalSpent)
+      return renderAccordionWrapper(
+        groups,
+        (group) => (
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                <th className="px-4 py-2 text-left">Name</th>
-                <th className="px-4 py-2 text-left">Contact</th>
-                <th className="px-4 py-2 text-left">Phone</th>
-                <th className="px-4 py-2 text-right">Total Spent</th>
+              <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Supplier Name</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Contact</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Phone / Email</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">KRA PIN</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Credit Limit</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Total Spent</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredData.map(supplier => (
-                <tr key={supplier.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="px-4 py-2">{supplier.name}</td>
-                  <td className="px-4 py-2">{supplier.contact}</td>
-                  <td className="px-4 py-2">{supplier.phone}</td>
-                  <td className="px-4 py-2 text-right font-semibold">KSh {Number(supplier.totalSpent || 0).toLocaleString()}</td>
+            <tbody className="divide-y divide-[#E2E8F0]">
+              {group.items.map(supplier => (
+                <tr key={supplier.id} className="transition-all hover:bg-orange-50/30">
+                  <td className="px-5 py-3.5 font-bold text-[#0F172A] whitespace-nowrap">{supplier.name}</td>
+                  <td className="px-5 py-3.5 text-[#334155] font-semibold whitespace-nowrap">{supplier.contact || '—'}</td>
+                  <td className="px-5 py-3.5 text-[#334155] whitespace-nowrap">
+                    <div>{supplier.phone || '—'}</div>
+                    {supplier.email && <div className="text-xs text-[#64748B]">{supplier.email}</div>}
+                  </td>
+                  <td className="px-5 py-3.5 font-mono text-xs text-[#334155] whitespace-nowrap">{supplier.kra || '—'}</td>
+                  <td className="px-5 py-3.5 font-semibold text-[#0F172A] whitespace-nowrap">
+                    {supplier.credit ? `KSh ${Number(supplier.credit).toLocaleString()}` : '—'}
+                  </td>
+                  <td className="px-5 py-3.5 font-black text-rose-600 whitespace-nowrap text-right">
+                    KSh {Number(supplier.totalSpent || 0).toLocaleString()}
+                  </td>
                 </tr>
               ))}
+              <tr className="border-t-2 border-[#CBD5E1] bg-[#F8FAFC] font-black">
+                <td colSpan={5} className="px-5 py-3 text-right text-xs uppercase tracking-wider text-[#334155]">
+                  {group.label} Total Spent:
+                </td>
+                <td className="px-5 py-3 text-right text-sm text-rose-600 whitespace-nowrap">
+                  KSh {Number(group.totalAmount || 0).toLocaleString()}
+                </td>
+              </tr>
             </tbody>
           </table>
-        </div>
+        ),
+        { borderColor: 'border-amber-500', totalColor: 'text-rose-600', countUnit: 'suppliers' }
       )
     }
 
     if (reportType === 'supplierExpenses') {
-      return (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      const groups = groupRecordsByMonth(filteredData, e => e.date, e => e.amount)
+      return renderAccordionWrapper(
+        groups,
+        (group) => (
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                <th className="px-4 py-2 text-left">Date</th>
-                <th className="px-4 py-2 text-left">Supplier</th>
-                <th className="px-4 py-2 text-left">Type</th>
-                <th className="px-4 py-2 text-right">Amount</th>
+              <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Date</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Supplier</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Type / Category</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Remarks</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Amount</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredData.map(expense => {
+            <tbody className="divide-y divide-[#E2E8F0]">
+              {group.items.map(expense => {
                 const supplierName = data.suppliers.find(s => s.id === expense.supplier)?.name || 'Unknown'
                 return (
-                  <tr key={expense.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <td className="px-4 py-2">{expense.date}</td>
-                    <td className="px-4 py-2">{supplierName}</td>
-                    <td className="px-4 py-2">{expense.type}</td>
-                    <td className="px-4 py-2 text-right font-semibold">KSh {Number(expense.amount || 0).toLocaleString()}</td>
+                  <tr key={expense.id} className="transition-all hover:bg-orange-50/30">
+                    <td className="px-5 py-3.5 font-bold whitespace-nowrap text-[#0F172A]">{expense.date}</td>
+                    <td className="px-5 py-3.5 font-bold text-[#0F172A] whitespace-nowrap">{supplierName}</td>
+                    <td className="px-5 py-3.5 text-[#334155] whitespace-nowrap">{expense.type}</td>
+                    <td className="px-5 py-3.5 text-[#334155] max-w-sm truncate">{expense.remarks || '—'}</td>
+                    <td className="px-5 py-3.5 font-black text-purple-700 whitespace-nowrap text-right">
+                      KSh {Number(expense.amount || 0).toLocaleString()}
+                    </td>
                   </tr>
                 )
               })}
-              <tr className="border-t-2 border-gray-300 dark:border-gray-600 font-bold">
-                <td colSpan="3" className="px-4 py-2 text-right">Total:</td>
-                <td className="px-4 py-2 text-right">KSh {filteredData.reduce((sum, e) => sum + (Number(e.amount) || 0), 0).toLocaleString()}</td>
+              <tr className="border-t-2 border-[#CBD5E1] bg-[#F8FAFC] font-black">
+                <td colSpan={4} className="px-5 py-3 text-right text-xs uppercase tracking-wider text-[#334155]">
+                  {group.label} Subtotal:
+                </td>
+                <td className="px-5 py-3 text-right text-sm text-purple-700 whitespace-nowrap">
+                  KSh {Number(group.totalAmount || 0).toLocaleString()}
+                </td>
               </tr>
             </tbody>
           </table>
-        </div>
+        ),
+        { borderColor: 'border-purple-500', totalColor: 'text-purple-700', countUnit: 'vouchers' }
       )
     }
 
     if (reportType === 'inventory') {
-      const totalValue = filteredData.reduce((sum, item) => sum + ((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)), 0)
-      return (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      const groupsMap = {}
+      ;(filteredData || []).forEach(item => {
+        const cat = item.category || 'General'
+        if (!groupsMap[cat]) {
+          groupsMap[cat] = {
+            key: cat,
+            label: `${cat} Category`,
+            items: [],
+            totalAmount: 0
+          }
+        }
+        groupsMap[cat].items.push(item)
+        groupsMap[cat].totalAmount += (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)
+      })
+
+      const groups = Object.keys(groupsMap).sort().map(k => groupsMap[k])
+
+      return renderAccordionWrapper(
+        groups,
+        (group) => (
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                <th className="px-4 py-2 text-left">Item Name</th>
-                <th className="px-4 py-2 text-left">Category</th>
-                <th className="px-4 py-2 text-right">Quantity</th>
-                <th className="px-4 py-2 text-right">Unit Price</th>
-                <th className="px-4 py-2 text-right">Total Value</th>
+              <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Item Name</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Category</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">SKU</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Quantity</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Reorder Level</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Unit Price</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Total Value</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredData.map(item => (
-                <tr key={item.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="px-4 py-2 font-medium">{item.name}</td>
-                  <td className="px-4 py-2">{item.category}</td>
-                  <td className={`px-4 py-2 text-right ${item.quantity <= item.reorderLevel ? 'text-red-600 font-bold' : ''}`}>{item.quantity}</td>
-                  <td className="px-4 py-2 text-right">KSh {Number(item.unitPrice || 0).toLocaleString()}</td>
-                  <td className="px-4 py-2 text-right font-semibold">KSh {((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)).toLocaleString()}</td>
-                </tr>
-              ))}
-              <tr className="border-t-2 border-gray-300 dark:border-gray-600 font-bold">
-                <td colSpan="4" className="px-4 py-2 text-right">Total Inventory Value:</td>
-                <td className="px-4 py-2 text-right">KSh {totalValue.toLocaleString()}</td>
+            <tbody className="divide-y divide-[#E2E8F0]">
+              {group.items.map(item => {
+                const isLow = Number(item.quantity || 0) <= Number(item.reorderLevel || 0)
+                const val = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)
+                return (
+                  <tr key={item.id} className="transition-all hover:bg-orange-50/30">
+                    <td className="px-5 py-3.5 font-bold text-[#0F172A]">{item.name}</td>
+                    <td className="px-5 py-3.5 whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#EEF3FA] text-[#14243B] border border-[#CBD5E1]">
+                        <Tag size={11} className="text-[#F97316]" />
+                        {item.category}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 font-mono text-xs text-[#334155] whitespace-nowrap">{item.sku || '—'}</td>
+                    <td className="px-5 py-3.5 font-black text-right whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                        isLow ? 'bg-rose-100 text-rose-800 border border-rose-300' : 'text-[#0F172A]'
+                      }`}>
+                        {isLow && <AlertTriangle size={12} />}
+                        {item.quantity} units
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 font-semibold text-[#64748B] text-right whitespace-nowrap">
+                      {item.reorderLevel || 0}
+                    </td>
+                    <td className="px-5 py-3.5 font-bold text-[#0F172A] text-right whitespace-nowrap">
+                      KSh {Number(item.unitPrice || 0).toLocaleString()}
+                    </td>
+                    <td className="px-5 py-3.5 font-black text-blue-700 text-right whitespace-nowrap">
+                      KSh {val.toLocaleString()}
+                    </td>
+                  </tr>
+                )
+              })}
+              <tr className="border-t-2 border-[#CBD5E1] bg-[#F8FAFC] font-black">
+                <td colSpan={6} className="px-5 py-3 text-right text-xs uppercase tracking-wider text-[#334155]">
+                  {group.label} Stock Value:
+                </td>
+                <td className="px-5 py-3 text-right text-sm text-blue-700 whitespace-nowrap">
+                  KSh {Number(group.totalAmount || 0).toLocaleString()}
+                </td>
               </tr>
             </tbody>
           </table>
-        </div>
+        ),
+        { borderColor: 'border-orange-500', totalColor: 'text-blue-700', groupLabel: 'Category Breakdown', countUnit: 'items' }
       )
     }
 
     if (reportType === 'stockMovement') {
-      return (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      const groups = groupRecordsByMonth(filteredData, t => t.created_at || t.date, t => t.quantity_change)
+      return renderAccordionWrapper(
+        groups,
+        (group) => (
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                <th className="px-4 py-2 text-left">Date</th>
-                <th className="px-4 py-2 text-left">Item</th>
-                <th className="px-4 py-2 text-left">Type</th>
-                <th className="px-4 py-2 text-right">Change</th>
-                <th className="px-4 py-2 text-left">Reason</th>
-                <th className="px-4 py-2 text-left">User</th>
+              <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Date & Time</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Item Name</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Type</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Change</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Reason / Linked Job</th>
+                <th className="px-5 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Logged By</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredData.map(trans => {
+            <tbody className="divide-y divide-[#E2E8F0]">
+              {group.items.map(trans => {
                 const itemName = data.inventory.find(i => i.id === trans.item_id)?.name || 'Unknown Item'
+                let reason = trans.reason
+                const projectMatch = reason?.match(/Project #(\d+)/)
+                let clientName = null
+                if (projectMatch) {
+                  const design = data.designs.find(d => d.id == projectMatch[1])
+                  if (design) clientName = design.client
+                }
+
                 return (
-                  <tr key={trans.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <td className="px-4 py-2 text-xs">{new Date(trans.created_at).toLocaleString()}</td>
-                    <td className="px-4 py-2 font-medium">{itemName}</td>
-                    <td className="px-4 py-2">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                            trans.transaction_type === 'RESTOCK' ? 'bg-green-100 text-green-800' :
-                            trans.transaction_type === 'VARIANCE' ? 'bg-red-100 text-red-800' :
-                            trans.transaction_type === 'PROJECT_USAGE' ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100'
-                        }`}>
-                            {trans.transaction_type}
-                        </span>
+                  <tr key={trans.id} className="transition-all hover:bg-orange-50/30">
+                    <td className="px-5 py-3.5 font-bold whitespace-nowrap text-xs text-[#0F172A]">
+                      {new Date(trans.created_at || trans.date).toLocaleString()}
                     </td>
-                    <td className={`px-4 py-2 text-right font-bold ${trans.quantity_change > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {trans.quantity_change > 0 ? '+' : ''}{trans.quantity_change}
+                    <td className="px-5 py-3.5 font-bold text-[#0F172A] whitespace-nowrap">{itemName}</td>
+                    <td className="px-5 py-3.5 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold border ${
+                        trans.transaction_type === 'RESTOCK'
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                          : trans.transaction_type === 'VARIANCE'
+                          ? 'bg-rose-50 text-rose-800 border-rose-300'
+                          : 'bg-blue-50 text-blue-800 border-blue-300'
+                      }`}>
+                        {trans.transaction_type}
+                      </span>
                     </td>
-                    <td className="px-4 py-2">
-                        {(() => {
-                            let reason = trans.reason
-                            const projectMatch = reason.match(/Project #(\d+)/)
-                            if (projectMatch) {
-                                const designId = projectMatch[1]
-                                const design = data.designs.find(d => d.id == designId)
-                                if (design) {
-                                    return (
-                                        <span>
-                                            {reason} <span className="font-semibold text-blue-600"> - {design.client}</span>
-                                        </span>
-                                    )
-                                }
-                            }
-                            return reason
-                        })()}
+                    <td className={`px-5 py-3.5 font-black text-right whitespace-nowrap ${
+                      trans.quantity_change > 0 ? 'text-emerald-700' : 'text-rose-600'
+                    }`}>
+                      {trans.quantity_change > 0 ? `+${trans.quantity_change}` : trans.quantity_change} units
                     </td>
-                    <td className="px-4 py-2 text-xs text-gray-500">{trans.created_by}</td>
+                    <td className="px-5 py-3.5 text-xs text-[#334155] max-w-xs truncate">
+                      <span>{reason || '—'}</span>
+                      {clientName && <span className="font-bold text-blue-700 ml-1">({clientName})</span>}
+                    </td>
+                    <td className="px-5 py-3.5 text-xs font-semibold text-[#475569] whitespace-nowrap">
+                      {trans.created_by || '—'}
+                    </td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
-        </div>
+        ),
+        { 
+          borderColor: 'border-indigo-500', 
+          countUnit: 'movements', 
+          showTotal: false 
+        }
       )
     }
 
     if (reportType === 'full') {
+      const sales = filteredData.sales || []
+      const expenses = filteredData.expenses || []
+      const designs = filteredData.designs || []
+      const totalSales = sales.reduce((sum, s) => sum + (Number(s.amount) || 0), 0)
+      const totalExpenses = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0)
+      const netProfit = totalSales - totalExpenses
+
+      // Group full data by months
+      const monthsMap = {}
+      sales.forEach(s => {
+        if (!s.date) return
+        const d = new Date(s.date)
+        if (isNaN(d.getTime())) return
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+        const label = d.toLocaleString('default', { month: 'long', year: 'numeric' })
+        if (!monthsMap[key]) monthsMap[key] = { key, label, sales: 0, expenses: 0, salesList: [], expList: [] }
+        monthsMap[key].sales += Number(s.amount || 0)
+        monthsMap[key].salesList.push(s)
+      })
+
+      expenses.forEach(e => {
+        if (!e.date) return
+        const d = new Date(e.date)
+        if (isNaN(d.getTime())) return
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+        const label = d.toLocaleString('default', { month: 'long', year: 'numeric' })
+        if (!monthsMap[key]) monthsMap[key] = { key, label, sales: 0, expenses: 0, salesList: [], expList: [] }
+        monthsMap[key].expenses += Number(e.amount || 0)
+        monthsMap[key].expList.push(e)
+      })
+
+      const monthList = Object.keys(monthsMap).sort().reverse().map(k => monthsMap[k])
+
       return (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-100 dark:border-green-800">
-              <h3 className="font-bold text-green-800 dark:text-green-300 mb-2 flex items-center gap-2">
-                <TrendingUp size={18} /> Sales Summary
-              </h3>
-              <p className="text-2xl font-bold">KSh {(filteredData.sales || []).reduce((sum, s) => sum + (Number(s.amount) || 0), 0).toLocaleString()}</p>
-              <p className="text-sm text-gray-500">{(filteredData.sales || []).length} Transactions</p>
+          {/* Executive KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="card border-l-4 border-emerald-500 py-4">
+              <p className="text-xs font-black text-[#475569] uppercase tracking-wider mb-1">Gross Revenue</p>
+              <h3 className="text-2xl font-black text-emerald-700">KSh {totalSales.toLocaleString()}</h3>
+              <p className="text-xs font-semibold text-[#64748B] mt-1">{sales.length} verified transactions</p>
             </div>
-            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-800">
-              <h3 className="font-bold text-red-800 dark:text-red-300 mb-2 flex items-center gap-2">
-                <TrendingDown size={18} /> Expenses Summary
-              </h3>
-              <p className="text-2xl font-bold">KSh {(filteredData.expenses || []).reduce((sum, e) => sum + (Number(e.amount) || 0), 0).toLocaleString()}</p>
-              <p className="text-sm text-gray-500">{(filteredData.expenses || []).length} Transactions</p>
+            <div className="card border-l-4 border-rose-500 py-4">
+              <p className="text-xs font-black text-[#475569] uppercase tracking-wider mb-1">Total Expenditures</p>
+              <h3 className="text-2xl font-black text-rose-600">KSh {totalExpenses.toLocaleString()}</h3>
+              <p className="text-xs font-semibold text-[#64748B] mt-1">{expenses.length} expense vouchers</p>
             </div>
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
-              <h3 className="font-bold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
-                <Users size={18} /> Clients & Projects
+            <div className={`card border-l-4 ${netProfit >= 0 ? 'border-emerald-500' : 'border-rose-500'} py-4`}>
+              <p className="text-xs font-black text-[#475569] uppercase tracking-wider mb-1">Net Operating Margin</p>
+              <h3 className={`text-2xl font-black ${netProfit >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                KSh {netProfit.toLocaleString()}
               </h3>
-              <p className="text-2xl font-bold">{(filteredData.clients || []).length} Clients</p>
-              <p className="text-sm text-gray-500">{(filteredData.designs || []).length} Total Projects</p>
+              <p className="text-xs font-semibold text-[#64748B] mt-1">
+                {totalSales > 0 ? `${((netProfit / totalSales) * 100).toFixed(1)}% margin` : 'No revenue'}
+              </p>
+            </div>
+            <div className="card border-l-4 border-blue-500 py-4">
+              <p className="text-xs font-black text-[#475569] uppercase tracking-wider mb-1">Portfolio Deliveries</p>
+              <h3 className="text-2xl font-black text-blue-700">{(filteredData.clients || []).length} Clients</h3>
+              <p className="text-xs font-semibold text-[#64748B] mt-1">{designs.length} active design jobs</p>
             </div>
           </div>
-          
-          <div className="mt-8">
-            <h3 className="font-bold text-lg mb-4">Detailed Breakdown</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              The full system report provides a birds-eye view of your business health. 
-              For a granular row-by-row analysis, please use the CSV Export which combines all data points into a single spreadsheet.
-            </p>
+
+          {/* Month-by-Month Accordion Rollups */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#CBD5E1]">
+              <span className="text-xs font-black uppercase text-[#475569] tracking-wider">
+                Monthly Financial Rollups ({monthList.length} {monthList.length === 1 ? 'Period' : 'Periods'})
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAllExpanded(monthList.map(m => m.key), true)}
+                  className="text-xs font-bold text-[#F97316] hover:underline"
+                >
+                  Expand All
+                </button>
+                <span className="text-[#94A3B8]">•</span>
+                <button
+                  type="button"
+                  onClick={() => setAllExpanded(monthList.map(m => m.key), false)}
+                  className="text-xs font-bold text-[#64748B] hover:underline"
+                >
+                  Collapse All
+                </button>
+              </div>
+            </div>
+
+            {monthList.map((m, idx) => {
+              const isExpanded = expandedMonths[m.key] ?? (idx === 0 || monthList.length === 1)
+              const mNet = m.sales - m.expenses
+
+              return (
+                <div key={m.key} className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleMonth(m.key)}
+                    className="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 px-5 py-3.5 bg-white rounded-xl border-l-4 border-blue-500 border border-[#CBD5E1] shadow-sm hover:bg-[#FFF7ED] transition-all group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="text-[#69778A] group-hover:text-blue-600 transition-colors">
+                        {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                      </div>
+                      <h2 className="text-base sm:text-lg font-black text-[#0F172A] group-hover:text-blue-600 transition-colors">
+                        {m.label}
+                      </h2>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs font-extrabold">
+                      <span className="text-emerald-700">Revenue: KSh {m.sales.toLocaleString()}</span>
+                      <span className="text-rose-600">Expenses: KSh {m.expenses.toLocaleString()}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full border ${
+                        mNet >= 0
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                          : 'bg-rose-50 text-rose-800 border-rose-300'
+                      }`}>
+                        Net: KSh {mNet.toLocaleString()}
+                      </span>
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="card p-5 rounded-xl border border-[#CBD5E1] bg-white animate-in fade-in slide-in-from-top-1 duration-200 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-xs font-black text-emerald-700 uppercase tracking-wider">Top Month Sales</span>
+                            <span className="text-xs font-bold text-[#475569]">{m.salesList.length} items</span>
+                          </div>
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                            {m.salesList.slice(0, 5).map(s => (
+                              <div key={s.id} className="flex justify-between items-center text-xs py-1 border-b border-[#E2E8F0] last:border-0">
+                                <div>
+                                  <span className="font-bold text-[#0F172A]">{s.client || 'Direct'}</span>
+                                  <span className="text-[#64748B] ml-2">({s.dept})</span>
+                                </div>
+                                <span className="font-black text-emerald-700">KSh {Number(s.amount || 0).toLocaleString()}</span>
+                              </div>
+                            ))}
+                            {m.salesList.length === 0 && <p className="text-xs text-[#94A3B8]">No sales in this period</p>}
+                          </div>
+                        </div>
+
+                        <div className="p-4 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-xs font-black text-rose-600 uppercase tracking-wider">Top Month Expenses</span>
+                            <span className="text-xs font-bold text-[#475569]">{m.expList.length} items</span>
+                          </div>
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                            {m.expList.slice(0, 5).map(e => (
+                              <div key={e.id} className="flex justify-between items-center text-xs py-1 border-b border-[#E2E8F0] last:border-0">
+                                <div>
+                                  <span className="font-bold text-[#0F172A]">{e.cat}</span>
+                                  <span className="text-[#64748B] ml-2 truncate max-w-[120px] inline-block">{e.desc}</span>
+                                </div>
+                                <span className="font-black text-rose-600">KSh {Number(e.amount || 0).toLocaleString()}</span>
+                              </div>
+                            ))}
+                            {m.expList.length === 0 && <p className="text-xs text-[#94A3B8]">No expenses in this period</p>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )
