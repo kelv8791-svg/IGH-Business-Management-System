@@ -301,24 +301,25 @@ export default function Dashboard() {
           
           {/* Branch selector (Admin only) (Figma: Branch selector) */}
           {user?.role === 'admin' ? (
-            <div className="inline-flex items-center p-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-xl gap-1 shadow-sm">
+            <div className="inline-flex items-center p-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-xl gap-1 shadow-sm max-w-full overflow-x-auto">
               {[
-                { id: 'All',   label: 'All Branches (Consolidated)', color: 'text-sky-700' },
-                { id: 'IGH',   label: 'IGH Branch',                  color: 'text-orange-700' },
-                { id: 'iGift', label: 'iGift Shop',                  color: 'text-purple-700' },
+                { id: 'All',   label: 'All Branches', fullLabel: 'All Branches (Consolidated)', color: 'text-sky-700' },
+                { id: 'IGH',   label: 'IGH Branch',   fullLabel: 'IGH Branch',                  color: 'text-orange-700' },
+                { id: 'iGift', label: 'iGift Shop',   fullLabel: 'iGift Shop',                  color: 'text-purple-700' },
               ].map(b => {
                 const active = selectedBranch === b.id
                 return (
                   <button
                     key={b.id}
                     onClick={() => setSelectedBranch(b.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                       active
                         ? `bg-white ${b.color} shadow-sm border border-slate-200/80`
                         : 'text-[#64748B] hover:text-[#0F172A]'
                     }`}
                   >
-                    {b.label}
+                    <span className="sm:hidden">{b.label}</span>
+                    <span className="hidden sm:inline">{b.fullLabel}</span>
                   </button>
                 )
               })}

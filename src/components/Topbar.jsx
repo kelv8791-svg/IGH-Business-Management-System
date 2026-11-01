@@ -32,11 +32,12 @@ export default function Topbar({ onToggleSidebar }) {
           <span
             className="text-xs sm:text-sm font-black tracking-tight truncate text-[#0F172A]"
           >
-            IGH Business Management
+            <span className="sm:hidden">IGH BMS</span>
+            <span className="hidden sm:inline">IGH Business Management</span>
           </span>
-          <span className="text-xs text-[#94A3B8]">/</span>
+          <span className="hidden sm:inline text-xs text-[#94A3B8]">/</span>
           <span
-            className={`inline-flex items-center gap-1.5 text-[11px] font-extrabold rounded-lg px-2.5 py-0.5 border shadow-sm ${
+            className={`hidden sm:inline-flex items-center gap-1.5 text-[11px] font-extrabold rounded-lg px-2.5 py-0.5 border shadow-sm ${
               (user?.role === 'admin' ? selectedBranch : user?.branch) === 'All'
                 ? 'bg-sky-50 text-sky-800 border-sky-300'
                 : (user?.role === 'admin' ? selectedBranch : user?.branch) === 'iGift'
@@ -61,12 +62,12 @@ export default function Topbar({ onToggleSidebar }) {
       </div>
 
       {/* ── Right: controls ── */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
 
         {/* Branch Switcher (Admin) or Branch Badge (Staff) */}
         {user?.role === 'admin' ? (
           <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm ${
               selectedBranch === 'All'
                 ? 'bg-sky-50 text-sky-800 border border-sky-300'
                 : selectedBranch === 'iGift'
@@ -74,30 +75,30 @@ export default function Topbar({ onToggleSidebar }) {
                 : 'bg-orange-50 text-orange-900 border border-orange-300'
             }`}
           >
-            <Building2 size={14} className="flex-shrink-0" />
+            <Building2 size={13} className="flex-shrink-0" />
             <select
               value={selectedBranch}
               onChange={(e) => setSelectedBranch(e.target.value)}
-              className="bg-transparent border-none text-xs font-black focus:ring-0 cursor-pointer p-0 pr-1 appearance-none outline-none"
+              className="bg-transparent border-none text-[11px] sm:text-xs font-black focus:ring-0 cursor-pointer p-0 pr-1 appearance-none outline-none max-w-[85px] sm:max-w-none truncate"
               style={{ backgroundImage: 'none', color: 'inherit' }}
               title="Switch Active Branch"
             >
-              <option value="All"   className="bg-white text-[#0369A1] font-bold">All Branches (Consolidated)</option>
+              <option value="All"   className="bg-white text-[#0369A1] font-bold">All Branches</option>
               <option value="IGH"   className="bg-white text-[#C2410C] font-bold">IGH Branch</option>
               <option value="iGift" className="bg-white text-[#7E22CE] font-bold">iGift Shop</option>
             </select>
-            <ChevronDown size={12} className="opacity-70 flex-shrink-0" />
+            <ChevronDown size={11} className="opacity-70 flex-shrink-0" />
           </div>
         ) : (
           <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm ${
               user?.branch === 'iGift'
                 ? 'bg-purple-50 text-purple-800 border border-purple-300'
                 : 'bg-orange-50 text-orange-900 border border-orange-300'
             }`}
           >
-            <Building2 size={14} className="flex-shrink-0" />
-            <span>{user?.branch === 'iGift' ? 'iGift Shop' : 'IGH Branch'}</span>
+            <Building2 size={13} className="flex-shrink-0" />
+            <span className="text-[11px] sm:text-xs">{user?.branch === 'iGift' ? 'iGift' : 'IGH'}</span>
           </div>
         )}
 
