@@ -24,11 +24,13 @@ export default function LoginPage() {
   const { login } = useAuth()
   const { updateUser } = useData()
 
-  /* Brand pillars — static, replacing the rotating slideshow */
+  const [hoveredPillar, setHoveredPillar] = useState(null)
+
+  /* Brand pillars — interactive, replacing the rotating slideshow */
   const pillars = [
-    { icon: '✦', label: 'Design', sub: 'Graphics & Branding' },
-    { icon: '◈', label: 'Print', sub: 'Large Format & Digital' },
-    { icon: '◆', label: 'Gift', sub: 'Corporate Merchandise' },
+    { icon: '✦', label: 'Design', sub: 'Graphics & Branding', tag: 'Creative' },
+    { icon: '◈', label: 'Print', sub: 'Large Format & Digital', tag: 'Studio' },
+    { icon: '◆', label: 'Gift', sub: 'Corporate Merchandise', tag: 'Merch' },
   ]
 
   const handleLogin = async (e) => {
@@ -143,11 +145,10 @@ export default function LoginPage() {
       </div>
 
       {/* SPLIT CARD */}
-      <div className="w-full z-10 animate-slide-up" style={{ maxWidth: '1060px' }}>
+      <div className="w-full z-10 animate-slide-up" style={{ maxWidth: '1000px' }}>
         <div
           className="flex flex-col md:flex-row rounded-3xl overflow-hidden items-stretch"
           style={{
-            minHeight: '660px',
             background: '#FFFFFF',
             border: '1.5px solid #CBD5E1',
             boxShadow: '0 35px 90px -15px rgba(15,23,42,0.25), 0 15px 40px -5px rgba(15,23,42,0.16), 0 0 60px -10px rgba(249,115,22,0.18), 0 0 0 1px rgba(15,23,42,0.08)',
@@ -155,13 +156,13 @@ export default function LoginPage() {
         >
 
           {/* LEFT — Login Form */}
-          <div className="flex-1 p-8 sm:p-10 lg:p-12 flex flex-col justify-between" style={{ minWidth: 0, background: '#FFFFFF' }}>
+          <div className="flex-1 p-7 sm:p-9 lg:p-10 flex flex-col justify-center" style={{ minWidth: 0, background: '#FFFFFF' }}>
             <div>
               {/* Logo + title */}
-              <div className="mb-7">
-                <div className="flex items-center gap-3 mb-5">
+              <div className="mb-6">
+                <div className="flex items-center gap-3 mb-4">
                   <div
-                    className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 flex items-center justify-center p-1"
+                    className="w-11 h-11 rounded-2xl overflow-hidden flex-shrink-0 flex items-center justify-center p-1"
                     style={{ background: '#FFFFFF', border: '2px solid rgba(249,115,22,0.45)', boxShadow: '0 4px 14px rgba(249,115,22,0.20)' }}
                   >
                     <img src="/logo.jpg" alt="IGH Logo" className="w-full h-full object-contain" />
@@ -226,10 +227,10 @@ export default function LoginPage() {
 
           {/* RIGHT — Brand Identity Panel (replaces slideshow) */}
           <div
-            className="hidden md:flex relative flex-col overflow-hidden"
+            className="hidden md:flex relative flex-col overflow-hidden justify-between"
             style={{
-              width: '50%',
-              minWidth: '460px',
+              width: '48%',
+              minWidth: '420px',
               flexShrink: 0,
               background: 'linear-gradient(165deg, #182A42 0%, #111C2E 55%, #0B121F 100%)',
               borderLeft: '1.5px solid #CBD5E1',
@@ -246,9 +247,9 @@ export default function LoginPage() {
               }} />
 
             {/* Showcase image */}
-            <div className="relative mx-8 mt-8 rounded-2xl overflow-hidden border border-white/20 shadow-2xl group flex-shrink-0">
+            <div className="relative mx-7 mt-7 rounded-2xl overflow-hidden border border-white/20 shadow-xl group flex-shrink-0">
               <img src="/login-showcase.jpg" alt="IGH Business Suite"
-                className="w-full h-52 object-cover object-top transition-transform duration-700 group-hover:scale-105" />
+                className="w-full h-44 object-cover object-top transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 pointer-events-none"
                 style={{ background: 'linear-gradient(to top, rgba(17,28,46,0.90) 0%, rgba(17,28,46,0.15) 60%, transparent 100%)' }} />
               <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between pointer-events-none">
@@ -262,45 +263,95 @@ export default function LoginPage() {
             </div>
 
             {/* Brand identity block */}
-            <div className="relative z-10 flex-1 flex flex-col justify-between px-8 pt-7 pb-8">
-              <div>
-                {/* Orange accent bar */}
-                <div className="w-10 h-1 rounded-full mb-4" style={{ background: 'var(--igh-orange)' }} />
+            <div className="relative z-10 px-7 pt-4 pb-6 flex flex-col">
+              {/* Orange accent bar */}
+              <div className="w-10 h-1 rounded-full mb-3" style={{ background: 'var(--igh-orange)' }} />
 
-                <h3 className="text-xl font-black tracking-tight leading-snug text-white mb-1.5">
-                  Identity Graphics Houz
-                </h3>
-                <p className="text-sm font-semibold text-[#94A3B8] leading-relaxed mb-6">
-                  Nakuru's premier graphics, printing &amp; branding studio —<br />
-                  powering visibility for businesses across Kenya.
-                </p>
+              <h3 className="text-lg font-black tracking-tight leading-snug text-white mb-1">
+                Identity Graphics Houz
+              </h3>
+              <p className="text-xs font-semibold text-[#94A3B8] leading-relaxed mb-4">
+                Nakuru's premier graphics, printing &amp; branding studio —<br />
+                powering visibility for businesses across Kenya.
+              </p>
 
-                {/* Brand pillars */}
-                <div className="grid grid-cols-3 gap-3">
-                  {pillars.map(({ icon, label, sub }) => (
+              {/* Brand pillars with interactive hover effects */}
+              <div className="grid grid-cols-3 gap-2.5">
+                {pillars.map(({ icon, label, sub, tag }) => {
+                  const isHovered = hoveredPillar === label
+                  return (
                     <div
                       key={label}
-                      className="rounded-xl p-3.5 flex flex-col gap-1.5"
-                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
+                      onMouseEnter={() => setHoveredPillar(label)}
+                      onMouseLeave={() => setHoveredPillar(null)}
+                      className="relative rounded-xl p-3 flex flex-col gap-1.5 transition-all duration-300 cursor-pointer overflow-hidden select-none"
+                      style={{
+                        background: isHovered
+                          ? 'linear-gradient(135deg, rgba(249,115,22,0.18) 0%, rgba(255,255,255,0.08) 100%)'
+                          : 'rgba(255,255,255,0.05)',
+                        border: isHovered
+                          ? '1.5px solid rgba(249,115,22,0.70)'
+                          : '1.5px solid rgba(255,255,255,0.10)',
+                        transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
+                        boxShadow: isHovered
+                          ? '0 10px 24px -4px rgba(249,115,22,0.35), 0 0 14px rgba(249,115,22,0.20)'
+                          : 'none',
+                      }}
                     >
-                      <span className="text-[#F97316] text-base leading-none">{icon}</span>
-                      <p className="text-xs font-black text-white leading-none">{label}</p>
-                      <p className="text-[10px] font-semibold text-[#94A3B8] leading-tight">{sub}</p>
+                      {/* Top accent line on hover */}
+                      <div
+                        className="absolute top-0 left-0 right-0 h-[2px] transition-opacity duration-300 pointer-events-none"
+                        style={{
+                          background: 'linear-gradient(90deg, #F97316, #FB923C)',
+                          opacity: isHovered ? 1 : 0,
+                        }}
+                      />
+                      <div className="flex items-center justify-between">
+                        <span
+                          className="text-base leading-none transition-transform duration-300"
+                          style={{
+                            color: '#F97316',
+                            transform: isHovered ? 'scale(1.25)' : 'scale(1)',
+                            filter: isHovered ? 'drop-shadow(0 0 6px rgba(249,115,22,0.8))' : 'none',
+                          }}
+                        >
+                          {icon}
+                        </span>
+                        <span
+                          className="text-[9px] font-bold px-1.5 py-0.5 rounded transition-all duration-300"
+                          style={{
+                            background: isHovered ? 'rgba(249,115,22,0.25)' : 'rgba(255,255,255,0.06)',
+                            color: isHovered ? '#FFA954' : '#64748B',
+                            border: isHovered ? '1px solid rgba(249,115,22,0.4)' : '1px solid transparent',
+                          }}
+                        >
+                          {tag}
+                        </span>
+                      </div>
+                      <p className="text-xs font-black text-white leading-none mt-0.5 transition-colors duration-200">
+                        {label}
+                      </p>
+                      <p
+                        className="text-[10px] font-semibold leading-tight transition-colors duration-200"
+                        style={{ color: isHovered ? '#E2E8F0' : '#94A3B8' }}
+                      >
+                        {sub}
+                      </p>
                     </div>
-                  ))}
-                </div>
+                  )
+                })}
               </div>
 
               {/* Bottom signature */}
-              <div className="pt-5" style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }}>
+              <div className="mt-5 pt-3.5" style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[11px] font-black text-white/50 uppercase tracking-widest">identitygraphics.co.ke</p>
+                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">identitygraphics.co.ke</p>
                     <p className="text-[10px] font-semibold text-[#64748B] mt-0.5">Nakuru, Kenya</p>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <ShieldCheck size={14} className="text-[#F97316] flex-shrink-0" />
-                    <span className="text-[11px] font-bold text-white/70">Authorized Portal</span>
+                    <ShieldCheck size={13} className="text-[#F97316] flex-shrink-0" />
+                    <span className="text-[10px] font-bold text-white/70">Authorized Portal</span>
                   </div>
                 </div>
               </div>
