@@ -657,7 +657,21 @@ export default function Reports() {
       <div className="space-y-8 animate-fade-in">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="page-title">Reports Dashboard</h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="page-title">Reports Dashboard</h1>
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-full border shadow-sm ${
+                activeBranch === 'All'
+                  ? 'bg-sky-50 text-sky-800 border-sky-300'
+                  : activeBranch === 'iGift'
+                  ? 'bg-purple-50 text-purple-800 border-purple-300'
+                  : 'bg-orange-50 text-orange-900 border-orange-300'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${
+                  activeBranch === 'All' ? 'bg-sky-500' : activeBranch === 'iGift' ? 'bg-purple-500' : 'bg-orange-500'
+                }`} />
+                {activeBranch === 'All' ? 'All Branches (Consolidated)' : (activeBranch === 'iGift' ? 'iGift Shop' : 'IGH Branch')}
+              </span>
+            </div>
             <p className="page-subtitle">Select a report category to view detailed data and exports.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-slate-900 p-2.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
@@ -717,8 +731,21 @@ export default function Reports() {
               <p className="text-2xl font-black text-blue-700">KSh {(data.inventory || []).reduce((sum, i) => sum + ((Number(i.quantity) || 0) * (Number(i.unitPrice) || 0)), 0).toLocaleString()}</p>
            </div>
            <div className="card text-center py-5">
-              <p className="text-xs font-extrabold text-[#334155] uppercase tracking-wider mb-1.5">Active Branch</p>
-              <p className="text-2xl font-black text-[#F97316]">{activeBranch}</p>
+              <p className="text-xs font-extrabold text-[#334155] uppercase tracking-wider mb-1.5">Active View</p>
+              <div className="flex items-center justify-center gap-2 mt-1">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-full border ${
+                  activeBranch === 'All'
+                    ? 'bg-sky-50 text-sky-800 border-sky-300'
+                    : activeBranch === 'iGift'
+                    ? 'bg-purple-50 text-purple-800 border-purple-300'
+                    : 'bg-orange-50 text-orange-900 border-orange-300'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${
+                    activeBranch === 'All' ? 'bg-sky-500' : activeBranch === 'iGift' ? 'bg-purple-500' : 'bg-orange-500'
+                  }`} />
+                  {activeBranch === 'All' ? 'All Branches' : (activeBranch === 'iGift' ? 'iGift Shop' : 'IGH Branch')}
+                </span>
+              </div>
            </div>
         </div>
       </div>

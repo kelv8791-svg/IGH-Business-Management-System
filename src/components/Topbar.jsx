@@ -30,20 +30,32 @@ export default function Topbar({ onToggleSidebar }) {
 
         <div className="flex items-center gap-2 min-w-0">
           <span
-            className="text-xs sm:text-sm font-semibold truncate"
-            style={{ color: '#182A42' }}
+            className="text-xs sm:text-sm font-black tracking-tight truncate text-[#0F172A]"
           >
             IGH Business Management
           </span>
-          <span className="text-xs" style={{ color: '#8B97A6' }}>/</span>
+          <span className="text-xs text-[#94A3B8]">/</span>
           <span
-            className="inline-flex text-[11px] font-semibold rounded-md px-2 py-0.5"
-            style={{
-              color: '#526E99',
-              background: '#EEF3FA',
-            }}
+            className={`inline-flex items-center gap-1.5 text-[11px] font-extrabold rounded-lg px-2.5 py-0.5 border shadow-sm ${
+              (user?.role === 'admin' ? selectedBranch : user?.branch) === 'All'
+                ? 'bg-sky-50 text-sky-800 border-sky-300'
+                : (user?.role === 'admin' ? selectedBranch : user?.branch) === 'iGift'
+                ? 'bg-purple-50 text-purple-800 border-purple-300'
+                : 'bg-orange-50 text-orange-900 border-orange-300'
+            }`}
           >
-            {user?.role === 'admin' ? (selectedBranch === 'All' ? 'All Branches' : selectedBranch) : (user?.branch || 'IGH')}
+            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+              (user?.role === 'admin' ? selectedBranch : user?.branch) === 'All'
+                ? 'bg-sky-500'
+                : (user?.role === 'admin' ? selectedBranch : user?.branch) === 'iGift'
+                ? 'bg-purple-500'
+                : 'bg-orange-500'
+            }`} />
+            <span className="truncate">
+              {user?.role === 'admin'
+                ? (selectedBranch === 'All' ? 'All Branches (Consolidated)' : (selectedBranch === 'iGift' ? 'iGift Shop' : 'IGH Branch'))
+                : (user?.branch === 'iGift' ? 'iGift Shop' : 'IGH Branch')}
+            </span>
           </span>
         </div>
       </div>
@@ -51,28 +63,41 @@ export default function Topbar({ onToggleSidebar }) {
       {/* ── Right: controls ── */}
       <div className="flex items-center gap-2 sm:gap-3">
 
-        {/* Branch Switcher (Admin only) */}
-        {user?.role === 'admin' && (
+        {/* Branch Switcher (Admin) or Branch Badge (Staff) */}
+        {user?.role === 'admin' ? (
           <div
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-            style={{
-              background: '#F8FAFC',
-              border: '1px solid #E3E8EF',
-              color: '#182A42',
-            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm ${
+              selectedBranch === 'All'
+                ? 'bg-sky-50 text-sky-800 border border-sky-300'
+                : selectedBranch === 'iGift'
+                ? 'bg-purple-50 text-purple-800 border border-purple-300'
+                : 'bg-orange-50 text-orange-900 border border-orange-300'
+            }`}
           >
-            <Building2 size={13} className="flex-shrink-0" style={{ color: 'var(--igh-orange)' }} />
+            <Building2 size={14} className="flex-shrink-0" />
             <select
               value={selectedBranch}
               onChange={(e) => setSelectedBranch(e.target.value)}
-              className="bg-transparent border-none text-xs font-semibold focus:ring-0 cursor-pointer p-0 pr-2 appearance-none"
-              style={{ backgroundImage: 'none', color: '#182A42' }}
+              className="bg-transparent border-none text-xs font-black focus:ring-0 cursor-pointer p-0 pr-1 appearance-none outline-none"
+              style={{ backgroundImage: 'none', color: 'inherit' }}
+              title="Switch Active Branch"
             >
-              <option value="All"   className="bg-white text-[#182A42]">All Branches</option>
-              <option value="IGH"   className="bg-white text-[#182A42]">IGH Branch</option>
-              <option value="iGift" className="bg-white text-[#182A42]">iGift Shop</option>
+              <option value="All"   className="bg-white text-[#0369A1] font-bold">All Branches (Consolidated)</option>
+              <option value="IGH"   className="bg-white text-[#C2410C] font-bold">IGH Branch</option>
+              <option value="iGift" className="bg-white text-[#7E22CE] font-bold">iGift Shop</option>
             </select>
-            <ChevronDown size={11} style={{ color: '#8B97A6' }} />
+            <ChevronDown size={12} className="opacity-70 flex-shrink-0" />
+          </div>
+        ) : (
+          <div
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm ${
+              user?.branch === 'iGift'
+                ? 'bg-purple-50 text-purple-800 border border-purple-300'
+                : 'bg-orange-50 text-orange-900 border border-orange-300'
+            }`}
+          >
+            <Building2 size={14} className="flex-shrink-0" />
+            <span>{user?.branch === 'iGift' ? 'iGift Shop' : 'IGH Branch'}</span>
           </div>
         )}
 

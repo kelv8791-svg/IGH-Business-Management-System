@@ -201,8 +201,17 @@ export default function Suppliers() {
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] tracking-tight">Suppliers Management</h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 text-amber-900 border border-amber-300">
-              {activeBranch} Branch
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-full border shadow-sm ${
+              activeBranch === 'All'
+                ? 'bg-sky-50 text-sky-800 border-sky-300'
+                : activeBranch === 'iGift'
+                ? 'bg-purple-50 text-purple-800 border-purple-300'
+                : 'bg-orange-50 text-orange-900 border-orange-300'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                activeBranch === 'All' ? 'bg-sky-500' : activeBranch === 'iGift' ? 'bg-purple-500' : 'bg-orange-500'
+              }`} />
+              {activeBranch === 'All' ? 'All Branches (Consolidated)' : (activeBranch === 'iGift' ? 'iGift Shop' : 'IGH Branch')}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-[#334155] font-semibold mt-1">

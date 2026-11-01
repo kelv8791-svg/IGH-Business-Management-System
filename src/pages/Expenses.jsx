@@ -33,21 +33,26 @@ export default function Expenses() {
     date: new Date().toISOString().split('T')[0],
     cat: 'Petty Cash',
     amount: '',
-    desc: ''
+    desc: '',
+    branch: user?.role === 'admin' ? (selectedBranch === 'iGift' ? 'iGift' : 'IGH') : (user?.branch || 'IGH')
   })
 
   const categories = ['Petty Cash', 'Internet', 'Salaries', 'Marketing', 'Rent', 'Utilities', 'Maintenance', 'Other']
 
   const handleOpenModal = (expense = null) => {
     if (expense) {
-      setFormData(expense)
+      setFormData({
+        ...expense,
+        branch: expense.branch || (selectedBranch === 'iGift' ? 'iGift' : 'IGH')
+      })
       setEditId(expense.id)
     } else {
       setFormData({
         date: new Date().toISOString().split('T')[0],
         cat: 'Petty Cash',
         amount: '',
-        desc: ''
+        desc: '',
+        branch: user?.role === 'admin' ? (selectedBranch === 'iGift' ? 'iGift' : 'IGH') : (user?.branch || 'IGH')
       })
       setEditId(null)
     }
@@ -135,8 +140,17 @@ export default function Expenses() {
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] tracking-tight">Expenses Management</h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 text-amber-900 border border-amber-300">
-              {activeBranch} Branch
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-full border shadow-sm ${
+              activeBranch === 'All'
+                ? 'bg-sky-50 text-sky-800 border-sky-300'
+                : activeBranch === 'iGift'
+                ? 'bg-purple-50 text-purple-800 border-purple-300'
+                : 'bg-orange-50 text-orange-900 border-orange-300'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                activeBranch === 'All' ? 'bg-sky-500' : activeBranch === 'iGift' ? 'bg-purple-500' : 'bg-orange-500'
+              }`} />
+              {activeBranch === 'All' ? 'All Branches (Consolidated)' : (activeBranch === 'iGift' ? 'iGift Shop' : 'IGH Branch')}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-[#334155] font-semibold mt-1">
@@ -260,6 +274,9 @@ export default function Expenses() {
                       <thead>
                         <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
                           <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Date</th>
+                          {activeBranch === 'All' && (
+                            <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Branch</th>
+                          )}
                           <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Category</th>
                           <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Description</th>
                           <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Amount</th>
@@ -270,6 +287,18 @@ export default function Expenses() {
                         {group.expenses.map((expense) => (
                           <tr key={expense.id} className="transition-all">
                             <td className="px-6 py-4 text-sm font-bold whitespace-nowrap text-[#0F172A]">{expense.date}</td>
+                            {activeBranch === 'All' && (
+                              <td className="px-6 py-4 text-sm whitespace-nowrap">
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                                  (expense.branch || 'IGH') === 'iGift'
+                                    ? 'bg-purple-50 text-purple-800 border-purple-200'
+                                    : 'bg-orange-50 text-orange-900 border-orange-200'
+                                }`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${(expense.branch || 'IGH') === 'iGift' ? 'bg-purple-500' : 'bg-orange-500'}`} />
+                                  {(expense.branch || 'IGH') === 'iGift' ? 'iGift Shop' : 'IGH Branch'}
+                                </span>
+                              </td>
+                            )}
                             <td className="px-6 py-4 text-sm whitespace-nowrap">
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold bg-[#EEF3FA] text-[#14243B] border border-[#CBD5E1]">
                                 <Tag size={12} className="text-[#F97316]" />
@@ -331,6 +360,20 @@ export default function Expenses() {
       {/* Add / Edit Expense Modal */}
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editId ? 'Edit Expense Voucher' : 'Record New Expense'}>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {user?.role === 'admin' && (
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Target Branch *</label>
+              <select
+                value={formData.branch || (selectedBranch === 'iGift' ? 'iGift' : 'IGH')}
+                onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                className="form-input font-bold"
+              >
+                <option value="IGH">IGH Branch (Design & Print)</option>
+                <option value="iGift">iGift Shop (Merchandise)</option>
+              </select>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Date *</label>

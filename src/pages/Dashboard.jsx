@@ -93,7 +93,7 @@ const getDateRange = (p) => {
 
 export default function Dashboard() {
   const { user } = useAuth()
-  const { data, selectedBranch } = useData()
+  const { data, selectedBranch, setSelectedBranch } = useData()
   const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
   const [period, setPeriod] = useState('all')
 
@@ -263,8 +263,17 @@ export default function Dashboard() {
             <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-[#182A42] leading-tight">
               Business Overview
             </h1>
-            <span className="inline-flex items-center px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-[#EEF3FA] text-[#526E99]">
-              {activeBranch === 'All' ? 'Consolidated' : `${activeBranch} Branch`}
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-black rounded-full border shadow-sm ${
+              activeBranch === 'All'
+                ? 'bg-sky-50 text-sky-800 border-sky-300'
+                : activeBranch === 'iGift'
+                ? 'bg-purple-50 text-purple-800 border-purple-300'
+                : 'bg-orange-50 text-orange-900 border-orange-300'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                activeBranch === 'All' ? 'bg-sky-500' : activeBranch === 'iGift' ? 'bg-purple-500' : 'bg-orange-500'
+              }`} />
+              {activeBranch === 'All' ? 'All Branches (Consolidated)' : (activeBranch === 'iGift' ? 'iGift Shop' : 'IGH Branch')}
             </span>
           </div>
           <p className="text-xs sm:text-[13px] text-[#69778A]">
@@ -292,21 +301,21 @@ export default function Dashboard() {
           
           {/* Branch selector (Admin only) (Figma: Branch selector) */}
           {user?.role === 'admin' ? (
-            <div className="inline-flex items-center p-1 bg-[#E3E8EF] rounded-lg gap-1">
+            <div className="inline-flex items-center p-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-xl gap-1 shadow-sm">
               {[
-                { id: 'All', label: 'All Branches' },
-                { id: 'IGH', label: 'IGH Branch' },
-                { id: 'iGift', label: 'iGift Shop' },
+                { id: 'All',   label: 'All Branches (Consolidated)', color: 'text-sky-700' },
+                { id: 'IGH',   label: 'IGH Branch',                  color: 'text-orange-700' },
+                { id: 'iGift', label: 'iGift Shop',                  color: 'text-purple-700' },
               ].map(b => {
                 const active = selectedBranch === b.id
                 return (
                   <button
                     key={b.id}
                     onClick={() => setSelectedBranch(b.id)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       active
-                        ? 'bg-white text-[#182A42] shadow-sm'
-                        : 'text-[#69778A] hover:text-[#182A42]'
+                        ? `bg-white ${b.color} shadow-sm border border-slate-200/80`
+                        : 'text-[#64748B] hover:text-[#0F172A]'
                     }`}
                   >
                     {b.label}
@@ -315,9 +324,13 @@ export default function Dashboard() {
               })}
             </div>
           ) : (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#E3E8EF] text-xs font-semibold text-[#182A42]">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              Branch: {activeBranch}
+            <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-bold shadow-sm ${
+              activeBranch === 'iGift'
+                ? 'bg-purple-50 text-purple-800 border-purple-300'
+                : 'bg-orange-50 text-orange-900 border-orange-300'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${activeBranch === 'iGift' ? 'bg-purple-500' : 'bg-orange-500'}`} />
+              Branch: {activeBranch === 'iGift' ? 'iGift Shop' : 'IGH Branch'}
             </div>
           )}
 

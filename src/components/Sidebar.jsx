@@ -160,7 +160,7 @@ export default function Sidebar({ open, onCloseMobile }) {
                 {user?.username || user?.email}
               </p>
               <p className="text-[10px] font-semibold truncate capitalize mt-1" style={{ color: 'var(--igh-orange)' }}>
-                {user?.role} · {user?.branch || 'IGH'}
+                {user?.role} · {user?.role === 'admin' ? (selectedBranch === 'All' ? 'All Branches' : (selectedBranch === 'iGift' ? 'iGift Shop' : 'IGH Branch')) : (user?.branch === 'iGift' ? 'iGift Shop' : 'IGH Branch')}
               </p>
             </div>
           </div>

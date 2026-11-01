@@ -32,6 +32,8 @@ export default function Sales() {
   const [expandedMonth, setExpandedMonth] = useState(null)
 
   const activeBranch = user?.role === 'admin' ? selectedBranch : user?.branch
+  const targetModalBranch = formData?.branch || (user?.role === 'admin' ? (selectedBranch === 'iGift' ? 'iGift' : 'IGH') : (user?.branch || 'IGH'))
+  const isModalIGH = targetModalBranch === 'IGH'
   const isIGH = activeBranch === 'IGH'
 
   const [formData, setFormData] = useState({
@@ -47,7 +49,8 @@ export default function Sales() {
     source: 'Direct Sale',
     handedOver: false,
     handedOverDate: '',
-    inventory_item_id: ''
+    inventory_item_id: '',
+    branch: user?.role === 'admin' ? (selectedBranch === 'iGift' ? 'iGift' : 'IGH') : (user?.branch || 'IGH')
   })
 
   const departments = ['Walk-in', 'Online', 'Referal', 'Client', 'Reception']
@@ -58,6 +61,7 @@ export default function Sales() {
     if (sale) {
       setFormData({
         ...sale,
+        branch: sale.branch || (selectedBranch === 'iGift' ? 'iGift' : 'IGH'),
         dept: sale.dept || 'Walk-in',
         qtySold: sale.qty_sold || '',
         handedOver: !!sale.handed_over,
@@ -79,7 +83,8 @@ export default function Sales() {
         source: 'Direct Sale',
         handedOver: false,
         handedOverDate: '',
-        inventory_item_id: ''
+        inventory_item_id: '',
+        branch: user?.role === 'admin' ? (selectedBranch === 'iGift' ? 'iGift' : 'IGH') : (user?.branch || 'IGH')
       })
       setEditId(null)
     }
@@ -100,7 +105,7 @@ export default function Sales() {
       return
     }
 
-    if (isIGH) {
+    if (isModalIGH) {
       if (editId) {
         const prev = data.sales.find(s => s.id === editId)
         if (prev && !prev.handed_over && formData.handedOver) {
@@ -190,12 +195,17 @@ export default function Sales() {
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] tracking-tight">Sales Management</h1>
-            <span className="px-3 py-0.5 text-xs font-bold rounded-full bg-amber-50 text-amber-900 border border-amber-300">
-              {activeBranch} Branch
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full border shadow-sm ${
+              activeBranch === 'All' ? 'bg-sky-50 text-sky-800 border-sky-300' : (activeBranch === 'iGift' ? 'bg-purple-50 text-purple-800 border-purple-300' : 'bg-orange-50 text-orange-900 border-orange-300')
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                activeBranch === 'All' ? 'bg-sky-500' : (activeBranch === 'iGift' ? 'bg-purple-500' : 'bg-orange-500')
+              }`} />
+              {activeBranch === 'All' ? 'All Branches (Consolidated)' : (activeBranch === 'iGift' ? 'iGift Shop' : 'IGH Branch')}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-[#334155] font-semibold mt-1">
-            Record, track, and monitor real-time sales transactions for {activeBranch === 'iGift' ? 'iGift Shop' : 'IGH'}.
+            Record, track, and monitor real-time sales transactions for {activeBranch === 'All' ? 'All Branches' : (activeBranch === 'iGift' ? 'iGift Shop' : 'IGH Branch')}.
           </p>
         </div>
         <button onClick={() => handleOpenModal()} className="btn-primary flex items-center gap-2">
@@ -320,13 +330,17 @@ export default function Sales() {
                       <thead>
                         <tr className="border-b-2 border-[#CBD5E1] bg-[#F1F5F9]">
                           <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Date</th>
+                          {activeBranch === 'All' && (
+                            <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Branch</th>
+                          )}
                           <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Sale Type</th>
                           <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Description / Ref</th>
                           <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Status & Payment</th>
-                          {isIGH ? (
-                             <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Handed Over</th>
-                          ) : (
-                             <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Qty Sold</th>
+                          {activeBranch !== 'iGift' && (
+                            <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Handed Over</th>
+                          )}
+                          {activeBranch !== 'IGH' && (
+                            <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Qty Sold</th>
                           )}
                           <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider">Amount</th>
                           <th className="px-6 py-3.5 text-xs font-black text-[#0F172A] uppercase tracking-wider text-right">Actions</th>
@@ -336,6 +350,18 @@ export default function Sales() {
                         {group.sales.map((sale) => (
                           <tr key={sale.id} className="transition-all">
                             <td className="px-6 py-4 text-sm font-bold whitespace-nowrap text-[#0F172A]">{sale.date}</td>
+                            {activeBranch === 'All' && (
+                              <td className="px-6 py-4 text-sm whitespace-nowrap">
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                                  (sale.branch || 'IGH') === 'iGift'
+                                    ? 'bg-purple-50 text-purple-800 border-purple-200'
+                                    : 'bg-orange-50 text-orange-900 border-orange-200'
+                                }`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${(sale.branch || 'IGH') === 'iGift' ? 'bg-purple-500' : 'bg-orange-500'}`} />
+                                  {(sale.branch || 'IGH') === 'iGift' ? 'iGift Shop' : 'IGH Branch'}
+                                </span>
+                              </td>
+                            )}
                             <td className="px-6 py-4 text-sm">
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold bg-[#EEF3FA] text-[#14243B] border border-[#CBD5E1]">
                                 <Tag size={12} className="text-[#F97316]" />
@@ -361,28 +387,35 @@ export default function Sales() {
                                 <span className="text-xs font-semibold text-[#475569]">{sale.paymentMethod}</span>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-sm whitespace-nowrap">
-                              {isIGH ? (
-                                sale.handed_over ? (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                                    <PackageCheck size={13} />
-                                    Handed Over
-                                  </span>
+                            {activeBranch !== 'iGift' && (
+                              <td className="px-6 py-4 text-sm whitespace-nowrap">
+                                {(sale.branch || 'IGH') !== 'iGift' ? (
+                                  sale.handed_over ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                      <PackageCheck size={13} />
+                                      Handed Over
+                                    </span>
+                                  ) : (
+                                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-[#334155] border border-slate-300">
+                                      Pending Handover
+                                    </span>
+                                  )
                                 ) : (
-                                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-[#334155] border border-slate-300">
-                                    Pending Handover
-                                  </span>
-                                )
-                              ) : (
-                                sale.qty_sold ? (
+                                  <span className="text-[#64748B] text-xs">-</span>
+                                )}
+                              </td>
+                            )}
+                            {activeBranch !== 'IGH' && (
+                              <td className="px-6 py-4 text-sm whitespace-nowrap">
+                                {sale.qty_sold ? (
                                   <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">
                                     {sale.qty_sold} units
                                   </span>
                                 ) : (
                                   <span className="text-[#64748B] text-xs font-bold">-</span>
-                                )
-                              )}
-                            </td>
+                                )}
+                              </td>
+                            )}
                             <td className="px-6 py-4 text-sm font-black text-emerald-700 whitespace-nowrap">
                               KSh {Number(sale.amount || 0).toLocaleString()}
                             </td>
@@ -444,6 +477,19 @@ export default function Sales() {
       {/* Add / Edit Sale Modal */}
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editId ? 'Edit Sale Record' : 'Record New Sale'}>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {user?.role === 'admin' && (
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Target Branch *</label>
+              <select
+                value={formData.branch || (selectedBranch === 'iGift' ? 'iGift' : 'IGH')}
+                onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                className="form-input font-bold"
+              >
+                <option value="IGH">IGH Branch (Design & Print)</option>
+                <option value="iGift">iGift Shop (Merchandise)</option>
+              </select>
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Date *</label>
@@ -479,7 +525,7 @@ export default function Sales() {
               />
             </div>
 
-            {!isIGH ? (
+            {!isModalIGH ? (
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Link to Inventory Item</label>
                 <select
@@ -515,7 +561,7 @@ export default function Sales() {
               </div>
             )}
 
-            {!isIGH && (
+            {!isModalIGH && (
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Quantity Sold</label>
                 <input
