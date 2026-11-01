@@ -291,7 +291,7 @@ export default function LoginPage() {
             minHeight: '660px',
             background: '#FFFFFF',
             border: '1.5px solid #CBD5E1',
-            boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(15, 23, 42, 0.04)',
+            boxShadow: '0 35px 90px -15px rgba(15, 23, 42, 0.25), 0 15px 40px -5px rgba(15, 23, 42, 0.16), 0 0 60px -10px rgba(249, 115, 22, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.08)',
           }}
         >
           {/* ══ LEFT — Login Form ══ */}
